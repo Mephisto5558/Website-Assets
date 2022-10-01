@@ -438,7 +438,7 @@ addEventListener('DOMContentLoaded', () => {
   };
 
   const hide = el => el.style.removeProperty('display'),
-    imgSrc = (elm, src, remove) => remove ? elm.style.removeProperty('content') : elm.style.content = `url(${src})`;
+    imgSrc = (elm, src, remove) => remove ? elm.style.removeProperty('content') : elm.style.content = `url(${/^https?:\/\//g.test(src) ? '' : 'https://'}${src})`;
 
   const [guiFragment, fieldFragment, embedFragment, guiEmbedAddFragment] = Array.from({ length: 4 }, () => document.createDocumentFragment());
   embedFragment.appendChild(document.querySelector('.embed.markup').cloneNode(true));
