@@ -239,7 +239,7 @@
     await createProfileElement();
     createFeatureReqElement();
 
-    cardsCache = (await fetchAPI(`vote/list`).then(e => e.json()))?.cards || [];
+    cardsCache = (await fetchAPI(`vote/list`).then(e => e.json()))?.cards?.sort((a, b) => b.votes - a.votes) || [];
     cardsContainer.classList.add(cardsInRows ? 'cards-row-mode' : 'cards-column-mode');
     cardsContainer.style.marginTop = `${document.querySelector('.header-container').clientHeight + 16}px`;
 
