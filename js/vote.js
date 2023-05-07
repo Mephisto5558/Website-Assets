@@ -12,9 +12,9 @@
 
   function createElement(tagName, className, id, textContent, parent, type = 'append') {
     const element = document.createElement(tagName);
-    if (className) element.className = className;
-    if (id) element.id = id;
-    if (textContent) element.textContent = textContent;
+    if (className != null) element.className = className;
+    if (id != null) element.id = id;
+    if (textContent != null) element.textContent = textContent;
     if (parent) type == 'replace' ? parent.replaceChildren(element) : parent.appendChild(element);
     return element;
   }
