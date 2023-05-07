@@ -110,9 +110,10 @@
     if (card.body) createElement('p', null, null, card.body, cardElement);
 
     const voteButtonsElement = createElement('div', 'vote-buttons', null, null, cardElement);
+    const upvoteCounterElement = createElement('span', 'vote-counter', null, card.votes ?? 0);
 
     createElement('button', 'vote-button', null, 'Upvote', voteButtonsElement).addEventListener('click', () => sendUpvote(card.id, upvoteCounterElement));
-    createElement('span', 'vote-counter', null, card.votes ?? 0, voteButtonsElement);
+    voteButtonsElement.appendChild(upvoteCounterElement);
 
     const copyButtonElement = createElement('button', 'copy-button', null, null, voteButtonsElement);
     copyButtonElement.title = 'Copy card Id';
@@ -245,4 +246,4 @@
     displayCards();
     loaded = true;
   });
-})()
+})();
