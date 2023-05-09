@@ -100,7 +100,7 @@
     for (const card of cards) createCardElement(card);
 
     offset += amount;
-    if (cardsContainer.childElementCount < amount) displayCards(...arguments);
+    if (cardsContainer.childElementCount < amount && cardsCache.length > offset) displayCards(...arguments);
   }
 
   function createCardElement(card) {
