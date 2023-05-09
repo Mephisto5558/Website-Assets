@@ -1,6 +1,8 @@
 (() => {
-  let user, cardsCache, searchTimeout, offset = 0, currentTheme, loaded, cardsInRows = localStorage.getItem('displayMode') ? localStorage.getItem('displayMode') === 'cardsInRows' : !navigator.userAgentData?.mobile;
+  let user, cardsCache, searchTimeout, currentTheme, loaded, cardsInRows, offset = 0;
   const
+    headerContainer = document.querySelector('.header-container'),
+    profileContainer = document.querySelector('.profile-container'),
     cardsContainer = document.getElementById('cards-container'),
     searchBox = document.getElementById('search-box');
 
@@ -29,11 +31,9 @@
   }
 
   //Elements
-  async function createProfileElement() {
+  async function createProfileElement(smallScreen) {
     user = await fetchAPI('user').catch(() => { }).then(e => e.json());
-    const profileContainer = document.querySelector('.profile-container');
-
-    if (user?.error || !user) return createElement('button', 'login-button', null, 'Login with Discord', profileContainer).addEventListener('click', () => window.location.href = `/auth/discord?redirectURL=${window.location.href}`);
+    if (user?.error || !user) return createElement('button', 'login-button', null, smallScreen ? 'Login' : 'Login with Discord', profileContainer).addEventListener('click', () => window.location.href = `/auth/discord?redirectURL=${window.location.href}`);
 
     const profileContainerWrapper = createElement('div', 'profile-container-wrapper');
     const profileImageElement = createElement('img', 'profile-image', null, null, profileContainer);
@@ -161,7 +161,6 @@
   }
 
   async function sendFeatureRequest(data) {
-    debugger;
     data.preventDefault();
 
     const res = await fetchAPI('vote/new', {
@@ -236,12 +235,22 @@
     const query = new URLSearchParams(window.location.search).get('q');
     if (query) searchBox.value = query;
 
-    await createProfileElement();
+    const smallScreen = window.matchMedia('(max-width: 768px)').matches;
+    if (smallScreen) {
+      cardsInRows = false;
+      document.getElementById('feature-request-button').textContent = 'New';
+
+      headerContainer.insertBefore(profileContainer, searchBox);
+      headerContainer.insertBefore(document.createElement('br'), searchBox);
+    }
+    else cardsInRows = localStorage.getItem('displayMode') === 'cardsInRows';
+
+    await createProfileElement(smallScreen);
     createFeatureReqElement();
 
     cardsCache = (await fetchAPI(`vote/list`).then(e => e.json()))?.cards?.sort((a, b) => b.votes - a.votes) || [];
     cardsContainer.classList.add(cardsInRows ? 'cards-row-mode' : 'cards-column-mode');
-    cardsContainer.style.marginTop = `${document.querySelector('.header-container').clientHeight + 16}px`;
+    cardsContainer.style.marginTop = `${headerContainer.clientHeight + 16}px`;
 
     displayCards();
     loaded = true;

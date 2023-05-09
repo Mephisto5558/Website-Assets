@@ -23,36 +23,33 @@
 }
 
 :root {
-  --color-scheme: light dark;
-  --dark-mode-bg-color: #111;
-  --dark-mode-text-color: #fff;
-  --dark-mode-input-bg-color: #333;
-  --dark-mode-input-focus-bg-color: #444;
-  --dark-mode-card-bg-color: #222;
-  --light-mode-bg-color: #fff;
-  --light-mode-text-color: #111;
-  --light-mode-input-bg-color: #eee;
-  --light-mode-input-focus-bg-color: #ddd;
-  --light-mode-card-bg-color: #f2f2f2;
   --btn-bg-color: #5865f2;
   --btn-hover-bg-color: #4e56dd;
+  --color-scheme: light dark;
+  --dark-mode-bg-color: #111;
+  --dark-mode-card-bg-color: #222;
+  --dark-mode-input-bg-color: #333;
+  --dark-mode-input-focus-bg-color: #444;
+  --dark-mode-text-color: #fff;
+  --light-mode-bg-color: #fff;
+  --light-mode-card-bg-color: #f2f2f2;
+  --light-mode-input-bg-color: #eee;
+  --light-mode-input-focus-bg-color: #ddd;
+  --light-mode-text-color: #111
 }
 
 ::-webkit-scrollbar {
-  /* Hide scrollbar: Chrome, Safari, Opera */
   display: none
 }
 
 body {
   -ms-overflow-style: none;
-  /* Hide scrollbar: IE, Edge */
-  scrollbar-color: none;
-  /* Hide scrollbar: Firefox */
   background-color: var(--bg-color);
   color: var(--text-color);
   font-family: sans-serif;
   margin: 0;
   padding: 1rem;
+  scrollbar-color: none
 }
 
 button {
@@ -357,4 +354,42 @@ button {
 .card .vote-button:hover,
 #feature-request-modal button:hover {
   background-color: var(--btn-hover-bg-color)
+}
+
+@media (max-width: 768px) {
+  .header-container {
+    flex-wrap: wrap;
+    padding-top: .5rem
+  }
+
+  .header-container h1 {
+    font-size: 1.25rem
+  }
+
+  #toggle-cards-display {
+    display: none
+  }
+
+  #search-box {
+    margin-left: 0
+  }
+
+  #toggle-color-scheme {
+    margin-left: .5rem;
+    transform: scale(0.9)
+  }
+
+  #toggle-color-scheme > i {
+    position: relative;
+    top: 0
+  }
+
+  #search-box,
+  #feature-request-button {
+    max-width: 150px
+  }
+
+  .profile-container {
+    margin-left: .5rem
+  }
 }
