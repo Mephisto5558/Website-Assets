@@ -319,7 +319,7 @@ button {
   line-height: 1.5;
   margin: 0;
   margin-bottom: 1rem;
-  padding: 1rem
+  padding: 0 1rem
 }
 
 .card .vote-buttons {
