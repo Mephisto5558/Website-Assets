@@ -1,10 +1,12 @@
 (() => {
-  let user, cardsCache, searchTimeout, currentTheme, loaded, cardsInRows, offset = 0;
+  let user, cardsCache, searchTimeout, resizeTimeout, currentTheme, loaded, cardsInRows, offset = 0, oldWindowWidth = window.innerWidth;
   const
     headerContainer = document.querySelector('.header-container'),
-    profileContainer = document.querySelector('.profile-container'),
     cardsContainer = document.getElementById('cards-container'),
-    searchBox = document.getElementById('search-box');
+    searchBoxElement = createElement('input', 'grey-hover', 'search-box', null);
+
+  searchBoxElement.placeholder = 'Search';
+  searchBoxElement.type = 'Text';
 
   //Utils
   const fetchAPI = (url, options, timeout = 5000) => new Promise((res, rej) => {
@@ -33,16 +35,22 @@
   //Elements
   async function createProfileElement(smallScreen) {
     user = await fetchAPI('user').catch(() => { }).then(e => e.json());
-    if (user?.error || !user) return createElement('button', 'login-button', null, smallScreen ? 'Login' : 'Login with Discord', profileContainer).addEventListener('click', () => window.location.href = `/auth/discord?redirectURL=${window.location.href}`);
+    if (user?.error || !user) {
+      createElement('text', 'grey-hover', 'search-box', null, headerContainer).placeholder = 'Search';
+      createElement('button', 'grey-hover', 'feature-request-button', 'New Feature Request', headerContainer);
+      return createElement('button', 'login-button blue-button', null, smallScreen ? 'Login' : 'Login with Discord', profileContainer).addEventListener('click', () => window.location.href = `/auth/discord?redirectURL=${window.location.href}`);
+    }
 
-    const profileContainerWrapper = createElement('div', 'profile-container-wrapper');
+    const profileContainer = createElement('div', 'profile-container');
     const profileImageElement = createElement('img', 'profile-image', null, null, profileContainer);
+    const profileContainerWrapper = createElement('div', 'profile-container-wrapper', null, null, profileContainer);
+
     profileImageElement.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.webp`;
     profileImageElement.alt = 'Profile';
     profileImageElement.addEventListener('click', () => profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'block' ? 'none' : 'block');
 
     createElement('div', 'username', null, user.displayName || `${user.username}#${user.discriminator}`, profileContainerWrapper);
-    createElement('button', 'logout-button', null, 'Logout', profileContainerWrapper).addEventListener('click', async () => {
+    createElement('button', 'logout-button blue-button', null, 'Logout', profileContainerWrapper).addEventListener('click', async () => {
       const res = await fetch('/auth/logout');
       if (!res.ok) return Swal.fire({ icon: 'error', title: 'Logout failed', text: res.statusText });
 
@@ -50,8 +58,25 @@
       window.location.reload();
     });
 
+    const featureRequestButtonElement = createElement('button', 'grey-hover', 'feature-request-button', smallScreen ? 'New' : 'New Feature Request');
 
-    profileContainer.appendChild(profileContainerWrapper);
+    const query = new URLSearchParams(window.location.search).get('q');
+    if (query) searchBoxElement.value = query;
+
+    const fragment = document.createDocumentFragment();
+    if (smallScreen) {
+      createElement('br', null, null, null, headerContainer);
+      fragment.appendChild(profileContainer);
+      fragment.appendChild(searchBoxElement);
+      fragment.appendChild(featureRequestButtonElement);
+    }
+    else {
+      fragment.appendChild(searchBoxElement);
+      fragment.appendChild(featureRequestButtonElement);
+      fragment.appendChild(profileContainer);
+    }
+
+    headerContainer.appendChild(fragment);
   }
 
   async function createFeatureReqElement() {
@@ -67,7 +92,11 @@
     });
 
     featureRequestOverlay.addEventListener('click', event => {
-      if (event.target === featureRequestOverlay) featureRequestOverlay.style.display = 'none';
+      if (featureRequestOverlay.style.display === 'block') featureRequestOverlay.style.display = 'none';
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && featureRequestOverlay.style.display === 'block') featureRequestOverlay.style.display = 'none';
     });
 
     const titleCounter = document.getElementById('title-counter');
@@ -87,7 +116,7 @@
     document.getElementById('feature-request-modal').addEventListener('submit', sendFeatureRequest);
   }
 
-  function displayCards(query = searchBox.value, amount = 25) {
+  function displayCards(query = searchBoxElement.value, amount = 26) {
     query = query?.toLowerCase();
     updateParams('q', query);
 
@@ -98,6 +127,20 @@
 
     if (!offset) cardsContainer.innerHTML = '';
     for (const card of cards) createCardElement(card);
+
+    if (user.dev) for (const card of cardsContainer.querySelectorAll('.vote-buttons')) {
+      const deleteButtonElement = createElement('button', 'manage-button grey-hover', null, null, card);
+      deleteButtonElement.title = 'Delete card';
+      deleteButtonElement.addEventListener('click', () => Swal.fire({
+        icon: 'warning',
+        title: 'Are you sure?',
+        text: 'Are you sure you want to delete that card? This action cannot be undone!',
+        showCancelButton: true,
+        preConfirm: () => fetchAPI(`vote/delete?id=${card.id}`).then(e => e.statusText)
+      }));
+
+      createElement('i', 'fa-regular fa-trash-can fa-xl', null, null, deleteButtonElement);
+    }
 
     offset += amount;
     if (cardsContainer.childElementCount < amount && cardsCache.length > offset) displayCards(...arguments);
@@ -112,10 +155,10 @@
     const voteButtonsElement = createElement('div', 'vote-buttons', null, null, cardElement);
     const upvoteCounterElement = createElement('span', 'vote-counter', null, card.votes ?? 0);
 
-    createElement('button', 'vote-button', null, 'Upvote', voteButtonsElement).addEventListener('click', () => sendUpvote(card.id, upvoteCounterElement));
+    createElement('button', 'vote-button blue-button', null, 'Upvote', voteButtonsElement).addEventListener('click', () => sendUpvote(card.id, upvoteCounterElement));
     voteButtonsElement.appendChild(upvoteCounterElement);
 
-    const copyButtonElement = createElement('button', 'copy-button', null, null, voteButtonsElement);
+    const copyButtonElement = createElement('button', 'manage-button grey-hover', null, null, voteButtonsElement);
     copyButtonElement.title = 'Copy card Id';
     copyButtonElement.addEventListener('click', () => navigator.clipboard.writeText(card.id));
     createElement('i', 'fa-regular fa-copy fa-xl', null, null, copyButtonElement);
@@ -143,12 +186,6 @@
   async function setColorScheme(scheme) {
     currentTheme = scheme || (currentTheme === 'dark' ? 'light' : 'dark');
     localStorage.setItem('theme', currentTheme);
-
-    if (!scheme && user.id == '636196723852705822') await Swal.fire({
-      icon: currentTheme === 'light' ? 'error' : 'success',
-      title: 'Hallo Koi',
-      text: currentTheme === 'light' ? 'Du kriegst keinen Lightmode, ist ungesund!' : 'Welcome to the dark side!',
-    });
 
     ['bg', 'text', 'input-bg', 'input-focus-bg', 'card-bg'].forEach(e => document.documentElement.style.setProperty(`--${e}-color`, `var(--${currentTheme}-mode-${e}-color)`));
 
@@ -215,38 +252,39 @@
   }
 
   //Listener
-  searchBox.addEventListener('input', ({ target }) => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-      offset = 0;
-      displayCards(target.value);
-    }, 500);
-  });
-
   document.getElementById('toggle-cards-display').addEventListener('click', () => toggleCardDisplayMode());
   document.getElementById('toggle-color-scheme').addEventListener('click', () => setColorScheme());
 
   window.addEventListener('scroll', () => {
     if (cardsCache.length > offset && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.documentElement.scrollHeight - 15) displayCards();
   });
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      const currentWidth = window.innerWidth;
+
+      if (oldWindowWidth > 769 && currentWidth < 768 || oldWindowWidth < 768 && currentWidth > 769) window.location.reload();
+      else oldWindowWidth = currentWidth;
+    }, 500);
+  });
 
   document.addEventListener('DOMContentLoaded', async () => {
     setColorScheme(localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches && 'light') || 'dark');
-    const query = new URLSearchParams(window.location.search).get('q');
-    if (query) searchBox.value = query;
 
     const smallScreen = window.matchMedia('(max-width: 768px)').matches;
-    if (smallScreen) {
-      cardsInRows = false;
-      document.getElementById('feature-request-button').textContent = 'New';
-
-      headerContainer.insertBefore(profileContainer, searchBox);
-      headerContainer.insertBefore(document.createElement('br'), searchBox);
-    }
+    if (smallScreen) cardsInRows = false;
     else cardsInRows = localStorage.getItem('displayMode') === 'cardsInRows';
 
     await createProfileElement(smallScreen);
     createFeatureReqElement();
+
+    searchBoxElement.addEventListener('input', ({ target }) => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        offset = 0;
+        displayCards(target.value);
+      }, 500);
+    });
 
     cardsCache = (await fetchAPI(`vote/list`).then(e => e.json()))?.cards?.sort((a, b) => b.votes - a.votes) || [];
     cardsContainer.classList.add(cardsInRows ? 'cards-row-mode' : 'cards-column-mode');
