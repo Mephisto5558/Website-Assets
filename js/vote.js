@@ -3,7 +3,7 @@
   const
     headerContainer = document.querySelector('.header-container'),
     cardsContainer = document.getElementById('cards-container'),
-    searchBoxElement = createElement('input', 'grey-hover', 'search-box', null);
+    searchBoxElement = createElement('input', 'grey-hover', 'search-box');
 
   searchBoxElement.placeholder = 'Search';
   searchBoxElement.type = 'Text';
@@ -35,10 +35,10 @@
   //Elements
   async function createProfileElement(smallScreen) {
     const profileContainer = createElement('div', 'profile-container');
-    
+
     user = await fetchAPI('user').catch(() => { }).then(e => e.json());
     if (user?.error || !user) {
-      createElement('text', 'grey-hover', 'search-box', null, headerContainer).placeholder = 'Search';
+      headerContainer.appendChild(searchBoxElement);
       createElement('button', 'grey-hover', 'feature-request-button', 'New Feature Request', headerContainer);
       return createElement('button', 'login-button blue-button', null, smallScreen ? 'Login' : 'Login with Discord', profileContainer).addEventListener('click', () => window.location.href = `/auth/discord?redirectURL=${window.location.href}`);
     }
