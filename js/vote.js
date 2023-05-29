@@ -34,6 +34,8 @@
 
   //Elements
   async function createProfileElement(smallScreen) {
+    const profileContainer = createElement('div', 'profile-container');
+    
     user = await fetchAPI('user').catch(() => { }).then(e => e.json());
     if (user?.error || !user) {
       createElement('text', 'grey-hover', 'search-box', null, headerContainer).placeholder = 'Search';
@@ -41,7 +43,6 @@
       return createElement('button', 'login-button blue-button', null, smallScreen ? 'Login' : 'Login with Discord', profileContainer).addEventListener('click', () => window.location.href = `/auth/discord?redirectURL=${window.location.href}`);
     }
 
-    const profileContainer = createElement('div', 'profile-container');
     const profileImageElement = createElement('img', 'profile-image', null, null, profileContainer);
     const profileContainerWrapper = createElement('div', 'profile-container-wrapper', null, null, profileContainer);
 
