@@ -34,13 +34,17 @@
 
   //Elements
   async function createProfileElement(smallScreen) {
+    const fragment = document.createDocumentFragment();
     const profileContainer = createElement('div', 'profile-container');
 
     user = await fetchAPI('user').catch(() => { }).then(e => e.json());
     if (user?.error || !user) {
-      headerContainer.appendChild(searchBoxElement);
-      createElement('button', 'grey-hover', 'feature-request-button', 'New Feature Request', headerContainer);
-      return createElement('button', 'login-button blue-button', null, smallScreen ? 'Login' : 'Login with Discord', profileContainer).addEventListener('click', () => window.location.href = `/auth/discord?redirectURL=${window.location.href}`);
+      fragment.appendChild(searchBoxElement);
+      createElement('button', 'grey-hover', 'feature-request-button', 'New Feature Request', fragment);
+      createElement('button', 'login-button blue-button', null, smallScreen ? 'Login' : 'Login with Discord', profileContainer).addEventListener('click', () => window.location.href = `/auth/discord?redirectURL=${window.location.href}`);
+      fragment.appendChild(profileContainer);
+      
+      return headerContainer.appendChild(fragment);
     }
 
     const profileImageElement = createElement('img', 'profile-image', null, null, profileContainer);
@@ -64,7 +68,6 @@
     const query = new URLSearchParams(window.location.search).get('q');
     if (query) searchBoxElement.value = query;
 
-    const fragment = document.createDocumentFragment();
     if (smallScreen) {
       createElement('br', null, null, null, headerContainer);
       fragment.appendChild(profileContainer);
