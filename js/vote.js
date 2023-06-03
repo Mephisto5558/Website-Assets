@@ -132,15 +132,15 @@
     if (!offset) cardsContainer.innerHTML = '';
     for (const card of cards) createCardElement(card);
 
-    if (user.dev) for (const card of cardsContainer.querySelectorAll('.vote-buttons')) {
-      const deleteButtonElement = createElement('button', 'manage-button grey-hover', null, null, card);
+    if (user.dev) for (const buttons of cardsContainer.querySelectorAll('.vote-buttons')) {
+      const deleteButtonElement = createElement('button', 'manage-button grey-hover', null, null, buttons);
       deleteButtonElement.title = 'Delete card';
       deleteButtonElement.addEventListener('click', () => Swal.fire({
         icon: 'warning',
         title: 'Are you sure?',
         text: 'Are you sure you want to delete that card? This action cannot be undone!',
         showCancelButton: true,
-        preConfirm: () => fetchAPI(`vote/delete?featureId=${card.id}&userId=${user.id}`).then(e => e.statusText)
+        preConfirm: () => fetchAPI(`vote/delete?featureId=${buttons.parentElement.id}&userId=${user.id}`).then(e => e.statusText)
       }));
 
       createElement('i', 'fa-regular fa-trash-can fa-xl', null, null, deleteButtonElement);
