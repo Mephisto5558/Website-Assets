@@ -140,7 +140,7 @@
         title: 'Are you sure?',
         text: 'Are you sure you want to delete that card? This action cannot be undone!',
         showCancelButton: true,
-        preConfirm: () => fetchAPI(`vote/delete?id=${card.id}`).then(e => e.statusText)
+        preConfirm: () => fetchAPI(`vote/delete?featureId=${card.id}&userId=${user.id}`).then(e => e.statusText)
       }));
 
       createElement('i', 'fa-regular fa-trash-can fa-xl', null, null, deleteButtonElement);
