@@ -95,8 +95,8 @@
       featureRequestOverlay.style.display = 'block';
     });
 
-    featureRequestOverlay.addEventListener('click', event => {
-      if (featureRequestOverlay.style.display === 'block') featureRequestOverlay.style.display = 'none';
+    featureRequestOverlay.addEventListener('click', ({ target }) => {
+      if (target == featureRequestOverlay && featureRequestOverlay.style.display === 'block') featureRequestOverlay.style.display = 'none';
     });
 
     document.addEventListener('keydown', event => {
@@ -143,7 +143,7 @@
           showCancelButton: true,
           preConfirm: () => fetchAPI(`vote/delete?featureId=${buttons.parentElement.id}&userId=${user.id}`).then(e => e.statusText)
         });
-        
+
         buttons.parentElement.remove();
       });
 
