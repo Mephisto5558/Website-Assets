@@ -21,8 +21,13 @@
   });
 
   function createElement(tagName, data, parent, replace) {
+    /**@type {HTMLElement|Element} */
     const element = document.createElement(tagName);
-    if (Object.keys(data || {}).length) for (const [k, v] of Object.entries(data)) element[k] = v;
+    if (Object.keys(data || {}).length) for (const [k, v] of Object.entries(data)) {
+      if (v == null) continue;
+      else if (typeof v == 'object') Object.assign(element[k], v);
+      else element[k] = v;
+    }
     if (parent) replace ? parent.replaceChildren(element) : parent.appendChild(element);
     return element;
   }
@@ -150,8 +155,8 @@
   function createCardElement(card) {
     const cardElement = createElement('div', { className: 'card', id: card.id });
 
-    if (card.title) createElement('h2', { textContent: card.title }, cardElement);
-    if (card.body) createElement('p', { id: 'description', textContent: card.body }, cardElement);
+    const titleElement = createElement('h2', { textContent: user.dev ? null : card.title, style: card.title ? null : { display: 'none' } }, cardElement);
+    const descriptionElement = createElement('p', { id: 'description', textContent: user.dev ? null : card.body, style: card.body ? null : { display: 'none' } }, cardElement);
 
     const voteButtonsElement = createElement('div', { className: 'vote-buttons' }, cardElement);
     const upvoteCounterElement = createElement('span', { className: 'vote-counter', textContent: card.pending ? '' : card.votes ?? 0 });
@@ -176,7 +181,27 @@
     copyButtonElement.addEventListener('click', () => navigator.clipboard.writeText(card.id));
     createElement('i', { className: 'fa-regular fa-copy fa-xl' }, copyButtonElement);
 
+    let textareaElement;
     if (user.dev) {
+      createElement('input', { type: 'text', value: card.title }, titleElement).addEventListener('keydown', event => {
+        if (event.keyCode !== 13) return;
+        event.preventDefault();
+        const element = event.target.parentElement.nextElementSibling;
+        element.firstChild.style.height = 'fit-content';
+        element.style.removeProperty('display');
+        element.firstChild.focus();
+      });
+      textareaElement = createElement('textarea', { value: card.body }, descriptionElement);
+      textareaElement.addEventListener('input', ({ target }) => {
+        target.style.height = 'auto';
+        target.style.height = `${target.scrollHeight}px`;
+      }, false);
+      textareaElement.addEventListener('blur', ({ target }) => {
+        if (target.value) return;
+        target.style.removeProperty('height');
+        descriptionElement.style.display = 'none';
+      });
+
       const deleteButtonElement = createElement('button', { title: 'Delete card', className: 'manage-button grey-hover', }, voteButtonsElement);
       deleteButtonElement.addEventListener('click', () => Swal.fire({
         icon: 'warning',
@@ -195,7 +220,8 @@
     }
 
     (card.pending ? cardsContainerPending : cardsContainer).appendChild(cardElement);
-  }
+    if (textareaElement) textareaElement.style.height = `${textareaElement.scrollHeight}px`;
+  };
 
   //Handler
   function toggleCardDisplayMode() {
