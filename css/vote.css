@@ -69,6 +69,7 @@ button {
   border-radius: .25rem;
   box-shadow: 0 2px 4px #0000004d;
   display: flex;
+  flex-wrap: wrap;
   left: 0;
   padding: 1rem;
   position: fixed;
@@ -373,10 +374,6 @@ button {
     display: none
   }
 
-  #search-box {
-    margin-left: 0
-  }
-
   #toggle-color-scheme {
     margin-left: .5rem;
     transform: scale(0.9)
@@ -435,5 +432,10 @@ button {
   #feature-request-form > button {
     bottom: 0;
     margin-top: 0
+  }
+
+  #header-container > input,
+  #search-box {
+    margin-left: 0
   }
 }
