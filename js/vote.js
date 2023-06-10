@@ -1,5 +1,5 @@
 (() => {
-  let user, cardsCache, searchTimeout, resizeTimeout, currentTheme, loaded, cardsInRows = false, offset = 0, oldWindowWidth = window.innerWidth;
+  let user, /**@type {Map<string, {title:string, body:string, id:string, votes:number, pending?:true}>}*/cardsCache, searchTimeout, resizeTimeout, currentTheme, saveButtonElement, loaded, cardsInRows = false, offset = 0, oldWindowWidth = window.innerWidth;
   const
     headerContainer = document.getElementById('header-container'),
     cardsContainer = document.getElementById('cards-container'),
@@ -20,8 +20,11 @@
     fetch(url ? `/api/v1/internal/${url}` : null, options).then(res).catch(rej).finally(() => clearTimeout(timeoutId));
   });
 
+  /**@returns {Promise<cardsCache>}*/
+  const fetchCards = async () => new Map((await fetchAPI(`vote/list?includePending=true`).then(e => e.json()))?.cards?.sort((a, b) => (b.pending && !a.pending ? -1e9 : 0) - (a.votes - b.votes || b.title.localeCompare(a.title))).map(e => [e.id, e]));
+
   function createElement(tagName, data, parent, replace) {
-    /**@type {HTMLElement|Element} */
+    /**@type {HTMLElement|Element}*/
     const element = document.createElement(tagName);
     if (Object.keys(data || {}).length) for (const [k, v] of Object.entries(data)) {
       if (v == null) continue;
@@ -57,8 +60,9 @@
       return headerContainer.appendChild(fragment);
     }
 
-    createElement('img', { id: 'profile-image', alt: 'Profile', src: `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.webp` }, profileContainer)
-      .addEventListener('click', () => profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'block' ? 'none' : 'block');
+    profileContainer.addEventListener('click', () => profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'block' ? 'none' : 'block');
+
+    createElement('img', { alt: 'Profile', src: `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.webp?size=64` }, profileContainer);
 
     const profileContainerWrapper = createElement('div', { id: 'profile-container-wrapper' }, profileContainer);
 
@@ -95,6 +99,12 @@
         text: 'You must be logged in to be able to create a feature request!',
       });
 
+
+      headerContainer.inert = true;
+      cardsContainer.inert = true;
+      cardsContainerPending.inert = true;
+      if (saveButtonElement) saveButtonElement.inert = true;
+
       featureRequestOverlay.style.display = 'block';
       if (smallScreen) cardsContainer.style.display = 'none';
     });
@@ -102,6 +112,11 @@
     const closeButtonElement = document.querySelector('#feature-request-modal>button');
     const hideFeatureReqElement = ({ target, key }) => {
       if (featureRequestOverlay.style.display === 'none' || (key && key !== 'Escape')) return;
+
+      headerContainer.inert = '';
+      cardsContainer.inert = '';
+      cardsContainerPending.inert = '';
+      if (saveButtonElement) saveButtonElement.inert = '';
 
       if (smallScreen) cardsContainer.style.display = '';
       featureRequestOverlay.style.display = 'none';
@@ -131,7 +146,7 @@
     query = query?.toLowerCase();
     updateParams('q', query);
 
-    let cards = cardsCache.slice(offset, amount + offset);
+    let cards = [...cardsCache.values()].slice(offset, amount + offset);
     if (query) cards = cards.filter(e => e.title.toLowerCase().includes(query) || e.body.toLowerCase().includes(query) || e.id.toLowerCase().includes(query));
 
     if (!cards.length && !cardsContainer.childElementCount && !cardsContainerPending.childElementCount) return createElement('h2', { textContent: `There are currently no feature requests${query ? ' matching your search query' : ''} :(` }, cardsContainer, true);
@@ -144,36 +159,40 @@
     for (const card of cards) createCardElement(card);
 
     offset += amount;
-    if (cardsContainer.childElementCount + cardsContainerPending.childElementCount < amount && cardsCache.length > offset) return displayCards(...arguments);
+    if (cardsContainer.childElementCount + cardsContainerPending.childElementCount < amount && cardsCache.size > offset) return displayCards(...arguments);
 
     if (cardsContainerPending.childElementCount) {
       document.body.insertBefore(createElement('h2', { id: 'new-requests', textContent: 'New Requests' }), cardsContainerPending);
       document.body.insertBefore(createElement('h2', { id: 'old-requests', textContent: 'Approved Requests' }), cardsContainer);
+    }
+
+    if (user.dev) {
+      saveButtonElement = createElement('button', { id: 'save-button', title: 'Save', classList: 'blue-button' }, document.body);
+      createElement('i', { classList: 'fas fa-save fa-xl' }, saveButtonElement);
+
+      saveButtonElement.addEventListener('click', updateCards);
     }
   }
 
   function createCardElement(card) {
     const cardElement = createElement('div', { className: 'card', id: card.id });
 
-    const titleElement = createElement('h2', { textContent: user.dev ? null : card.title, style: card.title ? null : { display: 'none' } }, cardElement);
-    const descriptionElement = createElement('p', { id: 'description', textContent: user.dev ? null : card.body, style: card.body ? null : { display: 'none' } }, cardElement);
+    const titleElement = createElement('h2', { id: 'title', textContent: user.dev ? null : card.title, style: card.title ? null : { display: 'none' } }, cardElement);
+    const descriptionElement = card.body || user.dev ? createElement('p', { id: 'description', textContent: user.dev ? null : card.body, style: card.body ? null : { display: 'none' } }, cardElement) : null;
 
     const voteButtonsElement = createElement('div', { className: 'vote-buttons' }, cardElement);
     const upvoteCounterElement = createElement('span', { className: 'vote-counter', textContent: card.pending ? '' : card.votes ?? 0 });
-    if (card.pending) createElement('button', { textContent: 'Approve', className: 'vote-button blue-button' }, voteButtonsElement).addEventListener('click', async () => {
+
+    if (card.pending && user.dev) createElement('button', { textContent: 'Approve', className: 'vote-button blue-button' }, voteButtonsElement).addEventListener('click', async () => {
       const res = await fetchAPI(`vote/approve?featureId=${card.id}`).then(e => e.json());
 
       if (res.error) return Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
 
-      Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: `The feature request has been approved.`,
-      });
+      Swal.fire({ icon: 'success', title: 'Success', text: `The feature request has been approved.` });
 
       cardsContainer.appendChild(cardElement);
     });
-    else createElement('button', { className: 'vote-button blue-button', textContent: 'Upvote' }, voteButtonsElement).addEventListener('click', () => sendUpvote(card.id, upvoteCounterElement));
+    else if (!card.pending) createElement('button', { className: 'vote-button blue-button', textContent: 'Upvote' }, voteButtonsElement).addEventListener('click', () => sendUpvote(card.id, upvoteCounterElement));
 
     voteButtonsElement.appendChild(upvoteCounterElement);
 
@@ -184,19 +203,22 @@
     let textareaElement;
     if (user.dev) {
       createElement('input', { type: 'text', value: card.title }, titleElement).addEventListener('keydown', event => {
+        if (!event.target.parentElement.parentElement.hasAttribute('modified')) event.target.parentElement.parentElement.setAttribute('modified', '');
+
         if (event.keyCode !== 13) return;
         event.preventDefault();
         const element = event.target.parentElement.nextElementSibling;
-        element.firstChild.style.height = 'fit-content';
         element.style.removeProperty('display');
         element.firstChild.focus();
       });
-      textareaElement = createElement('textarea', { value: card.body }, descriptionElement);
-      textareaElement.addEventListener('input', ({ target }) => {
+      textareaElement = card.body || user.dev ? createElement('textarea', { value: card.body }, descriptionElement) : null;
+      textareaElement?.addEventListener('input', ({ target }) => {
+        if (!target.parentElement.parentElement.hasAttribute('modified')) target.parentElement.parentElement.setAttribute('modified', '');
+
         target.style.height = 'auto';
         target.style.height = `${target.scrollHeight}px`;
       }, false);
-      textareaElement.addEventListener('blur', ({ target }) => {
+      textareaElement?.addEventListener('blur', ({ target }) => {
         if (target.value) return;
         target.style.removeProperty('height');
         descriptionElement.style.display = 'none';
@@ -220,7 +242,7 @@
     }
 
     (card.pending ? cardsContainerPending : cardsContainer).appendChild(cardElement);
-    if (textareaElement) textareaElement.style.height = `${textareaElement.scrollHeight}px`;
+    if (textareaElement?.value) textareaElement.style.height = `${textareaElement.scrollHeight}px`;
   };
 
   //Handler
@@ -243,8 +265,9 @@
     }
   }
 
-  async function setColorScheme(scheme) {
-    currentTheme = scheme || (currentTheme === 'dark' ? 'light' : 'dark');
+  async function setColorScheme(scheme = (currentTheme === 'dark' ? 'light' : 'dark')) {
+    if (currentTheme === scheme) return;
+    currentTheme = scheme;
     localStorage.setItem('theme', currentTheme);
 
     ['bg', 'text', 'input-bg', 'input-focus-bg', 'card-bg'].forEach(e => document.documentElement.style.setProperty(`--${e}-color`, `var(--${currentTheme}-mode-${e}-color)`));
@@ -292,7 +315,7 @@
       text: 'You must be logged in to be able to vote!',
     });
 
-    const res = await fetchAPI(`vote/save?featureId=${cardId}`).then(e => e.json());
+    const res = await fetchAPI(`vote/addvote?featureId=${cardId}`).then(e => e.json());
     if (res.error) return Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
 
     Swal.fire({
@@ -304,12 +327,39 @@
     voteCounter.textContent = parseInt(voteCounter.textContent) + 1;
   }
 
+  async function updateCards() {
+    const updateList = [...document.querySelectorAll('.card[modified]')].reduce((acc, card) => {
+      card.removeAttribute('modified');
+
+      const originalData = cardsCache.get(card.id);
+      if (originalData && (card.children.title.firstChild.value.trim() !== originalData.title || card.children.description.firstChild.value.trim() != originalData.body))
+        acc.push({ id: card.id, title: card.children.title.firstChild.value.trim(), body: card.children.description.firstChild.value.trim() });
+      return acc;
+    }, []);
+
+    if (!updateList.length) return Swal.fire({ icon: 'error', title: 'Oops...', text: 'No cards have been modified.' });
+
+    const res = await fetchAPI('vote/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updateList)
+    }).then(e => e.json());
+
+    if (res.error) return Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
+
+    Swal.fire({ icon: 'success', title: 'Success', text: 'The cards have been updated.' });
+
+    offset = 0;
+    cardsCache = await fetchCards();
+    displayCards();
+  };
+
   //Listener
   document.getElementById('toggle-cards-display').addEventListener('click', () => toggleCardDisplayMode());
   document.getElementById('toggle-color-scheme').addEventListener('click', () => setColorScheme());
 
   window.addEventListener('scroll', () => {
-    if (cardsCache.length > offset && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.documentElement.scrollHeight - 15) displayCards();
+    if (cardsCache.size > offset && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.documentElement.scrollHeight - 15) displayCards();
   });
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
@@ -320,7 +370,6 @@
       else oldWindowWidth = currentWidth;
     }, 500);
   });
-  window.addEventListener('load', () => window.location.hash == '#new' ? document.getElementById('feature-request-button').click() : void 0);
 
   document.addEventListener('DOMContentLoaded', async () => {
     setColorScheme(localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches && 'light') || 'dark');
@@ -331,9 +380,11 @@
     await createProfileElement(smallScreen);
     createFeatureReqElement(smallScreen);
 
-    cardsCache = (await fetchAPI(`vote/list?includePending=true`).then(e => e.json()))?.cards?.sort((a, b) => (b.pending && !a.pending ? -1e9 : 0) - (a.votes - b.votes || b.title.localeCompare(a.title))) || [];
+    cardsCache = await fetchCards();
     cardsContainer.classList.add(cardsInRows ? 'cards-row-mode' : 'cards-column-mode');
     cardsContainerPending.classList.add(cardsInRows ? 'cards-row-mode' : 'cards-column-mode');
+
+    if (window.location.hash == '#new') document.getElementById('feature-request-button').click();
 
     displayCards();
     document.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`;
