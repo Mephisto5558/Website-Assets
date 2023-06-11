@@ -191,6 +191,7 @@
       Swal.fire({ icon: 'success', title: 'Success', text: `The feature request has been approved.` });
 
       cardsContainer.appendChild(cardElement);
+      if (!cardsContainerPending.childElementCount) document.getElementById('new-requests').remove();
     });
     else if (!card.pending) createElement('button', { className: 'vote-button blue-button', textContent: 'Upvote' }, voteButtonsElement).addEventListener('click', () => sendUpvote(card.id, upvoteCounterElement));
 
