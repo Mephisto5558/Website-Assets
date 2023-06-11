@@ -407,14 +407,14 @@ button {
 }
 
 @media (max-width: 768px) {
-  .header-container {
+  #header-container {
     flex-wrap: wrap;
-    padding-top: .5rem;
+    padding-top: .5rem
   }
 
-  .header-container > a {
+  #header-container > a {
     font-size: 1.25rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1rem
   }
 
   #toggle-cards-display {
@@ -436,7 +436,7 @@ button {
     max-width: 150px
   }
 
-  .profile-container {
+  #profile-container {
     margin-left: .5rem
   }
 
