@@ -80,7 +80,6 @@ button {
 }
 
 #header-container > * {
-  border-radius: .25rem;
   height: 39px;
   min-width: 39px
 }
@@ -96,6 +95,7 @@ button {
 }
 
 #header-container > #search-box {
+  border-radius: .25rem;
   margin-left: auto
 }
 
@@ -113,15 +113,7 @@ button {
 
 #toggle-cards-display,
 #toggle-color-scheme {
-  background-color: transparent;
-  border: 1rem
-}
-
-.card .manage-button {
-  background-color: transparent;
-  border: 1rem;
-  height: 39px;
-  width: 39px
+  background-color: transparent
 }
 
 #toggle-cards-display::before,
@@ -140,6 +132,12 @@ button {
   font-size: 1rem;
   padding: .5rem 1rem;
   transition: background-color .2s ease-in-out
+}
+
+#login-button,
+#logout-button {
+  display: inline-block;
+  height: inherit
 }
 
 #feature-request-overlay {
@@ -187,12 +185,10 @@ button {
 
 #feature-request-form {
   display: flex;
-  flex-direction: column;
-  justify-content: space-between
+  flex-direction: column
 }
 
 #feature-request-form > label {
-  display: block;
   margin-bottom: .5rem
 }
 
@@ -266,18 +262,10 @@ button {
   margin-bottom: .5rem
 }
 
-#login-button,
-#logout-button {
-  display: inline-block;
-  font-size: 1rem;
-  height: inherit;
-  transition: background-color .2s ease-in-out
-}
-
 .cards-container {
-  column-gap: 1rem;
   display: flex;
   flex-wrap: wrap;
+  gap: 1rem;
   transition: all .5s ease
 }
 
@@ -298,28 +286,20 @@ button {
   box-shadow: 0 0 .5rem #00000080;
   display: flex;
   flex-direction: column;
-  flex-grow: 0;
-  flex-shrink: 0;
   flex-wrap: wrap;
-  height: auto;
   justify-content: space-between;
-  margin-bottom: 1rem;
-  opacity: 0;
-  overflow: hidden;
+  padding: 1rem;
   position: relative
 }
 
 .card > h2 {
   font-size: 1.5rem;
-  margin: 0;
-  padding: 1rem
+  margin: 0
 }
 
 .card > p {
   line-height: 1.5;
-  margin: 0;
-  margin-bottom: 1rem;
-  padding: 0 1rem
+  margin-top: 1rem
 }
 
 .card input,
@@ -328,17 +308,13 @@ button {
   height: fit-content;
   margin: 0;
   max-height: 20rem;
-  padding: 0;
   width: 100%
 }
 
 .card > .vote-buttons {
   align-items: center;
   display: flex;
-  justify-content: flex-start;
-  padding: 1rem;
-  padding-top: .5rem;
-  position: static
+  margin-top: 1rem
 }
 
 .vote-buttons > .vote-button {
@@ -349,6 +325,12 @@ button {
   font-size: 1.2rem;
   font-weight: 700;
   margin: 0 .5rem
+}
+
+.vote-buttons > .manage-button {
+  background-color: transparent;
+  height: 39px;
+  width: 39px
 }
 
 .vote-buttons > #userId {
@@ -408,36 +390,36 @@ button {
 
 @media (max-width: 768px) {
   #header-container {
-    flex-wrap: wrap;
-    padding-top: .5rem
+    padding-top: .5rem;
+    row-gap: .75rem
   }
 
   #header-container > a {
     font-size: 1.25rem;
-    margin-bottom: 1rem
+    height: auto
   }
 
-  #toggle-cards-display {
+  #header-container > #profile-container {
+    margin-left: auto
+  }
+
+  #header-container > #toggle-cards-display {
     display: none
   }
 
-  #toggle-color-scheme {
+  #header-container > #toggle-color-scheme {
     margin-left: .5rem;
     transform: scale(0.9)
   }
 
-  #toggle-color-scheme > i {
-    position: relative;
-    top: 0
+  #header-container > input,
+  #header-container > #search-box {
+    margin-left: 0
   }
 
-  #search-box,
-  #feature-request-button {
+  #header-container > #search-box,
+  #header-container > #feature-request-button {
     max-width: 150px
-  }
-
-  #profile-container {
-    margin-left: .5rem
   }
 
   #feature-request-modal {
@@ -479,10 +461,5 @@ button {
   #feature-request-form > button {
     bottom: 0;
     margin-top: 0
-  }
-
-  #header-container > input,
-  #search-box {
-    margin-left: 0
   }
 }
