@@ -197,8 +197,14 @@
     voteButtonsElement.appendChild(upvoteCounterElement);
 
     const copyButtonElement = createElement('button', { title: 'Copy card Id', className: 'manage-button grey-hover' }, voteButtonsElement);
-    copyButtonElement.addEventListener('click', () => navigator.clipboard.writeText(card.id));
-    createElement('i', { className: 'fa-regular fa-copy fa-xl' }, copyButtonElement);
+    const copyButtonIcon = createElement('i', { className: 'fa-regular fa-copy fa-xl' }, copyButtonElement);
+
+    copyButtonElement.addEventListener('click', () => {
+      navigator.clipboard.writeText(card.id);
+      copyButtonIcon.classList = 'fa-solid fa-check fa-xl';
+      setTimeout(() => copyButtonIcon.classList = 'fa-regular fa-copy fa-xl', 3000);
+    });
+    ;
 
     let textareaElement;
     if (user.dev) {
