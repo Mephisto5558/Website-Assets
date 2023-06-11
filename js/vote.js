@@ -197,12 +197,12 @@
     voteButtonsElement.appendChild(upvoteCounterElement);
 
     const copyButtonElement = createElement('button', { title: 'Copy card Id', className: 'manage-button grey-hover' }, voteButtonsElement);
-    const copyButtonIcon = createElement('i', { className: 'fa-regular fa-copy fa-xl' }, copyButtonElement);
+    const copyButtonIcon = createElement('i', { className: 'far fa-copy fa-xl' }, copyButtonElement);
 
     copyButtonElement.addEventListener('click', () => {
       navigator.clipboard.writeText(card.id);
-      copyButtonIcon.classList = 'fa-solid fa-check fa-xl';
-      setTimeout(() => copyButtonIcon.classList = 'fa-regular fa-copy fa-xl', 3000);
+      copyButtonIcon.classList = 'fas fa-check fa-xl';
+      setTimeout(() => copyButtonIcon.classList = 'far fa-copy fa-xl', 3000);
     });
     ;
 
@@ -242,7 +242,7 @@
         }
       }));
 
-      createElement('i', { className: 'fa-regular fa-trash-can fa-xl' }, deleteButtonElement);
+      createElement('i', { className: 'far fa-trash-can fa-xl' }, deleteButtonElement);
 
       createElement('p', { id: 'userId', title: 'Click to copy', textContent: card.id.split('_')[0] }, voteButtonsElement).addEventListener('click', () => navigator.clipboard.writeText(card.id.split('_')[0]));
     }
