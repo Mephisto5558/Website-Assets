@@ -4,7 +4,7 @@
     headerContainer = document.getElementById('header-container'),
     cardsContainer = document.getElementById('cards-container'),
     cardsContainerPending = document.getElementById('cards-container-pending'),
-    searchBoxElement = createElement('input', { type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(window.location.search).get('q'), className: 'grey-hover' });
+    searchBoxElement = createElement('input', { type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(window.location.search).get('q'), className: 'grey-hover', maxLength: 200 });
 
   searchBoxElement.addEventListener('input', ({ target }) => {
     clearTimeout(searchTimeout);
@@ -13,7 +13,7 @@
       displayCards(target.value);
     }, 500);
   });
-
+  
   //Utils
   const fetchAPI = (url, options, timeout = 5000) => new Promise((res, rej) => {
     const timeoutId = setTimeout(() => rej(new Error('Request timed out')), timeout);
