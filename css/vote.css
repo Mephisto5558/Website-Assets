@@ -409,11 +409,12 @@ button {
 @media (max-width: 768px) {
   .header-container {
     flex-wrap: wrap;
-    padding-top: .5rem
+    padding-top: .5rem;
   }
 
-  .header-container > h1 {
-    font-size: 1.25rem
+  .header-container > a {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
   }
 
   #toggle-cards-display {
