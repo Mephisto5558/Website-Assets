@@ -4,7 +4,7 @@
     headerContainer = document.getElementById('header-container'),
     cardsContainer = document.getElementById('cards-container'),
     cardsContainerPending = document.getElementById('cards-container-pending'),
-    searchBoxElement = createElement('input', { type: 'text', placeholder: 'Search', id: 'search-box', query: new URLSearchParams(window.location.search).get('q'), className: 'grey-hover' });
+    searchBoxElement = createElement('input', { type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(window.location.search).get('q'), className: 'grey-hover' });
 
   searchBoxElement.addEventListener('input', ({ target }) => {
     clearTimeout(searchTimeout);
@@ -146,9 +146,7 @@
     query = query?.toLowerCase();
     updateParams('q', query);
 
-    let cards = [...cardsCache.values()].slice(offset, amount + offset);
-    if (query) cards = cards.filter(e => e.title.toLowerCase().includes(query) || e.body.toLowerCase().includes(query) || e.id.toLowerCase().includes(query));
-
+    const cards = (query ? [...cardsCache.values()].filter(e => e.title.toLowerCase().includes(query) || e.body.toLowerCase().includes(query) || e.id.toLowerCase().includes(query)) : [...cardsCache.values()]).slice(offset, amount + offset);
     if (!cards.length && !cardsContainer.childElementCount && !cardsContainerPending.childElementCount) return createElement('h2', { textContent: `There are currently no feature requests${query ? ' matching your search query' : ''} :(` }, cardsContainer, true);
 
     if (!offset) {
@@ -160,18 +158,6 @@
 
     offset += amount;
     if (cardsContainer.childElementCount + cardsContainerPending.childElementCount < amount && cardsCache.size > offset) return displayCards(...arguments);
-
-    if (cardsContainerPending.childElementCount) {
-      document.body.insertBefore(createElement('h2', { id: 'new-requests', textContent: 'New Requests' }), cardsContainerPending);
-      document.body.insertBefore(createElement('h2', { id: 'old-requests', textContent: 'Approved Requests' }), cardsContainer);
-    }
-
-    if (user.dev) {
-      saveButtonElement = createElement('button', { id: 'save-button', title: 'Save', classList: 'blue-button' }, document.body);
-      createElement('i', { classList: 'fas fa-save fa-xl' }, saveButtonElement);
-
-      saveButtonElement.addEventListener('click', updateCards);
-    }
   }
 
   function createCardElement(card) {
@@ -191,7 +177,10 @@
       Swal.fire({ icon: 'success', title: 'Success', text: `The feature request has been approved.` });
 
       cardsContainer.appendChild(cardElement);
-      if (!cardsContainerPending.childElementCount) document.getElementById('new-requests').remove();
+      if (!cardsContainerPending.childElementCount) {
+        document.getElementById('new-requests')?.remove();
+        document.getElementById('old-requests')?.remove();
+      }
     });
     else if (!card.pending) createElement('button', { className: 'vote-button blue-button', textContent: 'Upvote' }, voteButtonsElement).addEventListener('click', () => sendUpvote(card.id, upvoteCounterElement));
 
@@ -394,7 +383,20 @@
     if (window.location.hash == '#new') document.getElementById('feature-request-button').click();
 
     displayCards();
+    if (user.dev) {
+      if (cardsContainerPending.childElementCount) {
+        document.body.insertBefore(createElement('h2', { id: 'new-requests', textContent: 'New Requests' }), cardsContainerPending);
+        document.body.insertBefore(createElement('h2', { id: 'old-requests', textContent: 'Approved Requests' }), cardsContainer);
+      }
+
+      saveButtonElement = createElement('button', { id: 'save-button', title: 'Save', classList: 'blue-button' }, document.body);
+      createElement('i', { classList: 'fas fa-save fa-xl' }, saveButtonElement);
+
+      saveButtonElement.addEventListener('click', updateCards);
+    }
+
     document.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`;
+
     loaded = true;
   });
 })();
