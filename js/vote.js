@@ -6,14 +6,16 @@
     cardsContainerPending = document.getElementById('cards-container-pending'),
     searchBoxElement = createElement('input', { type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(window.location.search).get('q'), className: 'grey-hover', maxLength: 200 });
 
-  searchBoxElement.addEventListener('input', ({ target }) => {
+  searchBoxElement.addEventListener('input', ({ target }) => {debugger;
+    if (target.value.length > target.maxLength) target.value = target.value.slice(0, target.maxLength);
+
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
       offset = 0;
       displayCards(target.value);
     }, 500);
   });
-  
+
   //Utils
   const fetchAPI = (url, options, timeout = 5000) => new Promise((res, rej) => {
     const timeoutId = setTimeout(() => rej(new Error('Request timed out')), timeout);
@@ -21,7 +23,7 @@
   });
 
   /**@returns {Promise<cardsCache>}*/
-  const fetchCards = async () => new Map((await fetchAPI(`vote/list?includePending=true`).then(e => e.json()))?.cards?.sort((a, b) => (b.pending && !a.pending ? -1e9 : 0) - (a.votes - b.votes || b.title.localeCompare(a.title))).map(e => [e.id, e]));
+  const fetchCards = async () => new Map((await fetchAPI(`vote/list?includePending=${user.dev}`).then(e => e.json()))?.cards?.sort((a, b) => (b.pending && !a.pending ? -1e9 : 0) - (a.votes - b.votes || b.title.localeCompare(a.title))).map(e => [e.id, e]));
 
   function createElement(tagName, data, parent, replace) {
     /**@type {HTMLElement|Element}*/
