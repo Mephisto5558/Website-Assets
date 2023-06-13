@@ -6,7 +6,8 @@
     cardsContainerPending = document.getElementById('cards-container-pending'),
     searchBoxElement = createElement('input', { type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(window.location.search).get('q'), className: 'grey-hover', maxLength: 200 });
 
-  searchBoxElement.addEventListener('input', ({ target }) => {debugger;
+  searchBoxElement.addEventListener('input', ({ target }) => {
+    debugger;
     if (target.value.length > target.maxLength) target.value = target.value.slice(0, target.maxLength);
 
     clearTimeout(searchTimeout);
@@ -367,6 +368,9 @@
       if (oldWindowWidth > 769 && currentWidth < 768 || oldWindowWidth < 768 && currentWidth > 769) window.location.reload();
       else oldWindowWidth = currentWidth;
     }, 500);
+  });
+  window.addEventListener('beforeunload', event => {
+    if (document.querySelectorAll('.card[modified]').length) event.returnValue = 'You have unsaved changes.';
   });
 
   document.addEventListener('DOMContentLoaded', async () => {
