@@ -24,7 +24,7 @@
   });
 
   /**@returns {Promise<cardsCache>}*/
-  const fetchCards = async () => new Map((await fetchAPI(`vote/list?includePending=${user.dev}`).then(e => e.json()))?.cards?.sort((a, b) => (a.pending && !b.pending ? -1 : a.pending - b.pending) || b.votes - a.votes || a.title.localeCompare(b.title)).map(e => [e.id, e]));
+  const fetchCards = async () => new Map((await fetchAPI(`vote/list?includePending=${user.dev || false}`).then(e => e.json()))?.cards?.sort((a, b) => (a.pending && !b.pending ? -1 : a.pending - b.pending) || b.votes - a.votes || a.title.localeCompare(b.title)).map(e => [e.id, e]));
 
   function createElement(tagName, data, parent, replace) {
     /**@type {HTMLElement|Element}*/
