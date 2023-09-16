@@ -233,13 +233,12 @@
         preConfirm: () => {
           fetchAPI(`vote/delete?featureId=${cardElement.id}`).then(e => e.statusText);
 
+          cardElement.remove();
           if (!cardsContainerPending.childElementCount) {
             document.getElementById('new-requests').remove();
             document.getElementById('old-requests')?.remove();
             document.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`;
           }
-
-          cardElement.remove();
         }
       }));
 
