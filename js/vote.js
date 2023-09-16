@@ -69,7 +69,7 @@
 
     const profileContainerWrapper = createElement('div', { id: 'profile-container-wrapper' }, profileContainer);
 
-    createElement('div', { id: 'username', textContent: user.displayName || `${user.username}#${user.discriminator}` }, profileContainerWrapper);
+    createElement('div', { id: 'username', textContent: user.displayName || user.username }, profileContainerWrapper);
     createElement('button', { id: 'logout-button', textContent: 'Logout', className: 'blue-button' }, profileContainerWrapper).addEventListener('click', async () => {
       const res = await fetch('/auth/logout');
 
