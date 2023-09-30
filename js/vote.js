@@ -409,6 +409,7 @@
     }
 
     document.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`;
+    document.documentElement.style.scrollPaddingTop = `${headerContainer.clientHeight + 20}px`;
 
     loaded = true;
   });
