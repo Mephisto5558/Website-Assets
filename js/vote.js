@@ -18,6 +18,7 @@
   });
 
   //Utils
+  /**@param {RequestInit}options */
   const fetchAPI = (url, options, timeout = 5000) => new Promise((res, rej) => {
     const timeoutId = setTimeout(() => rej(new Error('Request timed out')), timeout);
     fetch(url ? `/api/v1/internal/${url}` : null, options).then(res).catch(rej).finally(() => clearTimeout(timeoutId));
@@ -249,7 +250,7 @@
 
     (card.pending ? cardsContainerPending : cardsContainer).appendChild(cardElement);
     if (textareaElement?.value) textareaElement.style.height = `${textareaElement.scrollHeight}px`;
-  };
+  }
 
   //Handler
   function toggleCardDisplayMode() {
@@ -358,7 +359,7 @@
     offset = 0;
     cardsCache = await fetchCards();
     displayCards();
-  };
+  }
 
   //Listener
   document.getElementById('toggle-cards-display').addEventListener('click', () => toggleCardDisplayMode());
