@@ -236,7 +236,7 @@
 
           cardElement.remove();
           if (!cardsContainerPending.childElementCount) {
-            document.getElementById('new-requests').remove();
+            document.getElementById('new-requests')?.remove();
             document.getElementById('old-requests')?.remove();
             document.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`;
           }
