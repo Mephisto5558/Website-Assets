@@ -7,7 +7,6 @@
     searchBoxElement = createElement('input', { type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(window.location.search).get('q'), className: 'grey-hover', maxLength: 200 });
 
   searchBoxElement.addEventListener('input', ({ target }) => {
-    debugger;
     if (target.value.length > target.maxLength) target.value = target.value.slice(0, target.maxLength);
 
     clearTimeout(searchTimeout);
@@ -17,8 +16,8 @@
     }, 500);
   });
 
-  //Utils
-  /**@param {RequestInit}options */
+  // Utils
+  /**@param {?RequestInit}options @returns {Promise<Response|Error>}*/
   const fetchAPI = (url, options, timeout = 5000) => new Promise((res, rej) => {
     const timeoutId = setTimeout(() => rej(new Error('Request timed out')), timeout);
     fetch(url ? `/api/v1/internal/${url}` : null, options).then(res).catch(rej).finally(() => clearTimeout(timeoutId));
@@ -27,18 +26,19 @@
   /**@returns {Promise<cardsCache>}*/
   const fetchCards = async () => new Map((await fetchAPI(`vote/list?includePending=${user.dev || false}`).then(e => e.json()))?.cards?.sort((a, b) => (a.pending && !b.pending ? -1 : a.pending - b.pending) || b.votes - a.votes || a.title.localeCompare(b.title)).map(e => [e.id, e]));
 
+  /**@param {string}tagName @param {obj|*|null}data @param {?HTMLElement}parent @param {?bool}replace*/
   function createElement(tagName, data, parent, replace) {
-    /**@type {HTMLElement|Element}*/
     const element = document.createElement(tagName);
     if (Object.keys(data || {}).length) for (const [k, v] of Object.entries(data)) {
       if (v == null) continue;
-      else if (typeof v == 'object') Object.assign(element[k], v);
+      if (typeof v == 'object') Object.assign(element[k], v);
       else element[k] = v;
     }
     if (parent) replace ? parent.replaceChildren(element) : parent.appendChild(element);
     return element;
   }
 
+  /**@param {string}key @param {?string}value*/
   function updateParams(key, value) {
     const url = new URL(window.location.href), params = new URLSearchParams(window.location.search);
 
@@ -48,7 +48,8 @@
     window.history.pushState(null, null, url.toString());
   }
 
-  //Elements
+  // Elements
+  /**@param {bool}smallScreen*/
   async function createProfileElement(smallScreen) {
     const fragment = document.createDocumentFragment();
     const profileContainer = createElement('div', { id: 'profile-container' });
@@ -61,7 +62,7 @@
         .addEventListener('click', () => window.location.href = `/auth/discord?redirectURL=${window.location.href}`);
       fragment.appendChild(profileContainer);
 
-      return headerContainer.appendChild(fragment);
+      return void headerContainer.appendChild(fragment);
     }
 
     profileContainer.addEventListener('click', () => profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'block' ? 'none' : 'block');
@@ -94,6 +95,7 @@
     headerContainer.appendChild(fragment);
   }
 
+  /**@param {bool}smallScreen*/
   async function createFeatureReqElement(smallScreen) {
     const featureRequestOverlay = document.getElementById('feature-request-overlay');
     document.getElementById('feature-request-button').addEventListener('click', () => {
@@ -142,15 +144,16 @@
       else descriptionCounter.classList.remove('limit-reached');
     });
 
-    document.getElementById('feature-request-modal').addEventListener('submit', sendFeatureRequest);
+    document.getElementById('feature-request-modal').addEventListener('submit', data => sendFeatureRequest(data, smallScreen));
   }
 
+  /**@param {?string}query*/
   function displayCards(query = searchBoxElement.value, amount = 26) {
     query = query?.toLowerCase();
     updateParams('q', query);
 
     const cards = (query ? [...cardsCache.values()].filter(e => e.title.toLowerCase().includes(query) || e.body.toLowerCase().includes(query) || e.id.toLowerCase().includes(query)) : [...cardsCache.values()]).slice(offset, amount + offset);
-    if (!cards.length && !cardsContainer.childElementCount && !cardsContainerPending.childElementCount) return createElement('h2', { textContent: `There are currently no feature requests${query ? ' matching your search query' : ''} :(` }, cardsContainer, true);
+    if (!cards.length && !cardsContainer.childElementCount && !cardsContainerPending.childElementCount) return void createElement('h2', { textContent: `There are currently no feature requests${query ? ' matching your search query' : ''} :(` }, cardsContainer, true);
 
     if (!offset) {
       cardsContainer.innerHTML = '';
@@ -160,9 +163,10 @@
     for (const card of cards) createCardElement(card);
 
     offset += amount;
-    if (cardsContainer.childElementCount + cardsContainerPending.childElementCount < amount && cardsCache.size > offset) return displayCards(...arguments);
+    if (cardsContainer.childElementCount + cardsContainerPending.childElementCount < amount && cardsCache.size > offset) return displayCards(query, amount);
   }
 
+  /**@param {{id:string,title?:string,body?:string,pending?:bool,votes?:number}}card*/
   function createCardElement(card) {
     const cardElement = createElement('div', { className: 'card', id: card.id });
 
@@ -252,7 +256,7 @@
     if (textareaElement?.value) textareaElement.style.height = `${textareaElement.scrollHeight}px`;
   }
 
-  //Handler
+  // Handler 
   function toggleCardDisplayMode() {
     cardsInRows = !cardsInRows;
 
@@ -272,6 +276,7 @@
     }
   }
 
+  /**@param {'dark'|'light'}scheme*/
   async function setColorScheme(scheme = (currentTheme === 'dark' ? 'light' : 'dark')) {
     if (currentTheme === scheme) return;
     currentTheme = scheme;
@@ -287,19 +292,20 @@
     }
   }
 
-  async function sendFeatureRequest(data) {
-    data.preventDefault();
+  /**@param {Event}event @param {bool}smallScreen*/
+  async function sendFeatureRequest(event, smallScreen) {
+    event.preventDefault();
 
     const res = await fetchAPI('vote/new', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        title: data.target.title.value.trim(),
-        description: data.target.description.value.trim()
+        title: event.target.title.value.trim(),
+        description: event.target.description.value.trim()
       })
     }).then(e => e.json());
 
-    if (res.error) return Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
+    if (res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
 
     await Swal.fire({
       icon: 'success',
@@ -307,23 +313,24 @@
       text: `Your feature request has been submitted and ${res.approved ? 'approved' : 'will be reviewed shortly'}.`,
     });
 
-    createCardElement(res);
+    cardsCache.set(res.id, res);
 
-    data.target.reset();
+    event.target.reset();
 
     if (smallScreen) cardsContainer.style.display = '';
     document.getElementById('feature-request-overlay').style.display = 'none';
   }
 
+  /**@param {str}cardId @param {HTMLElement}voteCounter*/
   async function sendUpvote(cardId, voteCounter) {
-    if (!user?.id) return Swal.fire({
+    if (!user?.id) return void Swal.fire({
       icon: 'error',
       title: 'Who are you?',
       text: 'You must be logged in to be able to vote!',
     });
 
     const res = await fetchAPI(`vote/addvote?featureId=${cardId}`).then(e => e.json());
-    if (res.error) return Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
+    if (res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
 
     Swal.fire({
       icon: 'success',
@@ -344,7 +351,7 @@
       return acc;
     }, []);
 
-    if (!updateList.length) return Swal.fire({ icon: 'error', title: 'Oops...', text: 'No cards have been modified.' });
+    if (!updateList.length) return void Swal.fire({ icon: 'error', title: 'Oops...', text: 'No cards have been modified.' });
 
     const res = await fetchAPI('vote/update', {
       method: 'POST',
@@ -352,7 +359,7 @@
       body: JSON.stringify(updateList)
     }).then(e => e.json());
 
-    if (res.error) return Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
+    if (res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
 
     Swal.fire({ icon: 'success', title: 'Success', text: 'The cards have been updated.' });
 
