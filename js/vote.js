@@ -55,7 +55,9 @@
     const profileContainer = createElement('div', { id: 'profile-container' });
 
     user = await fetchAPI('user').catch(() => { }).then(e => e.json());
-    if (user?.error || !user) {
+    if (!user || user.errorCode) {
+      if (user.errorCode == 403) return createElement('h2', { textContent: user.error }, document.body, true);
+
       fragment.appendChild(searchBoxElement);
       createElement('button', { id: 'feature-request-button', textContent: smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover' }, fragment);
       createElement('button', { id: 'login-button', textContent: smallScreen ? 'Login' : 'Login with Discord', className: 'blue-button' }, profileContainer)
