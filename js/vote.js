@@ -26,7 +26,7 @@
   /**@returns {Promise<cardsCache>}*/
   const fetchCards = async () => new Map((await fetchAPI(`vote/list?includePending=${user.dev || false}`).then(e => e.json()))?.cards?.sort((a, b) => (a.pending && !b.pending ? -1 : a.pending - b.pending) || b.votes - a.votes || a.title.localeCompare(b.title)).map(e => [e.id, e]));
 
-  /**@param {string}tagName @param {obj|*|null}data @param {?HTMLElement}parent @param {?bool}replace*/
+  /**@param {string}tagName @param {obj|*|null}data @param {?HTMLElement}parent @param {?boolean}replace*/
   function createElement(tagName, data, parent, replace) {
     const element = document.createElement(tagName);
     if (Object.keys(data || {}).length) for (const [k, v] of Object.entries(data)) {
@@ -49,7 +49,7 @@
   }
 
   // Elements
-  /**@param {bool}smallScreen*/
+  /**@param {boolean}smallScreen*/
   async function createProfileElement(smallScreen) {
     const fragment = document.createDocumentFragment();
     const profileContainer = createElement('div', { id: 'profile-container' });
@@ -97,7 +97,7 @@
     headerContainer.appendChild(fragment);
   }
 
-  /**@param {bool}smallScreen*/
+  /**@param {boolean}smallScreen*/
   async function createFeatureReqElement(smallScreen) {
     const featureRequestOverlay = document.getElementById('feature-request-overlay');
     document.getElementById('feature-request-button').addEventListener('click', () => {
@@ -168,7 +168,7 @@
     if (cardsContainer.childElementCount + cardsContainerPending.childElementCount < amount && cardsCache.size > offset) return displayCards(query, amount);
   }
 
-  /**@param {{id:string,title?:string,body?:string,pending?:bool,votes?:number}}card*/
+  /**@param {{id:string,title?:string,body?:string,pending?:boolean,votes?:number}}card*/
   function createCardElement(card) {
     const cardElement = createElement('div', { className: 'card', id: card.id });
 
@@ -294,7 +294,7 @@
     }
   }
 
-  /**@param {Event}event @param {bool}smallScreen*/
+  /**@param {Event}event @param {boolean}smallScreen*/
   async function sendFeatureRequest(event, smallScreen) {
     event.preventDefault();
 
