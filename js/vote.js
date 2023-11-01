@@ -118,7 +118,7 @@
 
     const closeButtonElement = document.querySelector('#feature-request-modal>button');
     const hideFeatureReqElement = ({ key }) => {
-      if (featureRequestOverlay.style.display === 'none' || (key && key !== 'Escape')) return;
+      if (key && key !== 'Escape' || featureRequestOverlay.style.display === 'none') return;
 
       headerContainer.inert = '';
       cardsContainer.inert = '';
