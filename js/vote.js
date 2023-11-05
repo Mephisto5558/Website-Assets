@@ -1,5 +1,10 @@
 (() => {
-  let user, /**@type {Map<string, {title:string, body:string, id:string, votes:number, pending?:true}>}*/cardsCache, searchTimeout, resizeTimeout, currentTheme, saveButtonElement, loaded, cardsInRows = false, offset = 0, oldWindowWidth = window.innerWidth;
+  let
+    /**@type {{id: string, username: string, locale: string, avatar: string, banner: string?, dev: boolean} | {errorCode: number, error: string}}*/
+    user,
+    /**@type {Map<string, {title:string, body:string, id:string, votes:number, pending?:true}>}*/
+    cardsCache, searchTimeout, resizeTimeout, currentTheme, saveButtonElement, loaded, cardsInRows = false, offset = 0, oldWindowWidth = window.innerWidth;
+
   const
     headerContainer = document.getElementById('header-container'),
     cardsContainer = document.getElementById('cards-container'),
@@ -230,7 +235,8 @@
         target.style.removeProperty('height');
         descriptionElement.style.display = 'none';
       });
-
+    }
+    if (user.dev || user.id == card.id.split('_')[0]) {
       const deleteButtonElement = createElement('button', { title: 'Delete card', className: 'manage-button grey-hover', }, voteButtonsElement);
       deleteButtonElement.addEventListener('click', () => Swal.fire({
         icon: 'warning',
@@ -250,9 +256,9 @@
       }));
 
       createElement('i', { className: 'far fa-trash-can fa-xl' }, deleteButtonElement);
-
-      createElement('p', { id: 'userId', title: 'Click to copy', textContent: card.id.split('_')[0] }, voteButtonsElement).addEventListener('click', () => navigator.clipboard.writeText(card.id.split('_')[0]));
     }
+
+    if (user.dev) createElement('p', { id: 'userId', title: 'Click to copy', textContent: card.id.split('_')[0] }, voteButtonsElement).addEventListener('click', () => navigator.clipboard.writeText(card.id.split('_')[0]));
 
     (card.pending ? cardsContainerPending : cardsContainer).appendChild(cardElement);
     if (textareaElement?.value) textareaElement.style.height = `${textareaElement.scrollHeight}px`;
