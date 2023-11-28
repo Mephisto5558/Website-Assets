@@ -214,7 +214,7 @@
 
     let textareaElement;
     if (user.dev) {
-      createElement('input', { type: 'text', value: card.title }, titleElement).addEventListener('keydown', event => {
+      createElement('input', { name: 'edit_title', type: 'text', value: card.title }, titleElement).addEventListener('keydown', event => {
         if (!event.target.parentElement.parentElement.hasAttribute('modified')) event.target.parentElement.parentElement.setAttribute('modified', '');
 
         if (event.keyCode !== 13) return;
@@ -223,7 +223,7 @@
         element.style.removeProperty('display');
         element.firstChild.focus();
       });
-      textareaElement = card.body || user.dev ? createElement('textarea', { value: card.body }, descriptionElement) : null;
+      textareaElement = card.body || user.dev ? createElement('textarea', { name: 'edit_description', value: card.body }, descriptionElement) : null;
       textareaElement?.addEventListener('input', ({ target }) => {
         if (!target.parentElement.parentElement.hasAttribute('modified')) target.parentElement.parentElement.setAttribute('modified', '');
 
