@@ -18,11 +18,13 @@
   --color-scheme: light dark;
   --dark-mode-bg-color: #111;
   --dark-mode-card-bg-color: #222;
+  --dark-mode-grey-text-color: #9e9e9e;
   --dark-mode-input-bg-color: #333;
   --dark-mode-input-focus-bg-color: #444;
   --dark-mode-text-color: #fff;
   --light-mode-bg-color: #fff;
   --light-mode-card-bg-color: #f2f2f2;
+  --light-mode-grey-text-color: #4f4f4f;
   --light-mode-input-bg-color: #eee;
   --light-mode-input-focus-bg-color: #ddd;
   --light-mode-text-color: #111
@@ -215,7 +217,7 @@ button {
 }
 
 #feature-request-form > .counter {
-  color: grey;
+  color: var(--grey-text-color);
   cursor: default;
   font-size: .8rem;
   margin-top: .2rem;
@@ -241,8 +243,7 @@ button {
 #profile-container > img {
   border-radius: inherit;
   cursor: pointer;
-  transition: .2s ease-in-out;
-  width: 39px
+  transition: .2s ease-in-out
 }
 
 #profile-container-wrapper {
@@ -293,23 +294,24 @@ button {
   position: relative
 }
 
-.card > h2 {
-  font-size: 1.5rem;
-  margin: 0
-}
-
-.card > p {
-  line-height: 1.5;
-  margin-top: 1rem
-}
-
-.card input,
-.card textarea {
-  all: inherit;
+.card > #title,
+.card > #description {
   height: fit-content;
   margin: 0;
   max-height: 20rem;
+  outline: none;
+  overflow: auto;
   width: 100%
+}
+
+.card > #title {
+  font-size: 1.5rem
+}
+
+.card > #description {
+  line-height: 1.5;
+  margin-top: 1rem;
+  white-space: pre-wrap
 }
 
 .card > .vote-buttons {
@@ -336,7 +338,7 @@ button {
 
 .vote-buttons > #userId {
   bottom: 0;
-  color: gray;
+  color: var(--grey-text-color);
   cursor: pointer;
   font-size: .8rem;
   position: absolute;

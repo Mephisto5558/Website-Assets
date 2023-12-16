@@ -74,7 +74,10 @@
 
     profileContainer.addEventListener('click', () => profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'block' ? 'none' : 'block');
 
-    createElement('img', { alt: 'Profile', src: `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.webp?size=64` }, profileContainer);
+    const img = new Image(39, 39);
+    img.onload = () => profileContainer.appendChild(img);
+    img.alt = 'Profile';
+    img.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.webp?size=64`;
 
     const profileContainerWrapper = createElement('div', { id: 'profile-container-wrapper' }, profileContainer);
 
@@ -177,8 +180,8 @@
   function createCardElement(card) {
     const cardElement = createElement('div', { className: 'card', id: card.id });
 
-    const titleElement = createElement('h2', { id: 'title', textContent: user.dev ? null : card.title, style: card.title ? null : { display: 'none' } }, cardElement);
-    const descriptionElement = card.body || user.dev ? createElement('p', { id: 'description', textContent: user.dev ? null : card.body, style: card.body ? null : { display: 'none' } }, cardElement) : null;
+    const titleElement = createElement('h2', { id: 'title', textContent: card.title, contentEditable: String(!!user.dev) }, cardElement);
+    const descriptionElement = card.body || user.dev ? createElement('p', { id: 'description', textContent: card.body, contentEditable: String(!!user.dev) }, cardElement) : null;
 
     const voteButtonsElement = createElement('div', { className: 'vote-buttons' }, cardElement);
     const upvoteCounterElement = createElement('span', { className: 'vote-counter', textContent: card.pending ? '' : card.votes ?? 0 });
@@ -210,30 +213,18 @@
       copyButtonIcon.classList = 'fas fa-check fa-xl';
       setTimeout(() => copyButtonIcon.classList = 'far fa-copy fa-xl', 3000);
     });
-    ;
 
-    let textareaElement;
     if (user.dev) {
-      createElement('input', { name: 'edit_title', type: 'text', value: card.title }, titleElement).addEventListener('keydown', event => {
+      titleElement.addEventListener('keydown', event => {
         if (!event.target.parentElement.parentElement.hasAttribute('modified')) event.target.parentElement.parentElement.setAttribute('modified', '');
 
-        if (event.keyCode !== 13) return;
+        if (event.key !== 'Enter') return;
         event.preventDefault();
         const element = event.target.parentElement.nextElementSibling;
-        element.style.removeProperty('display');
         element.firstChild.focus();
       });
-      textareaElement = card.body || user.dev ? createElement('textarea', { name: 'edit_description', value: card.body }, descriptionElement) : null;
-      textareaElement?.addEventListener('input', ({ target }) => {
-        if (!target.parentElement.parentElement.hasAttribute('modified')) target.parentElement.parentElement.setAttribute('modified', '');
-
-        target.style.height = 'auto';
-        target.style.height = `${target.scrollHeight}px`;
-      }, false);
-      textareaElement?.addEventListener('blur', ({ target }) => {
-        if (target.value) return;
-        target.style.removeProperty('height');
-        descriptionElement.style.display = 'none';
+      descriptionElement?.addEventListener('input', ({ target }) => {
+        if (!target.parentElement.hasAttribute('modified')) target.parentElement.setAttribute('modified', '');
       });
     }
     if (user.dev || user.id == card.id.split('_')[0]) {
@@ -261,7 +252,7 @@
     if (user.dev) createElement('p', { id: 'userId', title: 'Click to copy', textContent: card.id.split('_')[0] }, voteButtonsElement).addEventListener('click', () => navigator.clipboard.writeText(card.id.split('_')[0]));
 
     (card.pending ? cardsContainerPending : cardsContainer).appendChild(cardElement);
-    if (textareaElement?.value) textareaElement.style.height = `${textareaElement.scrollHeight}px`;
+    if (descriptionElement?.value) descriptionElement.style.height = `${descriptionElement.scrollHeight}px`;
   }
 
   // Handler 
@@ -290,7 +281,7 @@
     currentTheme = scheme;
     localStorage.setItem('theme', currentTheme);
 
-    ['bg', 'text', 'input-bg', 'input-focus-bg', 'card-bg'].forEach(e => document.documentElement.style.setProperty(`--${e}-color`, `var(--${currentTheme}-mode-${e}-color)`));
+    ['bg', 'text', 'input-bg', 'input-focus-bg', 'card-bg', 'grey-text'].forEach(e => document.documentElement.style.setProperty(`--${e}-color`, `var(--${currentTheme}-mode-${e}-color)`));
 
     if (loaded) {
       const elements = document.querySelectorAll('body, #header-container button, #header-container>#search-box, .card');
@@ -354,8 +345,8 @@
       card.removeAttribute('modified');
 
       const originalData = cardsCache.get(card.id);
-      if (originalData && (card.children.title.firstChild.value.trim() !== originalData.title || card.children.description.firstChild.value.trim() != originalData.body))
-        acc.push({ id: card.id, title: card.children.title.firstChild.value.trim(), body: card.children.description.firstChild.value.trim() });
+      if (originalData && (card.children.title.textContent.trim() !== originalData.title || card.children.description.textContent.trim() != originalData.body))
+        acc.push({ id: card.id, title: card.children.title.textContent.trim(), body: card.children.description.textContent.trim() });
       return acc;
     }, []);
 
