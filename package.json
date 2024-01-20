@@ -1,0 +1,15 @@
+{
+  "name": "website-assets",
+  "version": "1.0.0",
+  "description": "Assets for my website",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Mephisto5558",
+  "license": "MIT",
+  "devDependencies": {
+    "sweetalert2": "^11.10.3"
+  }
+}
