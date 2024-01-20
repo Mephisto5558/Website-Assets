@@ -55,7 +55,8 @@ button {
 .swal2-popup,
 .swal2-title {
   background-color: var(--card-bg-color) !important;
-  color: var(--text-color) !important
+  color: var(--text-color) !important;
+  text-align: center
 }
 
 .swal2-confirm {
