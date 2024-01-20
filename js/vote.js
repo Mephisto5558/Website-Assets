@@ -402,6 +402,11 @@
 
     if (window.location.hash == '#new') document.getElementById('feature-request-button').click();
 
+    //navigator.clipboard is not available with HTTP
+    navigator.clipboard ??= {
+      writeText: data => Swal.fire({ icon: 'error', title: 'Copying is not available due to this page being served over HTTP.', text: `This was what you tried to copy: ${data}` })
+    };
+
     displayCards();
     if (user.dev) {
       if (cardsContainerPending.childElementCount) {
