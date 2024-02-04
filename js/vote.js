@@ -108,7 +108,7 @@
   /**@param {boolean}smallScreen*/
   async function createFeatureReqElement(smallScreen) {
     const featureRequestOverlay = document.getElementById('feature-request-overlay');
-    document.getElementById('feature-request-button').addEventListener('click', () => {
+    document.getElementById('feature-request-button').addEventListener('click', () => { //NOSONAR
       if (!user?.id) return Swal.fire({
         icon: 'error',
         title: 'Who are you?',
@@ -139,6 +139,8 @@
 
     closeButtonElement.addEventListener('click', hideFeatureReqElement);
     document.addEventListener('keydown', hideFeatureReqElement);
+
+    if (user.dev) document.getElementById('feature-request-description').removeAttribute('required');
 
     const titleCounter = document.getElementById('title-counter');
     const descriptionCounter = document.getElementById('description-counter');
@@ -229,7 +231,7 @@
     }
     if (user.dev || user.id == card.id.split('_')[0]) {
       const deleteButtonElement = createElement('button', { title: 'Delete card', className: 'manage-button grey-hover', }, voteButtonsElement);
-      deleteButtonElement.addEventListener('click', () => Swal.fire({
+      deleteButtonElement.addEventListener('click', () => Swal.fire({ //NOSONAR
         icon: 'warning',
         title: 'Are you sure?',
         text: 'Are you sure you want to delete that card? This action cannot be undone!',
