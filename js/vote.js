@@ -1,8 +1,8 @@
 (() => {
   let
-    /**@type {{id: string, username: string, locale: string, avatar: string, banner: string?, dev: boolean} | {errorCode: number, error: string}}*/
+    /**@type {{ id: string, username: string, locale: string, avatar: string, banner: string?, dev: boolean } | { errorCode: number, error: string }}*/
     user,
-    /**@type {Map<string, {title:string, body:string, id:string, votes:number, pending?:true}>}*/
+    /**@type { Map<string, {title: string, body: string, id: string, votes: number, pending?: true }>}*/
     cardsCache, searchTimeout, resizeTimeout, currentTheme, saveButtonElement, loaded, cardsInRows = false, offset = 0, oldWindowWidth = window.innerWidth;
 
   const
@@ -22,19 +22,29 @@
   });
 
   // Utils
-  /**@param {?RequestInit}options @returns {Promise<Response|Error>}*/
+
+  /**
+   * @param {string}url
+   * @param {RequestInit?}options
+   * @param {number?}timeout
+   * @returns {Promise<Response|Error>}
+   * */
   const fetchAPI = (url, options, timeout = 5000) => new Promise((res, rej) => {
     const timeoutId = setTimeout(() => rej(new Error('Request timed out')), timeout);
     fetch(url ? `/api/v1/internal/${url}` : null, options).then(res).catch(rej).finally(() => clearTimeout(timeoutId));
   });
 
-  /**@returns {Promise<cardsCache>}*/
+  /** @returns {Promise<cardsCache>}*/
   const fetchCards = async () => new Map((await fetchAPI(`vote/list?includePending=${!!user.dev}`)
     .then(e => e.json()))?.cards
     ?.sort((a, b) => (a.pending && !b.pending ? -1 : a.pending - b.pending) || b.votes - a.votes || a.title.localeCompare(b.title))
     .map(e => [e.id, e]));
 
-  /**@param {string}tagName @param {obj|*|null}data @param {?HTMLElement}parent @param {?boolean}replace*/
+  /**
+   * @param {string}tagName
+   * @param {obj|*|null}data
+   * @param {HTMLElement?}parent
+   * @param {?boolean}replace*/
   function createElement(tagName, data, parent, replace) {
     const element = document.createElement(tagName);
     if (Object.keys(data ?? {}).length) for (const [k, v] of Object.entries(data)) {
@@ -46,7 +56,9 @@
     return element;
   }
 
-  /**@param {string}key @param {?string}value*/
+  /**
+   * @param {string}key
+   * @param {string?}value*/
   function updateParams(key, value) {
     const url = new URL(window.location.href), params = new URLSearchParams(window.location.search);
 
@@ -57,7 +69,8 @@
   }
 
   // Elements
-  /**@param {boolean}smallScreen*/
+
+  /** @param {boolean}smallScreen*/
   async function createProfileElement(smallScreen) {
     const fragment = document.createDocumentFragment();
     const profileContainer = createElement('div', { id: 'profile-container' });
@@ -108,7 +121,7 @@
     headerContainer.appendChild(fragment);
   }
 
-  /**@param {boolean}smallScreen*/
+  /** @param {boolean}smallScreen*/
   async function createFeatureReqElement(smallScreen) {
     const featureRequestOverlay = document.getElementById('feature-request-overlay');
     document.getElementById('feature-request-button').addEventListener('click', () => { //NOSONAR
@@ -162,7 +175,10 @@
     document.getElementById('feature-request-modal').addEventListener('submit', data => sendFeatureRequest(data, smallScreen));
   }
 
-  /**@param {?string}query*/
+  /**
+   * @param {string?}query
+   * @param {number?}amount
+   */
   function displayCards(query = searchBoxElement.value, amount = 26) {
     query = query?.toLowerCase();
     updateParams('q', query);
@@ -181,7 +197,7 @@
     if (cardsContainer.childElementCount + cardsContainerPending.childElementCount < amount && cardsCache.size > offset) return displayCards(query, amount);
   }
 
-  /**@param {{id:string,title?:string,body?:string,pending?:boolean,votes?:number}}card*/
+  /** @param {{ id: string, title?: string, body?: string, pending?: boolean, votes?: number }}card*/
   function createCardElement(card) {
     const cardElement = createElement('div', { className: 'card', id: card.id });
 
@@ -196,7 +212,7 @@
 
       if (res.error) return Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
 
-      Swal.fire({ icon: 'success', title: 'Success', text: `The feature request has been approved.` });
+      Swal.fire({ icon: 'success', title: 'Success', text: 'The feature request has been approved.' });
 
       cardsContainer.appendChild(cardElement);
       if (!cardsContainerPending.childElementCount) {
@@ -261,6 +277,8 @@
   }
 
   // Handler 
+
+  /** Toggles the display mode*/
   function toggleCardDisplayMode() {
     cardsInRows = !cardsInRows;
 
@@ -280,7 +298,7 @@
     }
   }
 
-  /**@param {'dark'|'light'}scheme*/
+  /** @param {'dark'|'light'}scheme*/
   async function setColorScheme(scheme = (currentTheme === 'dark' ? 'light' : 'dark')) {
     if (currentTheme === scheme) return;
     currentTheme = scheme;
@@ -296,7 +314,10 @@
     }
   }
 
-  /**@param {Event}event @param {boolean}smallScreen*/
+  /**
+   * @param {Event}event
+   * @param {boolean}smallScreen
+   */
   async function sendFeatureRequest(event, smallScreen) {
     event.preventDefault();
 
@@ -325,7 +346,9 @@
     document.getElementById('feature-request-overlay').style.display = 'none';
   }
 
-  /**@param {str}cardId @param {HTMLElement}voteCounter*/
+  /**
+   * @param {str}cardId
+   * @param {HTMLElement}voteCounter*/
   async function sendUpvote(cardId, voteCounter) {
     if (!user?.id) return void Swal.fire({
       icon: 'error',
@@ -345,6 +368,7 @@
     voteCounter.textContent = parseInt(voteCounter.textContent) + 1;
   }
 
+  /** Updates the cards*/
   async function updateCards() {
     const updateList = [...document.querySelectorAll('.card[modified]')].reduce((acc, card) => {
       card.removeAttribute('modified');
@@ -373,6 +397,7 @@
   }
 
   //Listener
+
   document.getElementById('toggle-cards-display').addEventListener('click', () => toggleCardDisplayMode());
   document.getElementById('toggle-color-scheme').addEventListener('click', () => setColorScheme());
 
