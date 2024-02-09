@@ -29,12 +29,15 @@
   });
 
   /**@returns {Promise<cardsCache>}*/
-  const fetchCards = async () => new Map((await fetchAPI(`vote/list?includePending=${user.dev || false}`).then(e => e.json()))?.cards?.sort((a, b) => (a.pending && !b.pending ? -1 : a.pending - b.pending) || b.votes - a.votes || a.title.localeCompare(b.title)).map(e => [e.id, e]));
+  const fetchCards = async () => new Map((await fetchAPI(`vote/list?includePending=${!!user.dev}`)
+    .then(e => e.json()))?.cards
+    ?.sort((a, b) => (a.pending && !b.pending ? -1 : a.pending - b.pending) || b.votes - a.votes || a.title.localeCompare(b.title))
+    .map(e => [e.id, e]));
 
   /**@param {string}tagName @param {obj|*|null}data @param {?HTMLElement}parent @param {?boolean}replace*/
   function createElement(tagName, data, parent, replace) {
     const element = document.createElement(tagName);
-    if (Object.keys(data || {}).length) for (const [k, v] of Object.entries(data)) {
+    if (Object.keys(data ?? {}).length) for (const [k, v] of Object.entries(data)) {
       if (v == null) continue;
       if (typeof v == 'object') Object.assign(element[k], v);
       else element[k] = v;
@@ -81,7 +84,7 @@
 
     const profileContainerWrapper = createElement('div', { id: 'profile-container-wrapper' }, profileContainer);
 
-    createElement('div', { id: 'username', textContent: user.displayName || user.username }, profileContainerWrapper);
+    createElement('div', { id: 'username', textContent: user.displayName ?? user.username }, profileContainerWrapper);
     createElement('button', { id: 'logout-button', textContent: 'Logout', className: 'blue-button' }, profileContainerWrapper).addEventListener('click', async () => {
       const res = await fetch('/auth/logout');
 
@@ -183,7 +186,7 @@
     const cardElement = createElement('div', { className: 'card', id: card.id });
 
     const titleElement = createElement('h2', { id: 'title', textContent: card.title, contentEditable: String(!!user.dev) }, cardElement);
-    const descriptionElement = card.body || user.dev ? createElement('p', { id: 'description', textContent: card.body, contentEditable: String(!!user.dev) }, cardElement) : null;
+    const descriptionElement = card.body ?? user.dev ? createElement('p', { id: 'description', textContent: card.body, contentEditable: String(!!user.dev) }, cardElement) : null;
 
     const voteButtonsElement = createElement('div', { className: 'vote-buttons' }, cardElement);
     const upvoteCounterElement = createElement('span', { className: 'vote-counter', textContent: card.pending ? '' : card.votes ?? 0 });
@@ -390,7 +393,7 @@
   });
 
   document.addEventListener('DOMContentLoaded', async () => {
-    setColorScheme(localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: light)').matches && 'light') || 'dark');
+    setColorScheme(localStorage.getItem('theme') ?? (window.matchMedia('(prefers-color-scheme: light)').matches && 'light') ?? 'dark');
 
     const smallScreen = window.matchMedia('(max-width: 768px)').matches;
     if (!smallScreen) cardsInRows = localStorage.getItem('displayMode') === 'cardsInRows';
