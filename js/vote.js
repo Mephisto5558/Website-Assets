@@ -1,15 +1,23 @@
+/** @typedef { Map<string, { title: string, body: string, id: string, votes: number, pending?: true }>}cardsCache*/
 (() => {
   let
-    /**@type {{ id: string, username: string, locale: string, avatar: string, banner: string?, dev: boolean } | { errorCode: number, error: string }}*/
+
+    /** @type {{ id: string, username: string, locale: string, avatar: string, banner: string | null, dev: boolean } | { errorCode: number, error: string }}*/
     user,
-    /**@type { Map<string, {title: string, body: string, id: string, votes: number, pending?: true }>}*/
-    cardsCache, searchTimeout, resizeTimeout, currentTheme, saveButtonElement, loaded, cardsInRows = false, offset = 0, oldWindowWidth = window.innerWidth;
+
+    /** @type {cardsCache} */
+    cardsCache, searchTimeout, resizeTimeout, currentTheme, saveButtonElement, loaded,
+    cardsInRows = false,
+    offset = 0,
+    oldWindowWidth = window.innerWidth;
 
   const
     headerContainer = document.getElementById('header-container'),
     cardsContainer = document.getElementById('cards-container'),
     cardsContainerPending = document.getElementById('cards-container-pending'),
-    searchBoxElement = createElement('input', { type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(window.location.search).get('q'), className: 'grey-hover', maxLength: 200 });
+    searchBoxElement = createElement('input', {
+      type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(window.location.search).get('q'), className: 'grey-hover', maxLength: 200
+    });
 
   searchBoxElement.addEventListener('input', ({ target }) => {
     if (target.value.length > target.maxLength) target.value = target.value.slice(0, target.maxLength);
@@ -25,13 +33,14 @@
 
   /**
    * @param {string}url
-   * @param {RequestInit?}options
+   * @param {RequestInit}options
    * @param {number?}timeout
    * @returns {Promise<Response|Error>}
    * */
   const fetchAPI = (url, options, timeout = 5000) => new Promise((res, rej) => {
     const timeoutId = setTimeout(() => rej(new Error('Request timed out')), timeout);
-    fetch(url ? `/api/v1/internal/${url}` : null, options).then(res).catch(rej).finally(() => clearTimeout(timeoutId));
+    fetch(url ? `/api/v1/internal/${url}` : null, options).then(res).catch(rej)
+      .finally(() => clearTimeout(timeoutId));
   });
 
   /** @returns {Promise<cardsCache>}*/
@@ -42,15 +51,17 @@
 
   /**
    * @param {string}tagName
-   * @param {obj|*|null}data
+   * @param {object|*|null}data
    * @param {HTMLElement?}parent
    * @param {?boolean}replace*/
   function createElement(tagName, data, parent, replace) {
     const element = document.createElement(tagName);
-    if (Object.keys(data ?? {}).length) for (const [k, v] of Object.entries(data)) {
-      if (v == null) continue;
-      if (typeof v == 'object') Object.assign(element[k], v);
-      else element[k] = v;
+    if (Object.keys(data ?? {}).length) {
+      for (const [k, v] of Object.entries(data)) {
+        if (v == undefined || v === null) continue;
+        if (typeof v == 'object') Object.assign(element[k], v);
+        else element[k] = v;
+      }
     }
     if (parent) replace ? parent.replaceChildren(element) : parent.appendChild(element);
     return element;
@@ -60,7 +71,9 @@
    * @param {string}key
    * @param {string?}value*/
   function updateParams(key, value) {
-    const url = new URL(window.location.href), params = new URLSearchParams(window.location.search);
+    const
+      url = new URL(window.location.href),
+      params = new URLSearchParams(window.location.search);
 
     value ? params.set(key, value) : params.delete(key);
     url.search = params.toString();
@@ -75,6 +88,7 @@
     const fragment = document.createDocumentFragment();
     const profileContainer = createElement('div', { id: 'profile-container' });
 
+    /* eslint-disable-next-line no-empty-function */
     user = await fetchAPI('user').catch(() => { }).then(e => e.json());
     if (!user || user.errorCode) {
       if (user.errorCode == 403) return createElement('h2', { textContent: user.error }, document.body, true);
@@ -88,14 +102,13 @@
       return void headerContainer.appendChild(fragment);
     }
 
+    const profileContainerWrapper = createElement('div', { id: 'profile-container-wrapper' }, profileContainer);
     profileContainer.addEventListener('click', () => profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'block' ? 'none' : 'block');
 
     const img = new Image(39, 39);
     img.onload = () => profileContainer.appendChild(img);
     img.alt = 'Profile';
     img.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.webp?size=64`;
-
-    const profileContainerWrapper = createElement('div', { id: 'profile-container-wrapper' }, profileContainer);
 
     createElement('div', { id: 'username', textContent: user.displayName ?? user.username }, profileContainerWrapper);
     createElement('button', { id: 'logout-button', textContent: 'Logout', className: 'blue-button' }, profileContainerWrapper).addEventListener('click', async () => {
@@ -122,14 +135,16 @@
   }
 
   /** @param {boolean}smallScreen*/
-  async function createFeatureReqElement(smallScreen) {
+  function createFeatureReqElement(smallScreen) {
     const featureRequestOverlay = document.getElementById('feature-request-overlay');
-    document.getElementById('feature-request-button').addEventListener('click', () => { //NOSONAR
-      if (!user?.id) return Swal.fire({
-        icon: 'error',
-        title: 'Who are you?',
-        text: 'You must be logged in to be able to create a feature request!',
-      });
+    document.getElementById('feature-request-button').addEventListener('click', () => { // NOSONAR
+      if (!user?.id) {
+        return Swal.fire({
+          icon: 'error',
+          title: 'Who are you?',
+          text: 'You must be logged in to be able to create a feature request!'
+        });
+      }
 
       headerContainer.inert = true;
       cardsContainer.inert = true;
@@ -207,21 +222,23 @@
     const voteButtonsElement = createElement('div', { className: 'vote-buttons' }, cardElement);
     const upvoteCounterElement = createElement('span', { className: 'vote-counter', textContent: card.pending ? '' : card.votes ?? 0 });
 
-    if (card.pending && user.dev) createElement('button', { textContent: 'Approve', className: 'vote-button blue-button' }, voteButtonsElement).addEventListener('click', async () => {
-      const res = await fetchAPI(`vote/approve?featureId=${card.id}`).then(e => e.json());
+    if (card.pending && user.dev) {
+      createElement('button', { textContent: 'Approve', className: 'vote-button blue-button' }, voteButtonsElement).addEventListener('click', async () => {
+        const res = await fetchAPI(`vote/approve?featureId=${card.id}`).then(e => e.json());
 
-      if (res.error) return Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
+        if (res.error) return Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
 
-      Swal.fire({ icon: 'success', title: 'Success', text: 'The feature request has been approved.' });
+        Swal.fire({ icon: 'success', title: 'Success', text: 'The feature request has been approved.' });
 
-      cardsContainer.appendChild(cardElement);
-      if (!cardsContainerPending.childElementCount) {
-        document.getElementById('new-requests')?.remove();
-        document.getElementById('old-requests')?.remove();
+        cardsContainer.appendChild(cardElement);
+        if (!cardsContainerPending.childElementCount) {
+          document.getElementById('new-requests')?.remove();
+          document.getElementById('old-requests')?.remove();
 
-        document.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`;
-      }
-    });
+          document.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`;
+        }
+      });
+    }
     else if (!card.pending) createElement('button', { className: 'vote-button blue-button', textContent: 'Upvote' }, voteButtonsElement).addEventListener('click', () => sendUpvote(card.id, upvoteCounterElement));
 
     voteButtonsElement.appendChild(upvoteCounterElement);
@@ -249,8 +266,8 @@
       });
     }
     if (user.dev || user.id == card.id.split('_')[0]) {
-      const deleteButtonElement = createElement('button', { title: 'Delete card', className: 'manage-button grey-hover', }, voteButtonsElement);
-      deleteButtonElement.addEventListener('click', () => Swal.fire({ //NOSONAR
+      const deleteButtonElement = createElement('button', { title: 'Delete card', className: 'manage-button grey-hover' }, voteButtonsElement);
+      deleteButtonElement.addEventListener('click', () => Swal.fire({ // NOSONAR
         icon: 'warning',
         title: 'Are you sure?',
         text: 'Are you sure you want to delete that card? This action cannot be undone!',
@@ -276,7 +293,7 @@
     if (descriptionElement?.value) descriptionElement.style.height = `${descriptionElement.scrollHeight}px`;
   }
 
-  // Handler 
+  // Handler
 
   /** Toggles the display mode*/
   function toggleCardDisplayMode() {
@@ -299,7 +316,7 @@
   }
 
   /** @param {'dark'|'light'}scheme*/
-  async function setColorScheme(scheme = (currentTheme === 'dark' ? 'light' : 'dark')) {
+  function setColorScheme(scheme = currentTheme === 'dark' ? 'light' : 'dark') {
     if (currentTheme === scheme) return;
     currentTheme = scheme;
     localStorage.setItem('theme', currentTheme);
@@ -335,7 +352,7 @@
     await Swal.fire({
       icon: 'success',
       title: 'Success',
-      text: `Your feature request has been submitted and ${res.approved ? 'approved' : 'will be reviewed shortly'}.`,
+      text: `Your feature request has been submitted and ${res.approved ? 'approved' : 'will be reviewed shortly'}.`
     });
 
     cardsCache.set(res.id, res);
@@ -347,14 +364,16 @@
   }
 
   /**
-   * @param {str}cardId
+   * @param {string}cardId
    * @param {HTMLElement}voteCounter*/
   async function sendUpvote(cardId, voteCounter) {
-    if (!user?.id) return void Swal.fire({
-      icon: 'error',
-      title: 'Who are you?',
-      text: 'You must be logged in to be able to vote!',
-    });
+    if (!user?.id) {
+      return void Swal.fire({
+        icon: 'error',
+        title: 'Who are you?',
+        text: 'You must be logged in to be able to vote!'
+      });
+    }
 
     const res = await fetchAPI(`vote/addvote?featureId=${cardId}`).then(e => e.json());
     if (res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
@@ -396,7 +415,7 @@
     displayCards();
   }
 
-  //Listener
+  // Listener
 
   document.getElementById('toggle-cards-display').addEventListener('click', () => toggleCardDisplayMode());
   document.getElementById('toggle-color-scheme').addEventListener('click', () => setColorScheme());
@@ -432,7 +451,7 @@
 
     if (window.location.hash == '#new') document.getElementById('feature-request-button').click();
 
-    //navigator.clipboard is not available with HTTP
+    // navigator.clipboard is not available with HTTP
     navigator.clipboard ??= {
       writeText: data => Swal.fire({ icon: 'error', title: 'Copying is not available due to this page being served over HTTP.', text: `This was what you tried to copy: ${data}` })
     };
