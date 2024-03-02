@@ -12,9 +12,10 @@
     oldWindowWidth = window.innerWidth;
 
   const
-    headerContainer = document.getElementById('header-container'),
-    cardsContainer = document.getElementById('cards-container'),
-    cardsContainerPending = document.getElementById('cards-container-pending'),
+    cardModes = { columnMode: 'cards-column-mode', rowMode: 'cards-row-mode' },
+    headerContainer = document.querySelector('#header-container'),
+    cardsContainer = document.querySelector('#cards-container'),
+    cardsContainerPending = document.querySelector('#cards-container-pending'),
     searchBoxElement = createElement('input', {
       type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(window.location.search).get('q'), className: 'grey-hover', maxLength: 200
     });
@@ -39,7 +40,7 @@
    * */
   const fetchAPI = (url, options, timeout = 5000) => new Promise((res, rej) => {
     const timeoutId = setTimeout(() => rej(new Error('Request timed out')), timeout);
-    fetch(url ? `/api/v1/internal/${url}` : null, options).then(res).catch(rej)
+    fetch(url ? `/api/v1/internal/${url}` : undefined, options).then(res).catch(rej)
       .finally(() => clearTimeout(timeoutId));
   });
 
@@ -63,7 +64,7 @@
         else element[k] = v;
       }
     }
-    if (parent) replace ? parent.replaceChildren(element) : parent.appendChild(element);
+    if (parent) replace ? parent.replaceChildren(element) : parent.append(element);
     return element;
   }
 
@@ -78,7 +79,7 @@
     value ? params.set(key, value) : params.delete(key);
     url.search = params.toString();
 
-    window.history.pushState(null, null, url.toString());
+    window.history.pushState(undefined, undefined, url.toString());
   }
 
   // Elements
@@ -93,20 +94,20 @@
     if (!user || user.errorCode) {
       if (user.errorCode == 403) return createElement('h2', { textContent: user.error }, document.body, true);
 
-      fragment.appendChild(searchBoxElement);
+      fragment.append(searchBoxElement);
       createElement('button', { id: 'feature-request-button', textContent: smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover' }, fragment);
       createElement('button', { id: 'login-button', textContent: smallScreen ? 'Login' : 'Login with Discord', className: 'blue-button' }, profileContainer)
         .addEventListener('click', () => window.location.href = `/auth/discord?redirectURL=${window.location.href}`);
-      fragment.appendChild(profileContainer);
+      fragment.append(profileContainer);
 
-      return void headerContainer.appendChild(fragment);
+      return void headerContainer.append(fragment);
     }
 
     const profileContainerWrapper = createElement('div', { id: 'profile-container-wrapper' }, profileContainer);
     profileContainer.addEventListener('click', () => profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'block' ? 'none' : 'block');
 
     const img = new Image(39, 39);
-    img.onload = () => profileContainer.appendChild(img);
+    img.onload = () => profileContainer.append(img);
     img.alt = 'Profile';
     img.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.webp?size=64`;
 
@@ -121,23 +122,23 @@
     const featureRequestButtonElement = createElement('button', { id: 'feature-request-button', textContent: smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover' });
     if (smallScreen) {
       createElement('br', fragment);
-      fragment.appendChild(profileContainer);
-      fragment.appendChild(searchBoxElement);
-      fragment.appendChild(featureRequestButtonElement);
+      fragment.append(profileContainer);
+      fragment.append(searchBoxElement);
+      fragment.append(featureRequestButtonElement);
     }
     else {
-      fragment.appendChild(searchBoxElement);
-      fragment.appendChild(featureRequestButtonElement);
-      fragment.appendChild(profileContainer);
+      fragment.append(searchBoxElement);
+      fragment.append(featureRequestButtonElement);
+      fragment.append(profileContainer);
     }
 
-    headerContainer.appendChild(fragment);
+    headerContainer.append(fragment);
   }
 
   /** @param {boolean}smallScreen*/
   function createFeatureReqElement(smallScreen) {
-    const featureRequestOverlay = document.getElementById('feature-request-overlay');
-    document.getElementById('feature-request-button').addEventListener('click', () => { // NOSONAR
+    const featureRequestOverlay = document.querySelector('#feature-request-overlay');
+    document.querySelector('#feature-request-button').addEventListener('click', () => { // NOSONAR
       if (!user?.id) {
         return Swal.fire({
           icon: 'error',
@@ -171,23 +172,23 @@
     closeButtonElement.addEventListener('click', hideFeatureReqElement);
     document.addEventListener('keydown', hideFeatureReqElement);
 
-    if (user.dev) document.getElementById('feature-request-description').removeAttribute('required');
+    if (user.dev) document.querySelector('#feature-request-description').removeAttribute('required');
 
-    const titleCounter = document.getElementById('title-counter');
-    const descriptionCounter = document.getElementById('description-counter');
+    const titleCounter = document.querySelector('#title-counter');
+    const descriptionCounter = document.querySelector('#description-counter');
 
-    document.getElementById('feature-request-title').addEventListener('input', event => {
+    document.querySelector('#feature-request-title').addEventListener('input', event => {
       titleCounter.textContent = `${event.target.value.length}/140`;
       if (event.target.value.length >= 140) titleCounter.classList.add('limit-reached');
       else titleCounter.classList.remove('limit-reached');
     });
-    document.getElementById('feature-request-description').addEventListener('input', event => {
+    document.querySelector('#feature-request-description').addEventListener('input', event => {
       descriptionCounter.textContent = `${event.target.value.length}/4000`;
       if (event.target.value.length >= 4000) descriptionCounter.classList.add('limit-reached');
       else descriptionCounter.classList.remove('limit-reached');
     });
 
-    document.getElementById('feature-request-modal').addEventListener('submit', data => sendFeatureRequest(data, smallScreen));
+    document.querySelector('#feature-request-modal').addEventListener('submit', data => sendFeatureRequest(data, smallScreen));
   }
 
   /**
@@ -217,7 +218,7 @@
     const cardElement = createElement('div', { className: 'card', id: card.id });
 
     const titleElement = createElement('h2', { id: 'title', textContent: card.title, contentEditable: String(!!user.dev) }, cardElement);
-    const descriptionElement = card.body ?? user.dev ? createElement('p', { id: 'description', textContent: card.body, contentEditable: String(!!user.dev) }, cardElement) : null;
+    const descriptionElement = card.body ?? user.dev ? createElement('p', { id: 'description', textContent: card.body, contentEditable: String(!!user.dev) }, cardElement) : undefined;
 
     const voteButtonsElement = createElement('div', { className: 'vote-buttons' }, cardElement);
     const upvoteCounterElement = createElement('span', { className: 'vote-counter', textContent: card.pending ? '' : card.votes ?? 0 });
@@ -230,10 +231,10 @@
 
         Swal.fire({ icon: 'success', title: 'Success', text: 'The feature request has been approved.' });
 
-        cardsContainer.appendChild(cardElement);
+        cardsContainer.append(cardElement);
         if (!cardsContainerPending.childElementCount) {
-          document.getElementById('new-requests')?.remove();
-          document.getElementById('old-requests')?.remove();
+          document.querySelector('#new-requests')?.remove();
+          document.querySelector('#old-requests')?.remove();
 
           document.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`;
         }
@@ -241,7 +242,7 @@
     }
     else if (!card.pending) createElement('button', { className: 'vote-button blue-button', textContent: 'Upvote' }, voteButtonsElement).addEventListener('click', () => sendUpvote(card.id, upvoteCounterElement));
 
-    voteButtonsElement.appendChild(upvoteCounterElement);
+    voteButtonsElement.append(upvoteCounterElement);
 
     const copyButtonElement = createElement('button', { title: 'Copy card Id', className: 'manage-button grey-hover' }, voteButtonsElement);
     const copyButtonIcon = createElement('i', { className: 'far fa-copy fa-xl' }, copyButtonElement);
@@ -277,8 +278,8 @@
 
           cardElement.remove();
           if (!cardsContainerPending.childElementCount) {
-            document.getElementById('new-requests')?.remove();
-            document.getElementById('old-requests')?.remove();
+            document.querySelector('#new-requests')?.remove();
+            document.querySelector('#old-requests')?.remove();
             document.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`;
           }
         }
@@ -289,7 +290,7 @@
 
     if (user.dev) createElement('p', { id: 'userId', title: 'Click to copy', textContent: card.id.split('_')[0] }, voteButtonsElement).addEventListener('click', () => navigator.clipboard.writeText(card.id.split('_')[0]));
 
-    (card.pending ? cardsContainerPending : cardsContainer).appendChild(cardElement);
+    (card.pending ? cardsContainerPending : cardsContainer).append(cardElement);
     if (descriptionElement?.value) descriptionElement.style.height = `${descriptionElement.scrollHeight}px`;
   }
 
@@ -301,17 +302,17 @@
 
     if (cardsInRows) {
       localStorage.setItem('displayMode', 'cardsInRows');
-      cardsContainer.classList.remove('cards-column-mode');
-      cardsContainer.classList.add('cards-row-mode');
-      cardsContainerPending.classList.remove('cards-column-mode');
-      cardsContainerPending.classList.add('cards-row-mode');
+      cardsContainer.classList.remove(cardModes.columnMode);
+      cardsContainerPending.classList.remove(cardModes.columnMode);
+      cardsContainer.classList.add(cardModes.rowMode);
+      cardsContainerPending.classList.add(cardModes.rowMode);
     }
     else {
       localStorage.setItem('displayMode', 'cardsInColumns');
-      cardsContainer.classList.remove('cards-row-mode');
-      cardsContainer.classList.add('cards-column-mode');
-      cardsContainerPending.classList.remove('cards-row-mode');
-      cardsContainerPending.classList.add('cards-column-mode');
+      cardsContainer.classList.remove(cardModes.rowMode);
+      cardsContainerPending.classList.remove(cardModes.rowMode);
+      cardsContainer.classList.add(cardModes.columnMode);
+      cardsContainerPending.classList.add(cardModes.columnMode);
     }
   }
 
@@ -321,13 +322,13 @@
     currentTheme = scheme;
     localStorage.setItem('theme', currentTheme);
 
-    ['bg', 'text', 'input-bg', 'input-focus-bg', 'card-bg', 'grey-text'].forEach(e => document.documentElement.style.setProperty(`--${e}-color`, `var(--${currentTheme}-mode-${e}-color)`));
+    for (const e of ['bg', 'text', 'input-bg', 'input-focus-bg', 'card-bg', 'grey-text']) document.documentElement.style.setProperty(`--${e}-color`, `var(--${currentTheme}-mode-${e}-color)`);
 
     if (loaded) {
       const elements = document.querySelectorAll('body, #header-container button, #header-container>#search-box, .card');
       for (const e of elements) e.classList.add('color-transition');
 
-      setTimeout(() => elements.forEach(e => e.classList.remove('color-transition')), 300);
+      setTimeout(() => { for (const e of elements) e.classList.remove('color-transition'); }, 300);
     }
   }
 
@@ -360,7 +361,7 @@
     event.target.reset();
 
     if (smallScreen) cardsContainer.style.display = '';
-    document.getElementById('feature-request-overlay').style.display = 'none';
+    document.querySelector('#feature-request-overlay').style.display = 'none';
   }
 
   /**
@@ -384,7 +385,7 @@
       text: 'Your vote has been successfully recorded.'
     });
 
-    voteCounter.textContent = parseInt(voteCounter.textContent) + 1;
+    voteCounter.textContent = Number.parseInt(voteCounter.textContent) + 1;
   }
 
   /** Updates the cards*/
@@ -417,8 +418,8 @@
 
   // Listener
 
-  document.getElementById('toggle-cards-display').addEventListener('click', () => toggleCardDisplayMode());
-  document.getElementById('toggle-color-scheme').addEventListener('click', () => setColorScheme());
+  document.querySelector('#toggle-cards-display').addEventListener('click', () => toggleCardDisplayMode());
+  document.querySelector('#toggle-color-scheme').addEventListener('click', () => setColorScheme());
 
   window.addEventListener('scroll', () => {
     if (cardsCache.size > offset && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.documentElement.scrollHeight - 15) displayCards();
@@ -446,10 +447,10 @@
     createFeatureReqElement(smallScreen);
 
     cardsCache = await fetchCards();
-    cardsContainer.classList.add(cardsInRows ? 'cards-row-mode' : 'cards-column-mode');
-    cardsContainerPending.classList.add(cardsInRows ? 'cards-row-mode' : 'cards-column-mode');
+    cardsContainer.classList.add(cardsInRows ? cardModes.rowMode : cardModes.columnMode);
+    cardsContainerPending.classList.add(cardsInRows ? cardModes.rowMode : cardModes.columnMode);
 
-    if (window.location.hash == '#new') document.getElementById('feature-request-button').click();
+    if (window.location.hash == '#new') document.querySelector('#feature-request-button').click();
 
     // navigator.clipboard is not available with HTTP
     navigator.clipboard ??= {
