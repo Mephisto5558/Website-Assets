@@ -36,9 +36,10 @@
    * @param {string}url
    * @param {RequestInit}options
    * @param {number?}timeout
-   * @returns {Promise<Response|Error>}
-   * */
+   * @returns {Promise<Response|Error>}*/
   const fetchAPI = (url, options, timeout = 5000) => new Promise((res, rej) => {
+    if (options.body && !options.headers) options.headers = { 'Content-Type': 'application/json' };
+
     const timeoutId = setTimeout(() => rej(new Error('Request timed out')), timeout);
     fetch(url ? `/api/v1/internal/${url}` : undefined, options).then(res).catch(rej)
       .finally(() => clearTimeout(timeoutId));
@@ -193,8 +194,7 @@
 
   /**
    * @param {string?}query
-   * @param {number?}amount
-   */
+   * @param {number?}amount*/
   function displayCards(query = searchBoxElement.value, amount = 26) {
     query = query?.toLowerCase();
     updateParams('q', query);
@@ -225,7 +225,10 @@
 
     if (card.pending && user.dev) {
       createElement('button', { textContent: 'Approve', className: 'vote-button blue-button' }, voteButtonsElement).addEventListener('click', async () => {
-        const res = await fetchAPI(`vote/approve?featureId=${card.id}`).then(e => e.json());
+        const res = await fetchAPI('vote/approve', {
+          method: 'POST',
+          body: JSON.stringify({ featureId: card.id })
+        }).then(e => e.json());
 
         if (res.error) return Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
 
@@ -274,7 +277,10 @@
         text: 'Are you sure you want to delete that card? This action cannot be undone!',
         showCancelButton: true,
         preConfirm: () => {
-          fetchAPI(`vote/delete?featureId=${cardElement.id}`).then(e => e.statusText);
+          fetchAPI('vote/delete', {
+            method: 'DELETE',
+            body: JSON.stringify({ featureId: card.id })
+          }).then(e => e.statusText);
 
           cardElement.remove();
           if (!cardsContainerPending.childElementCount) {
@@ -334,14 +340,12 @@
 
   /**
    * @param {Event}event
-   * @param {boolean}smallScreen
-   */
+   * @param {boolean}smallScreen*/
   async function sendFeatureRequest(event, smallScreen) {
     event.preventDefault();
 
     const res = await fetchAPI('vote/new', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         title: event.target.title.value.trim(),
         description: event.target.description.value.trim()
@@ -376,7 +380,10 @@
       });
     }
 
-    const res = await fetchAPI(`vote/addvote?featureId=${cardId}`).then(e => e.json());
+    const res = await fetchAPI('vote/addvote', {
+      method: 'POST',
+      body: JSON.stringify({ featureId: cardId })
+    }).then(e => e.json());
     if (res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
 
     Swal.fire({
