@@ -11,8 +11,8 @@
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Website-Assets&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Website-Assets)<br>
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Website-Assets&metric=bugs)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Website-Assets)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Website-Assets&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Website-Assets)
-[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Website-Assets&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Website-Assets)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Website-Assets&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Website-Assets)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Website-Assets&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Website-Assets)
 
 
 
