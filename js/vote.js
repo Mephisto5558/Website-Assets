@@ -448,7 +448,7 @@
   });
 
   document.addEventListener('DOMContentLoaded', async () => {
-    setColorScheme(localStorage.getItem('theme') ?? (window.matchMedia('(prefers-color-scheme: light)').matches && 'light') ?? 'dark');
+    setColorScheme(localStorage.getItem('theme') ?? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
 
     const smallScreen = window.matchMedia('(max-width: 768px)').matches;
     if (!smallScreen) cardsInRows = localStorage.getItem('displayMode') === 'cardsInRows';
