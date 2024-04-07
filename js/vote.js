@@ -441,7 +441,10 @@
     }, 500);
   });
   window.addEventListener('beforeunload', event => {
-    if (document.querySelectorAll('.card[modified]').length) event.returnValue = 'You have unsaved changes.';
+    if (!document.querySelectorAll('.card[modified]').length) return;
+
+    event.preventDefault(); // Trigger "you have unsaved changes" dialog box
+    event.returnValue = true; // Legacy support
   });
 
   document.addEventListener('DOMContentLoaded', async () => {
