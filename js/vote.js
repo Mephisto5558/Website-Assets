@@ -1,6 +1,6 @@
 (() => {
   let
-    /** @type {import('.').vote.User}*/ user,
+    /** @type {import('.').vote.User?}*/ user,
     /** @type {import('.').vote.CardsCache}*/ cardsCache,
     searchTimeout, resizeTimeout, currentTheme, saveButtonElement, loaded,
     cardsInRows = false,
@@ -9,9 +9,10 @@
 
   const
     cardModes = { columnMode: 'cards-column-mode', rowMode: 'cards-row-mode' },
-    headerContainer = document.querySelector('#header-container'),
-    cardsContainer = document.querySelector('#cards-container'),
-    cardsContainerPending = document.querySelector('#cards-container-pending'),
+    headerContainer = document.body.querySelector('#header-container'),
+    cardsContainer = document.body.querySelector('#cards-container'),
+    cardsContainerPending = document.body.querySelector('#cards-container-pending'),
+    featureRequestOverlay = document.body.querySelector('#feature-request-overlay'),
     searchBoxElement = createElement('input', {
       type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(window.location.search).get('q'), className: 'grey-hover', maxLength: 200
     });
@@ -42,14 +43,17 @@
   }
 
   /** @type {import('.').vote.fetchCards}*/
-  const fetchCards = async () => new Map((await fetchAPI(`vote/list?includePending=${!!user.dev}`)
-    .then(e => e.json()))?.cards?.sort(
+  const fetchCards = async () => new Map(
+    (await fetchAPI(`vote/list?includePending=${!!user.dev}`).then(e => e.json()))?.cards
+      ?.sort(
 
-    /**
-     * @param {import('.').vote.Card}a
-     * @param {import('.').vote.Card}b*/
-    (a, b) => (a.pending && !b.pending ? -1 : a.pending - b.pending) || b.votes - a.votes || a.title.localeCompare(b.title)
-  ).map(e => [e.id, e]));
+        /**
+         * @param {import('.').vote.Card}a
+         * @param {import('.').vote.Card}b*/
+        (a, b) => (a.pending && !b.pending ? -1 : a.pending - b.pending) || b.votes - a.votes || a.title.localeCompare(b.title)
+      )
+      .map(e => [e.id, e])
+  );
 
   /** @type {import('.').vote.createElement}*/
   function createElement(tagName, data, parent, replace) {
@@ -132,8 +136,10 @@
 
   /** @type {import('.').vote.createFeatureReqElement}*/
   function createFeatureReqElement(smallScreen) {
-    const featureRequestOverlay = document.querySelector('#feature-request-overlay');
-    document.querySelector('#feature-request-button').addEventListener('click', () => { // NOSONAR
+    const featureRequestModal = featureRequestOverlay.querySelector('#feature-request-modal');
+
+    featureRequestModal.addEventListener('submit', data => sendFeatureRequest(data, smallScreen));
+    headerContainer.querySelector('#feature-request-button').addEventListener('click', () => {
       if (!user?.id) {
         return Swal.fire({
           icon: 'error',
@@ -151,7 +157,6 @@
       if (smallScreen) cardsContainer.style.display = 'none';
     });
 
-    const closeButtonElement = document.querySelector('#feature-request-modal>button');
     const hideFeatureReqElement = ({ key }) => {
       if (key && key !== 'Escape' || featureRequestOverlay.style.display === 'none') return;
 
@@ -164,26 +169,24 @@
       featureRequestOverlay.style.display = 'none';
     };
 
-    closeButtonElement.addEventListener('click', hideFeatureReqElement);
+    featureRequestModal.querySelector('#feature-request-reset-btn').addEventListener('click', hideFeatureReqElement);
     document.addEventListener('keydown', hideFeatureReqElement);
 
-    if (user.dev) document.querySelector('#feature-request-description').removeAttribute('required');
+    if (user.dev) featureRequestModal.querySelector('#feature-request-description').removeAttribute('required');
 
-    const titleCounter = document.querySelector('#title-counter');
-    const descriptionCounter = document.querySelector('#description-counter');
+    const titleCounter = featureRequestModal.querySelector('#title-counter');
+    const descriptionCounter = featureRequestModal.querySelector('#description-counter');
 
-    document.querySelector('#feature-request-title').addEventListener('input', event => {
+    featureRequestModal.querySelector('#feature-request-title').addEventListener('input', event => {
       titleCounter.textContent = `${event.target.value.length}/140`;
       if (event.target.value.length >= 140) titleCounter.classList.add('limit-reached');
       else titleCounter.classList.remove('limit-reached');
     });
-    document.querySelector('#feature-request-description').addEventListener('input', event => {
+    featureRequestModal.querySelector('#feature-request-description').addEventListener('input', event => {
       descriptionCounter.textContent = `${event.target.value.length}/4000`;
       if (event.target.value.length >= 4000) descriptionCounter.classList.add('limit-reached');
       else descriptionCounter.classList.remove('limit-reached');
     });
-
-    document.querySelector('#feature-request-modal').addEventListener('submit', data => sendFeatureRequest(data, smallScreen));
   }
 
   /** @type {import('.').vote.displayCards}*/
@@ -228,10 +231,10 @@
 
         cardsContainer.append(cardElement);
         if (!cardsContainerPending.childElementCount) {
-          document.querySelector('#new-requests')?.remove();
-          document.querySelector('#old-requests')?.remove();
+          document.body.querySelector('#new-requests')?.remove();
+          document.body.querySelector('#old-requests')?.remove();
 
-          document.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`;
+          document.body.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`;
         }
       });
     }
@@ -263,7 +266,7 @@
     }
     if (user.dev || user.id == card.id.split('_')[0]) {
       const deleteButtonElement = createElement('button', { title: 'Delete card', className: 'manage-button grey-hover' }, voteButtonsElement);
-      deleteButtonElement.addEventListener('click', () => Swal.fire({ // NOSONAR
+      deleteButtonElement.addEventListener('click', () => Swal.fire({
         icon: 'warning',
         title: 'Are you sure?',
         text: 'Are you sure you want to delete that card? This action cannot be undone!',
@@ -276,9 +279,9 @@
 
           cardElement.remove();
           if (!cardsContainerPending.childElementCount) {
-            document.querySelector('#new-requests')?.remove();
-            document.querySelector('#old-requests')?.remove();
-            document.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`;
+            document.body.querySelector('#new-requests')?.remove();
+            document.body.querySelector('#old-requests')?.remove();
+            document.body.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`; // Element after `#feature-request-overlay`
           }
         }
       }));
@@ -355,7 +358,7 @@
     event.target.reset();
 
     if (smallScreen) cardsContainer.style.display = '';
-    document.querySelector('#feature-request-overlay').style.display = 'none';
+    featureRequestOverlay.style.display = 'none';
   }
 
   /** @type {import('.').vote.sendUpvote}*/
@@ -385,11 +388,11 @@
 
   /** Updates the cards*/
   async function updateCards() {
-    const updateList = [...document.querySelectorAll('.card[modified]')].reduce((acc, card) => {
+    const updateList = [...document.body.querySelectorAll('.card[modified]')].reduce((acc, card) => {
       card.removeAttribute('modified');
 
       const originalData = cardsCache.get(card.id);
-      if (originalData && (card.children.title.textContent.trim() !== originalData.title || card.children.description.textContent.trim() != originalData.body))
+      if (originalData?.title && card.children.title.textContent.trim() !== originalData.title || originalData?.body && card.children.description?.textContent.trim() !== originalData.body)
         acc.push({ id: card.id, title: card.children.title.textContent.trim(), body: card.children.description.textContent.trim() });
       return acc;
     }, []);
@@ -413,8 +416,8 @@
 
   // Listener
 
-  document.querySelector('#toggle-cards-display').addEventListener('click', () => toggleCardDisplayMode());
-  document.querySelector('#toggle-color-scheme').addEventListener('click', () => setColorScheme());
+  headerContainer.querySelector('#toggle-cards-display').addEventListener('click', () => toggleCardDisplayMode());
+  headerContainer.querySelector('#toggle-color-scheme').addEventListener('click', () => setColorScheme());
 
   window.addEventListener('scroll', () => {
     if (cardsCache.size > offset && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.documentElement.scrollHeight - 15) displayCards();
@@ -429,7 +432,7 @@
     }, 500);
   });
   window.addEventListener('beforeunload', event => {
-    if (!document.querySelectorAll('.card[modified]').length) return;
+    if (!document.body.querySelectorAll('.card[modified]').length) return;
 
     event.preventDefault(); // Trigger "you have unsaved changes" dialog box
     event.returnValue = true; // Legacy support
@@ -448,7 +451,7 @@
     cardsContainer.classList.add(cardsInRows ? cardModes.rowMode : cardModes.columnMode);
     cardsContainerPending.classList.add(cardsInRows ? cardModes.rowMode : cardModes.columnMode);
 
-    if (window.location.hash == '#new') document.querySelector('#feature-request-button').click();
+    if (window.location.hash == '#new') headerContainer.querySelector('#feature-request-button').click();
 
     // navigator.clipboard is not available with HTTP
     navigator.clipboard ??= {
@@ -468,7 +471,7 @@
       saveButtonElement.addEventListener('click', updateCards);
     }
 
-    document.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`;
+    document.body.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`;
     document.documentElement.style.scrollPaddingTop = `${headerContainer.clientHeight + 20}px`;
 
     loaded = true;
