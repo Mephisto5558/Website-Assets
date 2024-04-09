@@ -1,12 +1,8 @@
-/** @typedef { Map<string, { title: string, body: string, id: string, votes: number, pending?: true }>}cardsCache*/
 (() => {
   let
-
-    /** @type {{ id: string, username: string, locale: string, avatar: string, banner: string | null, dev: boolean } | { errorCode: number, error: string }}*/
-    user,
-
-    /** @type {cardsCache} */
-    cardsCache, searchTimeout, resizeTimeout, currentTheme, saveButtonElement, loaded,
+    /** @type {import('.').vote.User}*/ user,
+    /** @type {import('.').vote.CardsCache}*/ cardsCache,
+    searchTimeout, resizeTimeout, currentTheme, saveButtonElement, loaded,
     cardsInRows = false,
     offset = 0,
     oldWindowWidth = window.innerWidth;
@@ -32,11 +28,7 @@
 
   // Utils
 
-  /**
-   * @param {string}url
-   * @param {RequestInit}options
-   * @param {number?}timeout
-   * @returns {Promise<Response|Error>}*/
+  /** @type {import('.').vote.fetchAPI}*/
   const fetchAPI = (url, options, timeout = 5000) => new Promise((res, rej) => {
     if (options.body && !options.headers) options.headers = { 'Content-Type': 'application/json' };
 
@@ -45,17 +37,17 @@
       .finally(() => clearTimeout(timeoutId));
   });
 
-  /** @returns {Promise<cardsCache>}*/
+  /** @type {import('.').vote.fetchCards}*/
   const fetchCards = async () => new Map((await fetchAPI(`vote/list?includePending=${!!user.dev}`)
-    .then(e => e.json()))?.cards
-    ?.sort((a, b) => (a.pending && !b.pending ? -1 : a.pending - b.pending) || b.votes - a.votes || a.title.localeCompare(b.title))
-    .map(e => [e.id, e]));
+    .then(e => e.json()))?.cards?.sort(
 
-  /**
-   * @param {string}tagName
-   * @param {object|*|null}data
-   * @param {HTMLElement?}parent
-   * @param {?boolean}replace*/
+    /**
+     * @param {import('.').vote.Card}a
+     * @param {import('.').vote.Card}b*/
+    (a, b) => (a.pending && !b.pending ? -1 : a.pending - b.pending) || b.votes - a.votes || a.title.localeCompare(b.title)
+  ).map(e => [e.id, e]));
+
+  /** @type {import('.').vote.createElement}*/
   function createElement(tagName, data, parent, replace) {
     const element = document.createElement(tagName);
     if (Object.keys(data ?? {}).length) {
@@ -69,9 +61,7 @@
     return element;
   }
 
-  /**
-   * @param {string}key
-   * @param {string?}value*/
+  /** @type {import('.').vote.updateParams}*/
   function updateParams(key, value) {
     const
       url = new URL(window.location.href),
@@ -85,7 +75,7 @@
 
   // Elements
 
-  /** @param {boolean}smallScreen*/
+  /** @type {import('.').vote.createProfileElement}*/
   async function createProfileElement(smallScreen) {
     const fragment = document.createDocumentFragment();
     const profileContainer = createElement('div', { id: 'profile-container' });
@@ -136,7 +126,7 @@
     headerContainer.append(fragment);
   }
 
-  /** @param {boolean}smallScreen*/
+  /** @type {import('.').vote.createFeatureReqElement}*/
   function createFeatureReqElement(smallScreen) {
     const featureRequestOverlay = document.querySelector('#feature-request-overlay');
     document.querySelector('#feature-request-button').addEventListener('click', () => { // NOSONAR
@@ -192,9 +182,7 @@
     document.querySelector('#feature-request-modal').addEventListener('submit', data => sendFeatureRequest(data, smallScreen));
   }
 
-  /**
-   * @param {string?}query
-   * @param {number?}amount*/
+  /** @type {import('.').vote.displayCards}*/
   function displayCards(query = searchBoxElement.value, amount = 26) {
     query = query?.toLowerCase();
     updateParams('q', query);
@@ -213,7 +201,7 @@
     if (cardsContainer.childElementCount + cardsContainerPending.childElementCount < amount && cardsCache.size > offset) return displayCards(query, amount);
   }
 
-  /** @param {{ id: string, title?: string, body?: string, pending?: boolean, votes?: number }}card*/
+  /** @type {import('.').vote.createCardElement}*/
   function createCardElement(card) {
     const cardElement = createElement('div', { className: 'card', id: card.id });
 
@@ -322,7 +310,7 @@
     }
   }
 
-  /** @param {'dark'|'light'}scheme*/
+  /** @type {import('.').vote.setColorScheme}*/
   function setColorScheme(scheme = currentTheme === 'dark' ? 'light' : 'dark') {
     if (currentTheme === scheme) return;
     currentTheme = scheme;
@@ -338,9 +326,7 @@
     }
   }
 
-  /**
-   * @param {Event}event
-   * @param {boolean}smallScreen*/
+  /** @type {import('.').vote.sendFeatureRequest}*/
   async function sendFeatureRequest(event, smallScreen) {
     event.preventDefault();
 
@@ -368,9 +354,7 @@
     document.querySelector('#feature-request-overlay').style.display = 'none';
   }
 
-  /**
-   * @param {string}cardId
-   * @param {HTMLElement}voteCounter*/
+  /** @type {import('.').vote.sendUpvote}*/
   async function sendUpvote(cardId, voteCounter) {
     if (!user?.id) {
       return void Swal.fire({
