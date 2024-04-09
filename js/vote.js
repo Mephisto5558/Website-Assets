@@ -29,13 +29,17 @@
   // Utils
 
   /** @type {import('.').vote.fetchAPI}*/
-  const fetchAPI = (url, options, timeout = 5000) => new Promise((res, rej) => {
+  async function fetchAPI(url, options = {}, timeout = 5000) {
+    const controller = new AbortController();
     if (options.body && !options.headers) options.headers = { 'Content-Type': 'application/json' };
+    options.signal ??= controller.signal;
 
-    const timeoutId = setTimeout(() => rej(new Error('Request timed out')), timeout);
-    fetch(url ? `/api/v1/internal/${url}` : undefined, options).then(res).catch(rej)
-      .finally(() => clearTimeout(timeoutId));
-  });
+    const timeoutId = setTimeout(() => controller.abort('Request timed out'), timeout);
+    const res = await fetch(url ? `/api/v1/internal/${url}` : undefined, options);
+    clearTimeout(timeoutId);
+
+    return res;
+  }
 
   /** @type {import('.').vote.fetchCards}*/
   const fetchCards = async () => new Map((await fetchAPI(`vote/list?includePending=${!!user.dev}`)
@@ -81,9 +85,9 @@
     const profileContainer = createElement('div', { id: 'profile-container' });
 
     /* eslint-disable-next-line no-empty-function */
-    user = await fetchAPI('user').catch(() => { }).then(e => e.json());
+    user = await fetchAPI('user').then(e => e.json()).catch(() => { });
     if (!user || user.errorCode) {
-      if (user.errorCode == 403) return createElement('h2', { textContent: user.error }, document.body, true);
+      if (user?.errorCode == 403) return createElement('h2', { textContent: user.error }, document.body, true);
 
       fragment.append(searchBoxElement);
       createElement('button', { id: 'feature-request-button', textContent: smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover' }, fragment);
