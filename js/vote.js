@@ -50,7 +50,11 @@
         /**
          * @param {import('.').vote.Card}a
          * @param {import('.').vote.Card}b*/
-        (a, b) => (a.pending && !b.pending ? -1 : a.pending - b.pending) || b.votes - a.votes || a.title.localeCompare(b.title)
+        (a, b) => {
+          if (!a.pending && b.pending) return -1;
+          if (a.pending && !b.pending) return 1;
+          return b.votes - a.votes || a.title.localeCompare(b.title);
+        }
       )
       .map(e => [e.id, e])
   );
