@@ -53,7 +53,7 @@
         (a, b) => {
           if (!a.pending && b.pending) return -1;
           if (a.pending && !b.pending) return 1;
-          return b.votes - a.votes || a.title.localeCompare(b.title);
+          return (b.votes ?? 0) - (a.votes ?? 0) || a.title.localeCompare(b.title);
         }
       )
       .map(e => [e.id, e])
