@@ -231,7 +231,7 @@
         try { res = await res.json(); }
         catch { /* empty */ }
 
-        if (!res.ok || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
+        if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
 
         Swal.fire({ icon: 'success', title: 'Success', text: 'The feature request has been approved.' });
 
@@ -354,7 +354,7 @@
     try { res = await res.json(); }
     catch { /* empty */ }
 
-    if (!res.ok || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
+    if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
 
     await Swal.fire({
       icon: 'success',
@@ -388,7 +388,7 @@
     try { res = await res.json(); }
     catch { /* empty */ }
 
-    if (!res.ok || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
+    if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
 
     Swal.fire({
       icon: 'success',
@@ -421,7 +421,7 @@
     try { res = await res.json(); }
     catch { /* empty */ }
 
-    if (!res.ok || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
+    if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
 
     Swal.fire({ icon: 'success', title: 'Success', text: 'The cards have been updated.' });
 
