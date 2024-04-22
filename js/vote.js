@@ -92,8 +92,7 @@
     const fragment = document.createDocumentFragment();
     const profileContainer = createElement('div', { id: 'profile-container' });
 
-    /* eslint-disable-next-line no-empty-function */
-    user = await fetchAPI('user').then(e => e.json()).catch(() => { });
+    user = await fetchAPI('user').then(e => e.json()).catch(() => { /* empty */ });
     if (!user || user.errorCode) {
       if (user?.errorCode == 403) return createElement('h2', { textContent: user.error }, document.body, true);
 
