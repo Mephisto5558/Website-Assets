@@ -224,12 +224,15 @@
 
     if (card.pending && user.dev) {
       createElement('button', { textContent: 'Approve', className: 'vote-button blue-button' }, voteButtonsElement).addEventListener('click', async () => {
-        const res = await fetchAPI('vote/approve', {
+        let res = await fetchAPI('vote/approve', {
           method: 'POST',
           body: JSON.stringify({ featureId: card.id })
-        }).then(e => e.json());
+        });
 
-        if (res.error) return Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
+        try { res = await res.json(); }
+        catch { /* empty */ }
+
+        if (!res.ok || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
 
         Swal.fire({ icon: 'success', title: 'Success', text: 'The feature request has been approved.' });
 
@@ -341,15 +344,18 @@
   async function sendFeatureRequest(event, smallScreen) {
     event.preventDefault();
 
-    const res = await fetchAPI('vote/new', {
+    let res = await fetchAPI('vote/new', {
       method: 'POST',
       body: JSON.stringify({
         title: event.target.title.value.trim(),
         description: event.target.description.value.trim()
       })
-    }).then(e => e.json());
+    });
 
-    if (res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
+    try { res = await res.json(); }
+    catch { /* empty */ }
+
+    if (!res.ok || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
 
     await Swal.fire({
       icon: 'success',
@@ -375,11 +381,15 @@
       });
     }
 
-    const res = await fetchAPI('vote/addvote', {
+    let res = await fetchAPI('vote/addvote', {
       method: 'POST',
       body: JSON.stringify({ featureId: cardId })
-    }).then(e => e.json());
-    if (res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
+    });
+
+    try { res = await res.json(); }
+    catch { /* empty */ }
+
+    if (!res.ok || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
 
     Swal.fire({
       icon: 'success',
@@ -403,13 +413,16 @@
 
     if (!updateList.length) return void Swal.fire({ icon: 'error', title: 'Oops...', text: 'No cards have been modified.' });
 
-    const res = await fetchAPI('vote/update', {
+    let res = await fetchAPI('vote/update', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updateList)
-    }).then(e => e.json());
+    });
 
-    if (res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error });
+    try { res = await res.json(); }
+    catch { /* empty */ }
+
+    if (!res.ok || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
 
     Swal.fire({ icon: 'success', title: 'Success', text: 'The cards have been updated.' });
 
