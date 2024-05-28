@@ -406,7 +406,7 @@
 
       const originalData = cardsCache.get(card.id);
       if (originalData?.title && card.children.title.textContent.trim() !== originalData.title || originalData?.body && card.children.description?.textContent.trim() !== originalData.body)
-        acc.push({ id: card.id, title: card.children.title.textContent.trim(), body: card.children.description.textContent.trim() });
+        acc.push({ id: card.id, title: card.children.title.textContent.trim(), body: card.children.description?.textContent.trim() });
       return acc;
     }, []);
 
