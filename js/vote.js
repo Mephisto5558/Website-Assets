@@ -259,7 +259,7 @@
 
     if (user.dev) {
       titleElement.addEventListener('keydown', event => {
-        if (!event.target.parentElement.hasAttribute('modified')) event.targe.parentElement.setAttribute('modified', '');
+        if (!event.target.parentElement.hasAttribute('modified')) event.target.parentElement.setAttribute('modified', '');
 
         if (event.key !== 'Enter') return;
         event.preventDefault();
