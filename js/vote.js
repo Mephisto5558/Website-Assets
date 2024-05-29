@@ -259,11 +259,11 @@
 
     if (user.dev) {
       titleElement.addEventListener('keydown', event => {
-        if (!event.target.parentElement.parentElement.hasAttribute('modified')) event.target.parentElement.parentElement.setAttribute('modified', '');
+        if (!event.target.parentElement.hasAttribute('modified')) event.targe.parentElement.setAttribute('modified', '');
 
         if (event.key !== 'Enter') return;
         event.preventDefault();
-        const element = event.target.parentElement.nextElementSibling;
+        const element = event.target.nextElementSibling;
         element.firstChild.focus();
       });
       descriptionElement?.addEventListener('input', ({ target }) => {
