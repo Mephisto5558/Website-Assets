@@ -14,7 +14,7 @@
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Website-Assets&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Website-Assets)
 [![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Website-Assets&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Website-Assets)
 
-
+[![Discord Server](https://discord.com/api/guilds/1011956895529041950/widget.png?style=shield)](https://discord.com/invite/yWwGTeppjR)
 
 
 Assets for my [website](https://github.com/Mephisto5558/Teufelsbot-Website)
