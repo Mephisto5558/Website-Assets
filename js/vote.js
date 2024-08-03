@@ -13,6 +13,8 @@
     cardsContainer = document.body.querySelector('#cards-container'),
     cardsContainerPending = document.body.querySelector('#cards-container-pending'),
     featureRequestOverlay = document.body.querySelector('#feature-request-overlay'),
+
+    /** @type {HTMLInputElement} */
     searchBoxElement = createElement('input', {
       type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(window.location.search).get('q'), className: 'grey-hover', maxLength: 200
     });
@@ -64,7 +66,7 @@
     const element = document.createElement(tagName);
     if (Object.keys(data ?? {}).length) {
       for (const [k, v] of Object.entries(data)) {
-        if (v == undefined || v === null) continue;
+        if (v == undefined) continue;
         if (typeof v == 'object') Object.assign(element[k], v);
         else element[k] = v;
       }
@@ -102,7 +104,7 @@
         .addEventListener('click', () => window.location.href = `/auth/discord?redirectURL=${window.location.href}`);
       fragment.append(profileContainer);
 
-      return void headerContainer.append(fragment);
+      return headerContainer.append(fragment);
     }
 
     const profileContainerWrapper = createElement('div', { id: 'profile-container-wrapper' }, profileContainer);
@@ -194,7 +196,7 @@
 
   /** @type {import('.').vote.displayCards}*/
   function displayCards(query = searchBoxElement.value, amount = 26) {
-    query = query?.toLowerCase();
+    query = query.toLowerCase();
     updateParams('q', query);
 
     const cards = (query ? [...cardsCache.values()].filter(e => e.title.toLowerCase().includes(query) || e.body.toLowerCase().includes(query) || e.id.toLowerCase().includes(query)) : [...cardsCache.values()]).slice(offset, amount + offset);
@@ -233,7 +235,7 @@
 
         if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
 
-        Swal.fire({ icon: 'success', title: 'Success', text: 'The feature request has been approved.' });
+        void Swal.fire({ icon: 'success', title: 'Success', text: 'The feature request has been approved.' });
 
         cardsContainer.append(cardElement);
         if (!cardsContainerPending.childElementCount) {
@@ -252,7 +254,7 @@
     const copyButtonIcon = createElement('i', { className: 'far fa-copy fa-xl' }, copyButtonElement);
 
     copyButtonElement.addEventListener('click', () => {
-      navigator.clipboard.writeText(card.id);
+      void navigator.clipboard.writeText(card.id);
       copyButtonIcon.classList = 'fas fa-check fa-xl';
       setTimeout(() => copyButtonIcon.classList = 'far fa-copy fa-xl', 3000);
     });
@@ -277,11 +279,11 @@
         title: 'Are you sure?',
         text: 'Are you sure you want to delete that card? This action cannot be undone!',
         showCancelButton: true,
-        preConfirm: () => {
-          fetchAPI('vote/delete', {
+        preConfirm: async () => {
+          await fetchAPI('vote/delete', {
             method: 'DELETE',
             body: JSON.stringify({ featureId: card.id })
-          }).then(e => e.statusText);
+          });
 
           cardElement.remove();
           if (!cardsContainerPending.childElementCount) {
@@ -390,7 +392,7 @@
 
     if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
 
-    Swal.fire({
+    void Swal.fire({
       icon: 'success',
       title: 'Success',
       text: 'Your vote has been successfully recorded.'
@@ -405,7 +407,7 @@
       card.removeAttribute('modified');
 
       const originalData = cardsCache.get(card.id);
-      if (originalData?.title && card.children.title.textContent.trim() !== originalData.title || originalData?.body && card.children.description?.textContent.trim() !== originalData.body)
+      if (originalData?.title && card.children.title.textContent.trim() !== originalData.title || originalData.body && card.children.description?.textContent.trim() !== originalData.body)
         acc.push({ id: card.id, title: card.children.title.textContent.trim(), body: card.children.description.textContent.trim() });
       return acc;
     }, []);
@@ -423,7 +425,7 @@
 
     if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
 
-    Swal.fire({ icon: 'success', title: 'Success', text: 'The cards have been updated.' });
+    void Swal.fire({ icon: 'success', title: 'Success', text: 'The cards have been updated.' });
 
     offset = 0;
     cardsCache = await fetchCards();
