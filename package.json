@@ -10,6 +10,9 @@
   "keywords": [],
   "author": "Mephisto5558",
   "license": "MIT",
+  "engines": {
+    "node": ">=20.11.0"
+  },
   "devDependencies": {
     "@mephisto5558/eslint-config": "^2.0.1",
     "eslint": "^9.9.0",
