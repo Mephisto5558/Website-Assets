@@ -34,7 +34,7 @@
   /** @type {import('.').vote.fetchAPI}*/
   async function fetchAPI(url, options = {}, timeout = 5000) {
     const controller = new AbortController();
-    if (options.body && !options.headers) options.headers = { 'Content-Type': 'application/json' };
+    if (options.body != undefined && !options.headers) options.headers = { 'Content-Type': 'application/json' };
     options.signal ??= controller.signal;
 
     const timeoutId = setTimeout(() => controller.abort('Request timed out'), timeout);
