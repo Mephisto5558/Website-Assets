@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/github/license/Mephisto5558/Website-Assets)](https://github.com/Mephisto5558/Website-Assets/blob/main/LICENSE)
 [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Website-Assets&metric=ncloc)](https://sonarcloud.io/component_measures?metric=ncloc&id=Mephisto5558_Website-Assets)
 [![wakatime](https://wakatime.com/badge/github/Mephisto5558/Website-Assets.svg)](https://wakatime.com/badge/github/Mephisto5558/Website-Assets)<br>
-[![CodeQL](https://github.com/Mephisto5558/Website-Assets/actions/workflows/codeql.yml/badge.svg)]([https://github.com/Mephisto5558/Website-Assets/actions/workflows/codeql.yml](https://github.com/Mephisto5558/Website-Assets/actions/workflows/github-code-scanning/codeql))
+[![CodeQL](https://github.com/Mephisto5558/Website-Assets/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Mephisto5558/Website-Assets/actions/workflows/github-code-scanning/codeql)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Website-Assets&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Mephisto5558_Website-Assets)<br>
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Website-Assets&metric=security_rating)](https://sonarcloud.io/component_measures?metric=Security&id=Mephisto5558_Website-Assets)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=Mephisto5558_Website-Assets&metric=sqale_rating)](https://sonarcloud.io/component_measures?metric=Maintainability&id=Mephisto5558_Website-Assets)
