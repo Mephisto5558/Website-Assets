@@ -2,9 +2,9 @@
   let
     /** @type {import('.').vote.User?}*/ user,
     /** @type {import('.').vote.CardsCache}*/ cardsCache,
-    searchTimeout, resizeTimeout, currentTheme, saveButtonElement, loaded,
+    currentTheme, saveButtonElement, pageIsLoaded,
     cardsInRows = false,
-    offset = 0,
+    cardsOffset = 0,
     oldWindowWidth = window.innerWidth;
 
   const
@@ -17,27 +17,129 @@
     /** @type {HTMLInputElement} */
     searchBoxElement = createElement('input', {
       type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(window.location.search).get('q'), className: 'grey-hover', maxLength: 200
-    });
+    }),
 
-  searchBoxElement.addEventListener('input', ({ target }) => {
+    /** @type {import('.').vote.debounce} */
+    debounce = (callback, delay) => {
+      let timer;
+
+      return (...args) => new Promise((res, rej) => {
+        clearTimeout(timer);
+
+        timer = setTimeout(() => {
+          try { res(callback(...args)); }
+          catch (err) { rej(err); }
+        }, delay);
+      });
+    },
+
+    // Debounced Handlers
+    /** @type {import('.').vote.sendFeatureRequest}*/
+    sendFeatureRequest = debounce(async (event, smallScreen) => {
+      event.preventDefault();
+
+      let res = await fetchAPI('vote/new', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: event.target.title.value.trim(),
+          description: event.target.description.value.trim()
+        })
+      });
+
+      try { res = await res.json(); }
+      catch { /* empty */ }
+
+      if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: `Your feature request has been submitted and ${res.approved ? 'approved' : 'will be reviewed shortly'}.`
+      });
+
+      cardsCache.set(res.id, res);
+
+      event.target.reset();
+
+      if (smallScreen) cardsContainer.style.display = '';
+      featureRequestOverlay.style.display = 'none';
+    }, 1000),
+
+    /** @type {import('.').vote.sendUpvote}*/
+    sendUpvote = debounce(async (cardId, voteCounter) => {
+      if (!user?.id) {
+        return void Swal.fire({
+          icon: 'error',
+          title: 'Who are you?',
+          text: 'You must be logged in to be able to vote!'
+        });
+      }
+
+      let res = await fetchAPI('vote/addvote', {
+        method: 'POST',
+        body: JSON.stringify({ featureId: cardId })
+      });
+
+      try { res = await res.json(); }
+      catch { /* empty */ }
+
+      if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
+
+      void Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Your vote has been successfully recorded.'
+      });
+
+      voteCounter.textContent = Number.parseInt(voteCounter.textContent) + 1;
+    }, 1000),
+
+    /** Updates the cards*/
+    updateCards = debounce(async () => {
+      const updateList = [...document.body.querySelectorAll('.card[modified]')].reduce((acc, card) => {
+        card.removeAttribute('modified');
+
+        const originalData = cardsCache.get(card.id);
+        if (originalData?.title && card.children.title.textContent.trim() !== originalData.title || originalData.body && card.children.description?.textContent.trim() !== originalData.body)
+          acc.push({ id: card.id, title: card.children.title.textContent.trim(), body: card.children.description.textContent.trim() });
+        return acc;
+      }, []);
+
+      if (!updateList.length) return void Swal.fire({ icon: 'error', title: 'Oops...', text: 'No cards have been modified.' });
+
+      let res = await fetchAPI('vote/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateList)
+      });
+
+      try { res = await res.json(); }
+      catch { /* empty */ }
+
+      if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
+
+      void Swal.fire({ icon: 'success', title: 'Success', text: 'The cards have been updated.' });
+
+      cardsOffset = 0;
+      cardsCache = await fetchCards();
+      displayCards();
+    }, 1000);
+
+  searchBoxElement.addEventListener('input', debounce(({ target }) => {
     if (target.value.length > target.maxLength) target.value = target.value.slice(0, target.maxLength);
 
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-      offset = 0;
-      displayCards(target.value);
-    }, 500);
-  });
+    cardsOffset = 0;
+    displayCards(target.value);
+  }, 500));
 
   // Utils
 
   /** @type {import('.').vote.fetchAPI}*/
   async function fetchAPI(url, options = {}, timeout = 5000) {
-    const controller = new AbortController();
     if (options.body != undefined && !options.headers) options.headers = { 'Content-Type': 'application/json' };
-    options.signal ??= controller.signal;
+    options.signal ??= new AbortController().signal;
 
-    const timeoutId = setTimeout(() => controller.abort('Request timed out'), timeout);
+    const timeoutId = setTimeout(() => options.signal.abort('Request timed out'), timeout);
     const res = await fetch(url ? `/api/v1/internal/${url}` : undefined, options);
     clearTimeout(timeoutId);
 
@@ -45,21 +147,22 @@
   }
 
   /** @type {import('.').vote.fetchCards}*/
-  const fetchCards = async () => new Map(
-    (await fetchAPI(`vote/list?includePending=${!!user.dev}`).then(e => e.json()))?.cards
-      ?.sort(
+  async function fetchCards() {
+    return new Map(
+      (await fetchAPI(`vote/list?includePending=${!!user.dev}`).then(e => e.json()))?.cards
+        ?.sort(
 
-        /**
-         * @param {import('.').vote.Card}a
-         * @param {import('.').vote.Card}b*/
-        (a, b) => {
-          if (!a.pending && b.pending) return 1;
-          if (a.pending && !b.pending) return -1;
-          return (b.votes ?? 0) - (a.votes ?? 0) || a.title.localeCompare(b.title);
-        }
-      )
-      .map(e => [e.id, e])
-  );
+          /**
+           * @param {import('.').vote.Card}a
+           * @param {import('.').vote.Card}b*/
+          (a, b) => {
+            if (!a.pending && b.pending) return 1;
+            if (a.pending && !b.pending) return -1;
+            return (b.votes ?? 0) - (a.votes ?? 0) || a.title.localeCompare(b.title);
+          }
+        ).map(e => [e.id, e])
+    );
+  }
 
   /** @type {import('.').vote.createElement}*/
   function createElement(tagName, data, parent, replace) {
@@ -199,18 +302,18 @@
     query = query.toLowerCase();
     updateParams('q', query);
 
-    const cards = (query ? [...cardsCache.values()].filter(e => e.title.toLowerCase().includes(query) || e.body.toLowerCase().includes(query) || e.id.toLowerCase().includes(query)) : [...cardsCache.values()]).slice(offset, amount + offset);
+    const cards = (query ? [...cardsCache.values()].filter(e => e.title.toLowerCase().includes(query) || e.body.toLowerCase().includes(query) || e.id.toLowerCase().includes(query)) : [...cardsCache.values()]).slice(cardsOffset, amount + cardsOffset);
     if (!cards.length && !cardsContainer.childElementCount && !cardsContainerPending.childElementCount) return void createElement('h2', { textContent: `There are currently no feature requests${query ? ' matching your search query' : ''} :(` }, cardsContainer, true);
 
-    if (!offset) {
+    if (!cardsOffset) {
       cardsContainer.innerHTML = '';
       cardsContainerPending.innerHTML = '';
     }
 
     for (const card of cards) createCardElement(card);
 
-    offset += amount;
-    if (cardsContainer.childElementCount + cardsContainerPending.childElementCount < amount && cardsCache.size > offset) return displayCards(query, amount);
+    cardsOffset += amount;
+    if (cardsContainer.childElementCount + cardsContainerPending.childElementCount < amount && cardsCache.size > cardsOffset) return displayCards(query, amount);
   }
 
   /** @type {import('.').vote.createCardElement}*/
@@ -333,103 +436,12 @@
 
     for (const e of ['bg', 'text', 'input-bg', 'input-focus-bg', 'card-bg', 'grey-text']) document.documentElement.style.setProperty(`--${e}-color`, `var(--${currentTheme}-mode-${e}-color)`);
 
-    if (loaded) {
+    if (pageIsLoaded) {
       const elements = document.querySelectorAll('body, #header-container button, #header-container>#search-box, .card');
       for (const e of elements) e.classList.add('color-transition');
 
       setTimeout(() => { for (const e of elements) e.classList.remove('color-transition'); }, 300);
     }
-  }
-
-  /** @type {import('.').vote.sendFeatureRequest}*/
-  async function sendFeatureRequest(event, smallScreen) {
-    event.preventDefault();
-
-    let res = await fetchAPI('vote/new', {
-      method: 'POST',
-      body: JSON.stringify({
-        title: event.target.title.value.trim(),
-        description: event.target.description.value.trim()
-      })
-    });
-
-    try { res = await res.json(); }
-    catch { /* empty */ }
-
-    if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
-
-    await Swal.fire({
-      icon: 'success',
-      title: 'Success',
-      text: `Your feature request has been submitted and ${res.approved ? 'approved' : 'will be reviewed shortly'}.`
-    });
-
-    cardsCache.set(res.id, res);
-
-    event.target.reset();
-
-    if (smallScreen) cardsContainer.style.display = '';
-    featureRequestOverlay.style.display = 'none';
-  }
-
-  /** @type {import('.').vote.sendUpvote}*/
-  async function sendUpvote(cardId, voteCounter) {
-    if (!user?.id) {
-      return void Swal.fire({
-        icon: 'error',
-        title: 'Who are you?',
-        text: 'You must be logged in to be able to vote!'
-      });
-    }
-
-    let res = await fetchAPI('vote/addvote', {
-      method: 'POST',
-      body: JSON.stringify({ featureId: cardId })
-    });
-
-    try { res = await res.json(); }
-    catch { /* empty */ }
-
-    if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
-
-    void Swal.fire({
-      icon: 'success',
-      title: 'Success',
-      text: 'Your vote has been successfully recorded.'
-    });
-
-    voteCounter.textContent = Number.parseInt(voteCounter.textContent) + 1;
-  }
-
-  /** Updates the cards*/
-  async function updateCards() {
-    const updateList = [...document.body.querySelectorAll('.card[modified]')].reduce((acc, card) => {
-      card.removeAttribute('modified');
-
-      const originalData = cardsCache.get(card.id);
-      if (originalData?.title && card.children.title.textContent.trim() !== originalData.title || originalData.body && card.children.description?.textContent.trim() !== originalData.body)
-        acc.push({ id: card.id, title: card.children.title.textContent.trim(), body: card.children.description.textContent.trim() });
-      return acc;
-    }, []);
-
-    if (!updateList.length) return void Swal.fire({ icon: 'error', title: 'Oops...', text: 'No cards have been modified.' });
-
-    let res = await fetchAPI('vote/update', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updateList)
-    });
-
-    try { res = await res.json(); }
-    catch { /* empty */ }
-
-    if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
-
-    void Swal.fire({ icon: 'success', title: 'Success', text: 'The cards have been updated.' });
-
-    offset = 0;
-    cardsCache = await fetchCards();
-    displayCards();
   }
 
   // Listener
@@ -438,22 +450,20 @@
   headerContainer.querySelector('#toggle-color-scheme').addEventListener('click', () => setColorScheme());
 
   window.addEventListener('scroll', () => {
-    if (cardsCache.size > offset && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.documentElement.scrollHeight - 15) displayCards();
+    if (cardsCache.size > cardsOffset && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.documentElement.scrollHeight - 15) displayCards();
   });
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      const currentWidth = window.innerWidth;
+  window.addEventListener('resize', debounce(() => {
+    const currentWidth = window.innerWidth;
 
-      if (oldWindowWidth > 769 && currentWidth < 768 || oldWindowWidth < 768 && currentWidth > 769) window.location.reload();
-      else oldWindowWidth = currentWidth;
-    }, 500);
-  });
+    if (oldWindowWidth > 769 && currentWidth < 768 || oldWindowWidth < 768 && currentWidth > 769) window.location.reload();
+    else oldWindowWidth = currentWidth;
+  }, 500));
   window.addEventListener('beforeunload', event => {
     if (!document.body.querySelectorAll('.card[modified]').length) return;
 
-    event.preventDefault(); // Trigger "you have unsaved changes" dialog box
-    event.returnValue = true; // Legacy support
+    event.preventDefault(); // Triggers "you have unsaved changes" dialog box
+    /* eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy support */
+    event.returnValue = true;
   });
 
   document.addEventListener('DOMContentLoaded', async () => {
@@ -492,6 +502,6 @@
     document.body.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`;
     document.documentElement.style.scrollPaddingTop = `${headerContainer.clientHeight + 20}px`;
 
-    loaded = true;
+    pageIsLoaded = true;
   });
 })();

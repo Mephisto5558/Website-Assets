@@ -4,6 +4,7 @@
     "moduleResolution": "Node16",
     "target": "ESNext",
     "lib": [
+      "ESNext",
       "DOM"
     ],
     "noEmit": true,
