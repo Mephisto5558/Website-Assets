@@ -7,8 +7,6 @@ export declare namespace vote {
   type User<canBeError extends boolean = true> = UserData & (canBeError extends true ? UserError : never);
 
   function debounce<CB extends (...args: unknown[]) => unknown>(callback: CB, wait: number): (...args: unknown[]) => Promise<ReturnType<CB>>;
-
-  /* eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents -- it works*/
   function fetchAPI(url: string, options?: RequestInit, timeout?: number): Promise<Response | Error>;
   function fetchCards(): Promise<CardsCache>;
   function createElement(tagName: string, data?: Record<string, unknown>, parent?: HTMLElement, replace?: boolean): HTMLElement;

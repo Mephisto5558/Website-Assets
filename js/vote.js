@@ -16,7 +16,7 @@
 
     /** @type {HTMLInputElement} */
     searchBoxElement = createElement('input', {
-      type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(window.location.search).get('q'), className: 'grey-hover', maxLength: 200
+      type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(globalThis.location.search).get('q'), className: 'grey-hover', maxLength: 200
     }),
 
     /** @type {import('.').vote.debounce} */
@@ -28,7 +28,7 @@
 
         timer = setTimeout(() => {
           try { res(callback(...args)); }
-          catch (err) { rej(err); }
+          catch (err) { rej(err instanceof Error ? err : new Error(err)); }
         }, delay);
       });
     },
@@ -181,13 +181,13 @@
   /** @type {import('.').vote.updateParams}*/
   function updateParams(key, value) {
     const
-      url = new URL(window.location.href),
-      params = new URLSearchParams(window.location.search);
+      url = new URL(globalThis.location.href),
+      params = new URLSearchParams(globalThis.location.search);
 
     value ? params.set(key, value) : params.delete(key);
     url.search = params.toString();
 
-    window.history.pushState(undefined, undefined, url.toString());
+    globalThis.history.pushState(undefined, undefined, url.toString());
   }
 
   // Elements
@@ -204,7 +204,7 @@
       fragment.append(searchBoxElement);
       createElement('button', { id: 'feature-request-button', textContent: smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover' }, fragment);
       createElement('button', { id: 'login-button', textContent: smallScreen ? 'Login' : 'Login with Discord', className: 'blue-button' }, profileContainer)
-        .addEventListener('click', () => window.location.href = `/auth/discord?redirectURL=${window.location.href}`);
+        .addEventListener('click', () => globalThis.location.href = `/auth/discord?redirectURL=${globalThis.location.href}`);
       fragment.append(profileContainer);
 
       return headerContainer.append(fragment);
@@ -223,7 +223,7 @@
       const res = await fetch('/auth/logout');
 
       await Swal.fire(res.ok ? { icon: 'success', title: 'Success', text: 'You are now logged out.' } : { icon: 'error', title: 'Logout failed', text: res.statusText });
-      if (res.ok) window.location.reload();
+      if (res.ok) globalThis.location.reload();
     });
 
     const featureRequestButtonElement = createElement('button', { id: 'feature-request-button', textContent: smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover' });
@@ -455,7 +455,7 @@
   window.addEventListener('resize', debounce(() => {
     const currentWidth = window.innerWidth;
 
-    if (oldWindowWidth > 769 && currentWidth < 768 || oldWindowWidth < 768 && currentWidth > 769) window.location.reload();
+    if (oldWindowWidth > 769 && currentWidth < 768 || oldWindowWidth < 768 && currentWidth > 769) globalThis.location.reload();
     else oldWindowWidth = currentWidth;
   }, 500));
   window.addEventListener('beforeunload', event => {
@@ -467,9 +467,9 @@
   });
 
   document.addEventListener('DOMContentLoaded', async () => {
-    setColorScheme(localStorage.getItem('theme') ?? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+    setColorScheme(localStorage.getItem('theme') ?? (globalThis.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
 
-    const smallScreen = window.matchMedia('(max-width: 768px)').matches;
+    const smallScreen = globalThis.matchMedia('(max-width: 768px)').matches;
     if (!smallScreen) cardsInRows = localStorage.getItem('displayMode') === 'cardsInRows';
 
     await createProfileElement(smallScreen);
@@ -479,7 +479,7 @@
     cardsContainer.classList.add(cardsInRows ? cardModes.rowMode : cardModes.columnMode);
     cardsContainerPending.classList.add(cardsInRows ? cardModes.rowMode : cardModes.columnMode);
 
-    if (window.location.hash == '#new') headerContainer.querySelector('#feature-request-button').click();
+    if (globalThis.location.hash == '#new') headerContainer.querySelector('#feature-request-button').click();
 
     // navigator.clipboard is not available with HTTP
     navigator.clipboard ??= {

@@ -14,7 +14,7 @@
     "node": ">=20.11.0"
   },
   "devDependencies": {
-    "@mephisto5558/eslint-config": "^2.0.2",
+    "@mephisto5558/eslint-config": "^2.1.0",
     "eslint": "^9.9.1",
     "globals": "^15.9.0",
     "sweetalert2": "^11.12.4"
