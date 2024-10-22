@@ -16,7 +16,7 @@ export default [
       globals: {
         ...globals.es2024,
         ...globals.browser,
-      Swal: 'readonly'
+        Swal: 'readonly'
       }
     },
     plugins,
@@ -35,7 +35,15 @@ export default [
           ]
         }
       ],
-      '@stylistic/max-len': 'off'
+      '@stylistic/max-len': 'off',
+      'sonarjs/no-nested-functions': [
+        'error',
+        {
+          // Default + 1 for IIFE
+          threshold: config.find(e => e.rules && Object.entries(e.rules).find(([k]) => k == 'sonarjs/no-nested-functions')).rules['sonarjs/no-nested-functions'][1].threshold + 1
+        },
+      ],
+      'sonarjs/sonar-no-magic-numbers': 'off' // clientside code has way to much of it
     }
   }
 ];

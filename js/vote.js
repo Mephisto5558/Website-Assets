@@ -8,6 +8,7 @@
     oldWindowWidth = window.innerWidth;
 
   const
+    HTTP_STATUS_FORBIDDEN = 403,
     cardModes = { columnMode: 'cards-column-mode', rowMode: 'cards-row-mode' },
     headerContainer = document.body.querySelector('#header-container'),
     cardsContainer = document.body.querySelector('#cards-container'),
@@ -23,13 +24,15 @@
     debounce = (callback, delay) => {
       let timer;
 
+      /** @type {import('.').vote.debounceTimeoutCB} */
+      const timeoutCallback = (res, rej, ...args) => {
+        try { res(callback(...args)); }
+        catch (err) { rej(err instanceof Error ? err : new Error(err)); }
+      };
+
       return (...args) => new Promise((res, rej) => {
         clearTimeout(timer);
-
-        timer = setTimeout(() => {
-          try { res(callback(...args)); }
-          catch (err) { rej(err instanceof Error ? err : new Error(err)); }
-        }, delay);
+        timer = setTimeout(timeoutCallback.bind(undefined, res, rej, ...args), delay);
       });
     },
 
@@ -199,7 +202,7 @@
 
     user = await fetchAPI('user').then(e => e.json()).catch(() => { /* empty */ });
     if (!user || user.errorCode) {
-      if (user?.errorCode == 403) return createElement('h2', { textContent: user.error }, document.body, true);
+      if (user?.errorCode == HTTP_STATUS_FORBIDDEN) return createElement('h2', { textContent: user.error }, document.body, true);
 
       fragment.append(searchBoxElement);
       createElement('button', { id: 'feature-request-button', textContent: smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover' }, fragment);
