@@ -17,4 +17,4 @@
 [![Discord Server](https://discord.com/api/guilds/1011956895529041950/widget.png?style=shield)](https://discord.com/invite/yWwGTeppjR)
 
 
-Assets for my [website](https://github.com/Mephisto5558/Teufelsbot-Website)
+Assets for my [website library](https://github.com/Mephisto5558/Bot-Website)
