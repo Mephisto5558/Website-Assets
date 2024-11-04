@@ -1,19 +1,22 @@
 (() => {
   let
-    /** @type {import('.').vote.User?}*/ user,
-    /** @type {import('.').vote.CardsCache}*/ cardsCache,
-    currentTheme, saveButtonElement, pageIsLoaded,
+    /** @type {import('.').vote.User?}*/user,
+    /** @type {import('.').vote.CardsCache}*/cardsCache,
+    /** @type {HTMLButtonElement | undefined}*/saveButtonElement,
+    currentTheme,
+    pageIsLoaded = false,
     cardsInRows = false,
+    smallScreen = false,
     cardsOffset = 0,
     oldWindowWidth = window.innerWidth;
 
   const
     HTTP_STATUS_FORBIDDEN = 403,
     cardModes = { columnMode: 'cards-column-mode', rowMode: 'cards-row-mode' },
-    headerContainer = document.body.querySelector('#header-container'),
-    cardsContainer = document.body.querySelector('#cards-container'),
-    cardsContainerPending = document.body.querySelector('#cards-container-pending'),
-    featureRequestOverlay = document.body.querySelector('#feature-request-overlay'),
+    /** @type {HTMLElement}*/ headerContainer = document.body.querySelector('#header-container'),
+    /** @type {HTMLElement}*/ cardsContainer = document.body.querySelector('#cards-container'),
+    /** @type {HTMLElement}*/ cardsContainerPending = document.body.querySelector('#cards-container-pending'),
+    /** @type {HTMLElement}*/ featureRequestOverlay = document.body.querySelector('#feature-request-overlay'),
 
     /** @type {HTMLInputElement} */
     searchBoxElement = createElement('input', {
@@ -36,16 +39,32 @@
       });
     },
 
+    /** @type {import('.').vote.hideFeatureReqElement}*/
+    hideFeatureReqElement = (event = {}) => {
+      if (event.key && event.key !== 'Escape' || featureRequestOverlay.style.display === 'none') return;
+
+      headerContainer.removeAttribute('inert');
+      cardsContainer.removeAttribute('inert');
+      cardsContainerPending.removeAttribute('inert');
+      if (saveButtonElement) saveButtonElement.removeAttribute('inert');
+
+      if (smallScreen) cardsContainer.style.removeProperty('display');
+      featureRequestOverlay.style.removeProperty('display');
+    },
+
     // Debounced Handlers
     /** @type {import('.').vote.sendFeatureRequest}*/
-    sendFeatureRequest = debounce(async (event, smallScreen) => {
+    sendFeatureRequest = debounce(async event => {
       event.preventDefault();
+
+      const target = event.target.parentElement;
+      if (!target.title || !target.description) return;
 
       let res = await fetchAPI('vote/new', {
         method: 'POST',
         body: JSON.stringify({
-          title: event.target.title.value.trim(),
-          description: event.target.description.value.trim()
+          title: target.title.value.trim(),
+          description: target.description.value.trim()
         })
       });
 
@@ -62,10 +81,8 @@
 
       cardsCache.set(res.id, res);
 
-      event.target.reset();
-
-      if (smallScreen) cardsContainer.style.display = '';
-      featureRequestOverlay.style.display = 'none';
+      hideFeatureReqElement();
+      target.reset(); // resets the form's values
     }, 1000),
 
     /** @type {import('.').vote.sendUpvote}*/
@@ -196,7 +213,7 @@
   // Elements
 
   /** @type {import('.').vote.createProfileElement}*/
-  async function createProfileElement(smallScreen) {
+  async function createProfileElement() {
     const fragment = document.createDocumentFragment();
     const profileContainer = createElement('div', { id: 'profile-container' });
 
@@ -246,10 +263,10 @@
   }
 
   /** @type {import('.').vote.createFeatureReqElement}*/
-  function createFeatureReqElement(smallScreen) {
+  function createFeatureReqElement() {
     const featureRequestModal = featureRequestOverlay.querySelector('#feature-request-modal');
 
-    featureRequestModal.addEventListener('submit', data => sendFeatureRequest(data, smallScreen));
+    featureRequestModal.querySelector('#feature-request-submit-button').addEventListener('click', sendFeatureRequest);
     headerContainer.querySelector('#feature-request-button').addEventListener('click', () => {
       if (!user?.id) {
         return Swal.fire({
@@ -267,18 +284,6 @@
       featureRequestOverlay.style.display = 'block';
       if (smallScreen) cardsContainer.style.display = 'none';
     });
-
-    const hideFeatureReqElement = ({ key }) => {
-      if (key && key !== 'Escape' || featureRequestOverlay.style.display === 'none') return;
-
-      headerContainer.inert = '';
-      cardsContainer.inert = '';
-      cardsContainerPending.inert = '';
-      if (saveButtonElement) saveButtonElement.inert = '';
-
-      if (smallScreen) cardsContainer.style.display = '';
-      featureRequestOverlay.style.display = 'none';
-    };
 
     featureRequestModal.querySelector('#feature-request-reset-btn').addEventListener('click', hideFeatureReqElement);
     document.addEventListener('keydown', hideFeatureReqElement);
@@ -472,11 +477,11 @@
   document.addEventListener('DOMContentLoaded', async () => {
     setColorScheme(localStorage.getItem('theme') ?? (globalThis.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
 
-    const smallScreen = globalThis.matchMedia('(max-width: 768px)').matches;
+    smallScreen = globalThis.matchMedia('(max-width: 768px)').matches;
     if (!smallScreen) cardsInRows = localStorage.getItem('displayMode') === 'cardsInRows';
 
-    await createProfileElement(smallScreen);
-    createFeatureReqElement(smallScreen);
+    await createProfileElement();
+    createFeatureReqElement();
 
     cardsCache = await fetchCards();
     cardsContainer.classList.add(cardsInRows ? cardModes.rowMode : cardModes.columnMode);

@@ -13,11 +13,12 @@ export declare namespace vote {
   function fetchCards(): Promise<CardsCache>;
   function createElement(tagName: string, data?: Record<string, unknown>, parent?: HTMLElement, replace?: boolean): HTMLElement;
   function updateParams(key: string, value?: string): void;
-  function createProfileElement(smallScreen?: boolean): Promise<HTMLElement | undefined>;
-  function createFeatureReqElement(smallScreen?: boolean): void;
+  function createProfileElement(): Promise<HTMLElement | undefined>;
+  function createFeatureReqElement(): void;
   function displayCards(query?: string, amount?: number): void;
   function createCardElement(card: Card): void;
   function setColorScheme(scheme?: 'dark' | 'light'): void;
-  function sendFeatureRequest(event: Event, smallScreen?: boolean): Promise<void>;
+  function hideFeatureReqElement(event?: KeyboardEvent): void;
+  function sendFeatureRequest(event: Event): Promise<void>;
   function sendUpvote(cardId: Card['id'], voteCounter: HTMLElement): Promise<void>;
 }
