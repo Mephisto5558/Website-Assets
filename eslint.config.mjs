@@ -2,7 +2,7 @@ import config, { plugins } from '@mephisto5558/eslint-config';
 import globals from 'globals';
 
 /**
- * @type { import('eslint').Linter.FlatConfig[] }
+ * @type { import('eslint').Linter.Config[] }
  * This config lists all rules from every plugin it uses.*/
 export default [
   ...config,
@@ -40,7 +40,7 @@ export default [
         'error',
         {
           // Default + 1 for IIFE
-          threshold: config.find(e => e.rules && Object.entries(e.rules).find(([k]) => k == 'sonarjs/no-nested-functions')).rules['sonarjs/no-nested-functions'][1].threshold + 1
+          threshold: (config.find(e => e.rules?.['sonarjs/no-nested-functions'])?.rules['sonarjs/no-nested-functions'][1].threshold || 3) + 1
         },
       ],
       'sonarjs/sonar-no-magic-numbers': 'off' // clientside code has way to much of it
