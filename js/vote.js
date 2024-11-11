@@ -470,8 +470,6 @@
     if (!document.body.querySelectorAll('.card[modified]').length) return;
 
     event.preventDefault(); // Triggers "you have unsaved changes" dialog box
-    /* eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy support */
-    event.returnValue = true;
   });
 
   document.addEventListener('DOMContentLoaded', async () => {
