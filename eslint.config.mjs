@@ -42,8 +42,7 @@ export default [
           // Default + 1 for IIFE
           threshold: (config.find(e => e.rules?.['sonarjs/no-nested-functions'])?.rules['sonarjs/no-nested-functions'][1].threshold || 3) + 1
         },
-      ],
-      'sonarjs/sonar-no-magic-numbers': 'off' // clientside code has way to much of it
+      ]
     }
   }
 ];
