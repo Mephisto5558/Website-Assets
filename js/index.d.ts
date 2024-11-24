@@ -18,6 +18,7 @@ export declare namespace vote {
   function displayCards(query?: string, amount?: number): void;
   function createCardElement(card: Card): void;
   function setColorScheme(scheme?: 'dark' | 'light'): void;
+  function preventFormattedPaste(event?: ClipboardEvent): void;
   function hideFeatureReqElement(event?: KeyboardEvent): void;
   function sendFeatureRequest(event: Event): Promise<void>;
   function sendUpvote(cardId: Card['id'], voteCounter: HTMLElement): Promise<void>;
