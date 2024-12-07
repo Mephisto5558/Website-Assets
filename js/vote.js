@@ -12,6 +12,13 @@
 
   const
     HTTP_STATUS_FORBIDDEN = 403,
+    MAX_SEARCHBOX_LENGTH = 200,
+    MAX_TITLE_LENGTH = 140,
+    MAX_BODY_LENGTH = 4000,
+    PROFILE_IMG_SIZE = 39,
+    ADDITIONAL_HEADER_MARGIN = 16,
+    WINDOW_WIDTH_RELOAD_TRESHOLD = 768,
+    msInSecond = 1000,
     cardModes = { columnMode: 'cards-column-mode', rowMode: 'cards-row-mode' },
     /** @type {HTMLElement}*/ headerContainer = document.body.querySelector('#header-container'),
     /** @type {HTMLElement}*/ cardsContainer = document.body.querySelector('#cards-container'),
@@ -20,7 +27,7 @@
 
     /** @type {HTMLInputElement} */
     searchBoxElement = createElement('input', {
-      type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(globalThis.location.search).get('q'), className: 'grey-hover', maxLength: 200
+      type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(globalThis.location.search).get('q'), className: 'grey-hover', maxLength: MAX_SEARCHBOX_LENGTH
     }),
 
     /** @type {import('.').vote.debounce} */
@@ -83,7 +90,7 @@
 
       hideFeatureReqElement();
       target.reset(); // resets the form's values
-    }, 1000),
+    }, msInSecond),
 
     /** @type {import('.').vote.sendUpvote}*/
     sendUpvote = debounce(async (cardId, voteCounter) => {
@@ -112,7 +119,7 @@
       });
 
       voteCounter.textContent = Number.parseInt(voteCounter.textContent) + 1;
-    }, 1000),
+    }, msInSecond),
 
     /** Updates the cards*/
     updateCards = debounce(async () => {
@@ -143,14 +150,14 @@
       cardsOffset = 0;
       cardsCache = await fetchCards();
       displayCards();
-    }, 1000);
+    }, msInSecond);
 
   searchBoxElement.addEventListener('input', debounce(({ target }) => {
     if (target.value.length > target.maxLength) target.value = target.value.slice(0, target.maxLength);
 
     cardsOffset = 0;
     displayCards(target.value);
-  }, 500));
+  }, msInSecond / 2));
 
   // Utils
 
@@ -233,7 +240,7 @@
     const profileContainerWrapper = createElement('div', { id: 'profile-container-wrapper' }, profileContainer);
     profileContainer.addEventListener('click', () => profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'block' ? 'none' : 'block');
 
-    const img = new Image(39, 39);
+    const img = new Image(PROFILE_IMG_SIZE, PROFILE_IMG_SIZE);
     img.onload = () => profileContainer.append(img);
     img.alt = 'Profile';
     img.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.webp?size=64`;
@@ -294,13 +301,13 @@
     const descriptionCounter = featureRequestModal.querySelector('#description-counter');
 
     featureRequestModal.querySelector('#feature-request-title').addEventListener('input', event => {
-      titleCounter.textContent = `${event.target.value.length}/140`;
-      if (event.target.value.length >= 140) titleCounter.classList.add('limit-reached');
+      titleCounter.textContent = `${event.target.value.length}/${MAX_TITLE_LENGTH}`;
+      if (event.target.value.length >= MAX_TITLE_LENGTH) titleCounter.classList.add('limit-reached');
       else titleCounter.classList.remove('limit-reached');
     });
     featureRequestModal.querySelector('#feature-request-description').addEventListener('input', event => {
-      descriptionCounter.textContent = `${event.target.value.length}/4000`;
-      if (event.target.value.length >= 4000) descriptionCounter.classList.add('limit-reached');
+      descriptionCounter.textContent = `${event.target.value.length}/${MAX_BODY_LENGTH}`;
+      if (event.target.value.length >= MAX_BODY_LENGTH) descriptionCounter.classList.add('limit-reached');
       else descriptionCounter.classList.remove('limit-reached');
     });
   }
@@ -353,7 +360,7 @@
           document.body.querySelector('#new-requests')?.remove();
           document.body.querySelector('#old-requests')?.remove();
 
-          document.body.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`;
+          document.body.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`;
         }
       });
     }
@@ -367,7 +374,7 @@
     copyButtonElement.addEventListener('click', () => {
       void navigator.clipboard.writeText(card.id);
       copyButtonIcon.classList = 'fas fa-check fa-xl';
-      setTimeout(() => copyButtonIcon.classList = 'far fa-copy fa-xl', 3000);
+      setTimeout(() => copyButtonIcon.classList = 'far fa-copy fa-xl', msInSecond * 3); /* eslint-disable-line @typescript-eslint/no-magic-numbers -- 3s */
     });
 
     if (user.dev) {
@@ -400,7 +407,7 @@
           if (!cardsContainerPending.childElementCount) {
             document.body.querySelector('#new-requests')?.remove();
             document.body.querySelector('#old-requests')?.remove();
-            document.body.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`; // Element after `#feature-request-overlay`
+            document.body.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`; // Element after `#feature-request-overlay`
           }
         }
       }));
@@ -448,7 +455,7 @@
       const elements = document.querySelectorAll('body, #header-container button, #header-container>#search-box, .card');
       for (const e of elements) e.classList.add('color-transition');
 
-      setTimeout(() => { for (const e of elements) e.classList.remove('color-transition'); }, 300);
+      setTimeout(() => { for (const e of elements) e.classList.remove('color-transition'); }, 300); /* eslint-disable-line @typescript-eslint/no-magic-numbers -- 300ms */
     }
   }
 
@@ -467,18 +474,19 @@
   headerContainer.querySelector('#toggle-color-scheme').addEventListener('click', () => setColorScheme());
 
   window.addEventListener('scroll', () => {
-    if (cardsCache.size > cardsOffset && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.documentElement.scrollHeight - 15) displayCards();
+    if (cardsCache.size > cardsOffset && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.documentElement.scrollHeight - ADDITIONAL_HEADER_MARGIN) displayCards();
   });
   window.addEventListener('resize', debounce(() => {
     const currentWidth = window.innerWidth;
 
-    if (oldWindowWidth > 769 && currentWidth < 768 || oldWindowWidth < 768 && currentWidth > 769) globalThis.location.reload();
+    if (
+      oldWindowWidth >= WINDOW_WIDTH_RELOAD_TRESHOLD && currentWidth < WINDOW_WIDTH_RELOAD_TRESHOLD
+      || oldWindowWidth < WINDOW_WIDTH_RELOAD_TRESHOLD && currentWidth >= WINDOW_WIDTH_RELOAD_TRESHOLD
+    ) globalThis.location.reload();
     else oldWindowWidth = currentWidth;
-  }, 500));
+  }, msInSecond / 2));
   window.addEventListener('beforeunload', event => {
-    if (!document.body.querySelectorAll('.card[modified]').length) return;
-
-    event.preventDefault(); // Triggers "you have unsaved changes" dialog box
+    if (document.body.querySelectorAll('.card[modified]').length) event.preventDefault(); // Triggers "you have unsaved changes" dialog box
   });
 
   document.addEventListener('DOMContentLoaded', async () => {
@@ -518,7 +526,7 @@
       saveButtonElement.addEventListener('click', updateCards);
     }
 
-    document.body.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + 16}px`;
+    document.body.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`;
     document.documentElement.style.scrollPaddingTop = `${headerContainer.clientHeight + 20}px`;
 
     pageIsLoaded = true;
