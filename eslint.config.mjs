@@ -3,7 +3,7 @@ import globals from 'globals';
 
 /**
  * @type { import('eslint').Linter.Config[] }
- * This config lists all rules from every plugin it uses.*/
+ * This config lists all rules from every plugin it uses. */
 export default [
   ...config,
   {

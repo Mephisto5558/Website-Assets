@@ -1,8 +1,8 @@
 (() => {
   let
-    /** @type {import('.').vote.User?}*/user,
-    /** @type {import('.').vote.CardsCache}*/cardsCache,
-    /** @type {HTMLButtonElement | undefined}*/saveButtonElement,
+    /** @type {import('.').vote.User?} */user,
+    /** @type {import('.').vote.CardsCache} */cardsCache,
+    /** @type {HTMLButtonElement | undefined} */saveButtonElement,
     currentTheme,
     pageIsLoaded = false,
     cardsInRows = false,
@@ -20,10 +20,10 @@
     WINDOW_WIDTH_RELOAD_TRESHOLD = 768,
     msInSecond = 1000,
     cardModes = { columnMode: 'cards-column-mode', rowMode: 'cards-row-mode' },
-    /** @type {HTMLElement}*/ headerContainer = document.body.querySelector('#header-container'),
-    /** @type {HTMLElement}*/ cardsContainer = document.body.querySelector('#cards-container'),
-    /** @type {HTMLElement}*/ cardsContainerPending = document.body.querySelector('#cards-container-pending'),
-    /** @type {HTMLElement}*/ featureRequestOverlay = document.body.querySelector('#feature-request-overlay'),
+    /** @type {HTMLElement} */ headerContainer = document.body.querySelector('#header-container'),
+    /** @type {HTMLElement} */ cardsContainer = document.body.querySelector('#cards-container'),
+    /** @type {HTMLElement} */ cardsContainerPending = document.body.querySelector('#cards-container-pending'),
+    /** @type {HTMLElement} */ featureRequestOverlay = document.body.querySelector('#feature-request-overlay'),
 
     /** @type {HTMLInputElement} */
     searchBoxElement = createElement('input', {
@@ -46,7 +46,7 @@
       });
     },
 
-    /** @type {import('.').vote.hideFeatureReqElement}*/
+    /** @type {import('.').vote.hideFeatureReqElement} */
     hideFeatureReqElement = (event = {}) => {
       if (event.key && event.key !== 'Escape' || featureRequestOverlay.style.display === 'none') return;
 
@@ -60,7 +60,7 @@
     },
 
     // Debounced Handlers
-    /** @type {import('.').vote.sendFeatureRequest}*/
+    /** @type {import('.').vote.sendFeatureRequest} */
     sendFeatureRequest = debounce(async event => {
       event.preventDefault();
 
@@ -92,7 +92,7 @@
       target.reset(); // resets the form's values
     }, msInSecond),
 
-    /** @type {import('.').vote.sendUpvote}*/
+    /** @type {import('.').vote.sendUpvote} */
     sendUpvote = debounce(async (cardId, voteCounter) => {
       if (!user?.id) {
         return void Swal.fire({
@@ -121,7 +121,7 @@
       voteCounter.textContent = Number.parseInt(voteCounter.textContent) + 1;
     }, msInSecond),
 
-    /** Updates the cards*/
+    /** Updates the cards */
     updateCards = debounce(async () => {
       const updateList = [...document.body.querySelectorAll('.card[modified]')].reduce((acc, card) => {
         card.removeAttribute('modified');
@@ -161,7 +161,7 @@
 
   // Utils
 
-  /** @type {import('.').vote.fetchAPI}*/
+  /** @type {import('.').vote.fetchAPI} */
   async function fetchAPI(url, options = {}, timeout = 5000) {
     if (options.body != undefined && !options.headers) options.headers = { 'Content-Type': 'application/json' };
     options.signal ??= new AbortController().signal;
@@ -173,7 +173,7 @@
     return res;
   }
 
-  /** @type {import('.').vote.fetchCards}*/
+  /** @type {import('.').vote.fetchCards} */
   async function fetchCards() {
     return new Map(
       (await fetchAPI(`vote/list?includePending=${!!user.dev}`).then(e => e.json()))?.cards
@@ -181,7 +181,7 @@
 
           /**
            * @param {import('.').vote.Card}a
-           * @param {import('.').vote.Card}b*/
+           * @param {import('.').vote.Card}b */
           (a, b) => {
             if (!a.pending && b.pending) return 1;
             if (a.pending && !b.pending) return -1;
@@ -191,7 +191,7 @@
     );
   }
 
-  /** @type {import('.').vote.createElement}*/
+  /** @type {import('.').vote.createElement} */
   function createElement(tagName, data, parent, replace) {
     const element = document.createElement(tagName);
     if (Object.keys(data ?? {}).length) {
@@ -205,7 +205,7 @@
     return element;
   }
 
-  /** @type {import('.').vote.updateParams}*/
+  /** @type {import('.').vote.updateParams} */
   function updateParams(key, value) {
     const
       url = new URL(globalThis.location.href),
@@ -219,7 +219,7 @@
 
   // Elements
 
-  /** @type {import('.').vote.createProfileElement}*/
+  /** @type {import('.').vote.createProfileElement} */
   async function createProfileElement() {
     const fragment = document.createDocumentFragment();
     const profileContainer = createElement('div', { id: 'profile-container' });
@@ -269,7 +269,7 @@
     headerContainer.append(fragment);
   }
 
-  /** @type {import('.').vote.createFeatureReqElement}*/
+  /** @type {import('.').vote.createFeatureReqElement} */
   function createFeatureReqElement() {
     const featureRequestModal = featureRequestOverlay.querySelector('#feature-request-modal');
 
@@ -312,12 +312,12 @@
     });
   }
 
-  /** @type {import('.').vote.displayCards}*/
+  /** @type {import('.').vote.displayCards} */
   function displayCards(query = searchBoxElement.value, amount = 26) {
     query = query.toLowerCase();
     updateParams('q', query);
 
-    const cards = (query ? [...cardsCache.values()].filter(e => e.title.toLowerCase().includes(query) || e.body.toLowerCase().includes(query) || e.id.toLowerCase().includes(query)) : [...cardsCache.values()]).slice(cardsOffset, amount + cardsOffset);
+    const cards = (query ? [...cardsCache.values()].filter(e => e.title.toLowerCase().includes(query) || e.body.toLowerCase().includes(query) || e.id.toLowerCase().includes(query)) : [...cardsCache.values()])slice(cardsOffset, amount + cardsOffset);
     if (!cards.length && !cardsContainer.childElementCount && !cardsContainerPending.childElementCount) return void createElement('h2', { textContent: `There are currently no feature requests${query ? ' matching your search query' : ''} :(` }, cardsContainer, true);
 
     if (!cardsOffset) {
@@ -331,7 +331,7 @@
     if (cardsContainer.childElementCount + cardsContainerPending.childElementCount < amount && cardsCache.size > cardsOffset) return displayCards(query, amount);
   }
 
-  /** @type {import('.').vote.createCardElement}*/
+  /** @type {import('.').vote.createCardElement} */
   function createCardElement(card) {
     const cardElement = createElement('div', { className: 'card', id: card.id });
 
@@ -423,7 +423,7 @@
 
   // Handler
 
-  /** Toggles the display mode*/
+  /** Toggles the display mode */
   function toggleCardDisplayMode() {
     cardsInRows = !cardsInRows;
 
@@ -443,7 +443,7 @@
     }
   }
 
-  /** @type {import('.').vote.setColorScheme}*/
+  /** @type {import('.').vote.setColorScheme} */
   function setColorScheme(scheme = currentTheme === 'dark' ? 'light' : 'dark') {
     if (currentTheme === scheme) return;
     currentTheme = scheme;
@@ -459,12 +459,12 @@
     }
   }
 
-  /** @type {import('.').vote.preventFormattedPaste}*/
+  /** @type {import('.').vote.preventFormattedPaste} */
   function preventFormattedPaste(event) {
     if (!event.target?.isContentEditable) return;
 
     event.preventDefault();
-    /* eslint-disable-next-line @typescript-eslint/no-deprecated -- see https://github.com/Mephisto5558/Website-Assets/issues/12*/
+    /* eslint-disable-next-line @typescript-eslint/no-deprecated -- see https://github.com/Mephisto5558/Website-Assets/issues/12 */
     document.execCommand('insertText', false, event.clipboardData.getData('text/plain'));
   }
 
