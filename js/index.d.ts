@@ -15,7 +15,11 @@ export declare namespace vote {
   function updateParams(key: string, value?: string): void;
   function createProfileElement(): Promise<HTMLElement | undefined>;
   function createFeatureReqElement(): void;
-  function displayCards(query?: string, amount?: number): void;
+
+  /**
+   * @param amount More like a max amount; will load more if the screen is not filled yet.
+   * @returns all fetched cards, including not displayed ones*/
+  function displayCards(query?: string, amount?: number): Card[];
   function createCardElement(card: Card): void;
   function setColorScheme(scheme?: 'dark' | 'light'): void;
   function preventFormattedPaste(event?: ClipboardEvent): void;

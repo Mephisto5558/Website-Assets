@@ -156,7 +156,9 @@
     if (target.value.length > target.maxLength) target.value = target.value.slice(0, target.maxLength);
 
     cardsOffset = 0;
-    displayCards(target.value);
+
+    const cards = displayCards(target.value);
+    document.querySelector('#feature-request-count > span').textContent = (user.dev ? cards : cards.filter(e => !e.pending)).length;
   }, msInSecond / 2));
 
   // Utils
@@ -317,7 +319,7 @@
     query = query.toLowerCase();
     updateParams('q', query);
 
-    const cards = (query ? [...cardsCache.values()].filter(e => e.title.toLowerCase().includes(query) || e.body.toLowerCase().includes(query) || e.id.toLowerCase().includes(query)) : [...cardsCache.values()])slice(cardsOffset, amount + cardsOffset);
+    const cards = query ? [...cardsCache.values()].filter(e => e.title.toLowerCase().includes(query) || e.body.toLowerCase().includes(query) || e.id.toLowerCase().includes(query)) : [...cardsCache.values()];
     if (!cards.length && !cardsContainer.childElementCount && !cardsContainerPending.childElementCount) return void createElement('h2', { textContent: `There are currently no feature requests${query ? ' matching your search query' : ''} :(` }, cardsContainer, true);
 
     if (!cardsOffset) {
@@ -325,10 +327,18 @@
       cardsContainerPending.innerHTML = '';
     }
 
-    for (const card of cards) createCardElement(card);
+    for (const card of cards.slice(cardsOffset, amount + cardsOffset)) createCardElement(card);
 
     cardsOffset += amount;
-    if (cardsContainer.childElementCount + cardsContainerPending.childElementCount < amount && cardsCache.size > cardsOffset) return displayCards(query, amount);
+    if (cardsCache.size > cardsOffset) {
+      if (cardsContainer.childElementCount + cardsContainerPending.childElementCount < amount) displayCards(query, amount);
+      else if (cardsContainer.clientHeight < window.innerHeight) { // Prevent having to add a "load more" button for big screens/large zoomout
+        // displaying the approximate amount of cards required to have more than displayable (user scrolls = more cards load)
+        displayCards(query, Math.ceil((window.innerHeight - cardsContainer.clientHeight) / (cardsContainer.clientHeight / cardsContainer.childElementCount)));
+      }
+    }
+
+    return cards;
   }
 
   /** @type {import('.').vote.createCardElement} */
@@ -374,7 +384,7 @@
     copyButtonElement.addEventListener('click', () => {
       void navigator.clipboard.writeText(card.id);
       copyButtonIcon.classList = 'fas fa-check fa-xl';
-      setTimeout(() => copyButtonIcon.classList = 'far fa-copy fa-xl', msInSecond * 3); /* eslint-disable-line @typescript-eslint/no-magic-numbers -- 3s */
+      setTimeout(() => copyButtonIcon.classList = 'far fa-copy fa-xl', msInSecond * 3);
     });
 
     if (user.dev) {
@@ -455,7 +465,7 @@
       const elements = document.querySelectorAll('body, #header-container button, #header-container>#search-box, .card');
       for (const e of elements) e.classList.add('color-transition');
 
-      setTimeout(() => { for (const e of elements) e.classList.remove('color-transition'); }, 300); /* eslint-disable-line @typescript-eslint/no-magic-numbers -- 300ms */
+      setTimeout(() => { for (const e of elements) e.classList.remove('color-transition'); }, 300);
     }
   }
 
@@ -501,6 +511,8 @@
     cardsCache = await fetchCards();
     cardsContainer.classList.add(cardsInRows ? cardModes.rowMode : cardModes.columnMode);
     cardsContainerPending.classList.add(cardsInRows ? cardModes.rowMode : cardModes.columnMode);
+
+    document.querySelector('#feature-request-count > span').textContent = user.dev ? cardsCache.size : [...cardsCache.values()].filter(e => !e.pending).length;
 
     if (globalThis.location.hash == '#new') headerContainer.querySelector('#feature-request-button').click();
 

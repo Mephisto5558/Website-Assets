@@ -97,6 +97,13 @@ button {
   margin: 0
 }
 
+#header-container > #feature-request-count {
+  left: 50%;
+  margin: 0;
+  position: absolute;
+  transform: translateX(-50%)
+}
+
 #header-container > #search-box {
   border-radius: .25rem;
   margin-left: auto
@@ -131,7 +138,8 @@ button {
 
 #search-box,
 #login-button,
-#feature-request-button {
+#feature-request-button,
+#feature-request-count {
   font-size: 1rem;
   padding: .5rem 1rem;
   transition: background-color .2s ease-in-out
@@ -392,14 +400,20 @@ button {
   background-color: var(--btn-hover-bg-color)
 }
 
+@media (max-width: 1200px) {
+  #header-container > #feature-request-count {
+    display: none
+  }
+}
+
 @media (max-width: 768px) {
   #header-container {
     padding-top: .5rem;
-    row-gap: .75rem
+    row-gap: .75rem;
+    z-index: unset
   }
 
   #header-container > a {
-    font-size: 1.25rem;
     height: auto
   }
 
