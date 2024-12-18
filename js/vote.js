@@ -240,7 +240,7 @@
     }
 
     const profileContainerWrapper = createElement('div', { id: 'profile-container-wrapper' }, profileContainer);
-    profileContainer.addEventListener('click', () => profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'block' ? 'none' : 'block');
+    profileContainer.addEventListener('click', () => profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'flex' ? 'none' : 'flex');
 
     const img = new Image(PROFILE_IMG_SIZE, PROFILE_IMG_SIZE);
     img.onload = () => profileContainer.append(img);

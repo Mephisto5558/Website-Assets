@@ -256,13 +256,15 @@ button {
 }
 
 #profile-container-wrapper {
-  background-color: #00000040;
+  background-color: #00000060;
   border-radius: .25rem;
   box-shadow: 0 2px 4px #0000004d;
   display: none;
+  flex-direction: column;
   padding: .5rem;
   position: absolute;
   right: 1rem;
+  top: 100%;
   z-index: 2
 }
 
