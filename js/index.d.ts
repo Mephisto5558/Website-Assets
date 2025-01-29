@@ -1,3 +1,5 @@
+type HTMLElementData<ELEM> = { [K in keyof ELEM]: ELEM[K] };
+
 export declare namespace vote {
   type Card = { id: string; title: string; body?: string; pending?: boolean; votes?: number };
   type CardsCache = Map<string, Card>;
@@ -11,7 +13,13 @@ export declare namespace vote {
 
   function fetchAPI(url: string, options?: RequestInit, timeout?: number): Promise<Response | Error>;
   function fetchCards(): Promise<CardsCache>;
-  function createElement(tagName: string, data?: Record<string, unknown>, parent?: HTMLElement, replace?: boolean): HTMLElement;
+  function createElement<
+    TAG_NAME extends keyof HTMLElementTagNameMap,
+    ELEM extends HTMLElementTagNameMap[TAG_NAME],
+    PARENT extends HTMLElement | undefined = undefined
+  >(
+    tagName: TAG_NAME, data?: HTMLElementData<ELEM>, parent?: PARENT, replace?: boolean
+  ): ELEM & (PARENT extends undefined ? unknown : { parentElement: PARENT });
   function updateParams(key: string, value?: string): void;
   function createProfileElement(): Promise<HTMLElement | undefined>;
   function createFeatureReqElement(): void;
