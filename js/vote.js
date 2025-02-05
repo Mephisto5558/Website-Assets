@@ -18,6 +18,7 @@
     PROFILE_IMG_SIZE = 39,
     ADDITIONAL_HEADER_MARGIN = 16,
     WINDOW_WIDTH_RELOAD_TRESHOLD = 768,
+    COLOR_TRANSITION_TIME = 300,
     msInSecond = 1000,
     cardModes = { columnMode: 'cards-column-mode', rowMode: 'cards-row-mode' },
     /** @type {HTMLElement} */ headerContainer = document.body.querySelector('#header-container'),
@@ -465,7 +466,7 @@
       const elements = document.querySelectorAll('body, #header-container button, #header-container>#search-box, .card');
       for (const e of elements) e.classList.add('color-transition');
 
-      setTimeout(() => { for (const e of elements) e.classList.remove('color-transition'); }, 300);
+      setTimeout(() => { for (const e of elements) e.classList.remove('color-transition'); }, COLOR_TRANSITION_TIME);
     }
   }
 
