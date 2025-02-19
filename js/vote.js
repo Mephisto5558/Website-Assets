@@ -385,6 +385,7 @@
     copyButtonElement.addEventListener('click', () => {
       void navigator.clipboard.writeText(card.id);
       copyButtonIcon.classList = 'fas fa-check fa-xl';
+      /* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- 3ms */
       setTimeout(() => copyButtonIcon.classList = 'far fa-copy fa-xl', msInSecond * 3);
     });
 
