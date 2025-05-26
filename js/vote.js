@@ -179,7 +179,7 @@
   /** @type {import('.').vote.fetchCards} */
   async function fetchCards() {
     return new Map(
-      (await fetchAPI(`vote/list?includePending=${!!user.dev}`).then(e => e.json()))?.cards
+      (await fetchAPI(`vote/list?includePending=${!!user?.dev}`).then(e => e.json()))?.cards
         ?.sort(
 
           /**
@@ -346,8 +346,8 @@
   function createCardElement(card) {
     const cardElement = createElement('div', { className: 'card', id: card.id });
 
-    const titleElement = createElement('h2', { id: 'title', textContent: card.title, contentEditable: String(!!user.dev) }, cardElement);
-    const descriptionElement = card.body || user.dev ? createElement('p', { id: 'description', textContent: card.body, contentEditable: String(!!user.dev) }, cardElement) : undefined;
+    const titleElement = createElement('h2', { id: 'title', textContent: card.title, contentEditable: String(!!user?.dev) }, cardElement);
+    const descriptionElement = card.body || user.dev ? createElement('p', { id: 'description', textContent: card.body, contentEditable: String(!!user?.dev) }, cardElement) : undefined;
 
     const voteButtonsElement = createElement('div', { className: 'vote-buttons' }, cardElement);
     const upvoteCounterElement = createElement('span', { className: 'vote-counter', textContent: card.pending ? '' : card.votes ?? 0 });
