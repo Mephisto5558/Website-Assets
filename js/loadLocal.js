@@ -4,7 +4,7 @@ globalThis.loadLocal = function loadLocal(elementType, localPath, remotePath) {
 
   if (elementType == 'css') elem.rel = 'stylesheet';
 
-  const currentScript = document.currentScript ?? document.querySelector("script[type='module'][src$='loadLocal.js']");
+  const currentScript = document.currentScript ?? [...document.querySelectorAll('script[src]')].at(-1);
   (currentScript?.parentElement ?? document.head).append(elem);
 
   delete globalThis.loadLocal;
