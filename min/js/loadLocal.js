@@ -1,0 +1,1 @@
+function loadLocal(e,o){var t=document.createElement("link");t.rel="stylesheet",t.href=["localhost","127.0.0.1",""].includes(location.hostname)?e:o,document.head.append(t),document.currentScript?.remove()}export{loadLocal};

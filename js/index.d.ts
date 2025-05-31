@@ -35,3 +35,5 @@ export declare namespace vote {
   function sendFeatureRequest(event: Event): Promise<void>;
   function sendUpvote(cardId: Card['id'], voteCounter: HTMLElement): Promise<void>;
 }
+
+declare function loadLocal(elementType: 'css' | 'script', localPath: string, remotePath: string): void;
