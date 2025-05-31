@@ -1,0 +1,78 @@
+/*NOT FOR PROD*/
+
+:root {
+  font-family: Arial, sans-serif;
+  font-size: large;
+}
+
+body {
+  background-color: darkslategrey;
+}
+
+table#sudoku {
+  border-collapse: collapse;
+  margin: 1rem auto;
+  
+  & > colgroup,
+  & > tbody {
+    border: solid medium;
+  }
+
+  & td {
+    border: solid thin;
+    padding: 0;
+    height: 1.4rem;
+    width: 1.4rem;
+    aspect-ratio: 1/1;
+    
+    & > input {
+      background-color: transparent;
+      border: none;
+      -moz-appearance: none;
+      appearance: textfield;
+      text-align: center;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      font-size: inherit;
+
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      &:focus {
+        outline: none;
+      }
+    }
+    &:has(>input:focus) {
+      backdrop-filter: brightness(150%);
+    }
+  }
+
+  & .error {
+    background-color: red;
+  }
+}
+
+.info-text {
+  margin: 1rem auto;
+  width: max-content;
+}
+
+#error-info {
+  color: red;
+}
+
+#win-info {
+  color: greenyellow;
+}
+
+#sudoku:not(:has(tbody .error)) ~ #error-info {
+  display: none;
+}
+
+#sudoku:is(:has(tbody .error), :has(tbody > tr > td > input:invalid)) ~ #win-info {
+  display: none;
+}
