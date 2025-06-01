@@ -9,21 +9,40 @@ body {
   background-color: darkslategrey;
 }
 
+button {
+  font-size: .5rem;
+  cursor: pointer
+}
+
 #sudoku-container {
   margin: 1rem auto;
   gap: 1rem;
-
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min-content, max-content));
   justify-content: center;
-  align-items: flex-start;
+  justify-items: center;
 }
 
 table#sudoku {
   border-collapse: collapse;
-  
+  grid-column: span 1;
+
   & > colgroup,
   & > tbody {
     border: solid medium;
+  }
+
+  & > tfoot {
+    border: solid medium transparent;
+  }
+
+  & > tfoot > tr > th > button {
+    vertical-align: top;
+    margin: .1rem 0;
+    background-color: rgba(0, 0, 0, .15);
+    padding: .1rem .2rem;
+    border-radius: .1rem;
+    border: none;
   }
 
   & td {
@@ -32,7 +51,7 @@ table#sudoku {
     height: 1.4rem;
     width: 1.4rem;
     aspect-ratio: 1/1;
-    
+
     & > input {
       background-color: transparent;
       color: white;
@@ -59,6 +78,7 @@ table#sudoku {
         color: black;
       }
     }
+
     &:has(>input:focus) {
       backdrop-filter: brightness(150%);
     }
@@ -71,11 +91,13 @@ table#sudoku {
 
 #timer {
   margin-top: 1.25rem;
+  justify-self: left;
 }
 
 .info-text {
   margin: 1rem auto;
   width: max-content;
+  grid-column: span 2;
 }
 
 #error-info {
