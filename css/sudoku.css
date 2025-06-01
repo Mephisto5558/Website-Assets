@@ -2,16 +2,24 @@
 
 :root {
   font-family: Arial, sans-serif;
-  font-size: large;
+  font-size: 250%;
 }
 
 body {
   background-color: darkslategrey;
 }
 
+#sudoku-container {
+  margin: 1rem auto;
+  gap: 1rem;
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
 table#sudoku {
   border-collapse: collapse;
-  margin: 1rem auto;
   
   & > colgroup,
   & > tbody {
@@ -27,6 +35,7 @@ table#sudoku {
     
     & > input {
       background-color: transparent;
+      color: white;
       border: none;
       -moz-appearance: none;
       appearance: textfield;
@@ -45,6 +54,10 @@ table#sudoku {
       &:focus {
         outline: none;
       }
+
+      &:disabled {
+        color: black;
+      }
     }
     &:has(>input:focus) {
       backdrop-filter: brightness(150%);
@@ -54,6 +67,10 @@ table#sudoku {
   & .error {
     background-color: red;
   }
+}
+
+#timer {
+  margin-top: 1.25rem;
 }
 
 .info-text {

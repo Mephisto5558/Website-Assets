@@ -4,6 +4,16 @@ document.querySelector('#sudoku').addEventListener('keypress', event => {
   if (event.key == ' ') event.target.value = '';
   if (!/[1-9]/.test(event.key)) return event.preventDefault();
 
+  if (!globalThis.timerInterval) {
+    const timer = document.querySelector('#timer');
+    const start = performance.now();
+
+    globalThis.timerInterval = setInterval(() => {
+      const secs = (performance.now() - start) / 1000;
+      timer.textContent = `${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(Math.round(secs % 60)).padStart(2, '0')}`;
+    }, 1000);
+  }
+
   if (event.target.value) {
     event.preventDefault();
     event.target.value = event.key;
@@ -14,30 +24,32 @@ document.documentElement.removeAttribute('style');
 
 
 /** @typedef {HTMLTableCaptionElement & { firstChild: HTMLInputElement & { dataset: { group: string, col: string }, type: 'number' }}}Cell */
-/** @typedef {[Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell, type: 'group' | 'col' | 'row']}CellList */
-
-/** @type {[CellList, CellList, CellList]} */
-const cells = [...document.querySelectorAll('#sudoku > tbody > tr > td')].reduce((acc, e) => {
-  for (let i = 0, x = ['group', 'col', 'row']; i < x.length; i++) {
-    const id = Number(e.firstChild.dataset[x[i]]) - 1;
-
-    acc[i][id] ??= [];
-    acc[i][id].type ??= x[i];
-    acc[i][id].push(e);
-  }
-
-  return acc;
-}, [[], [], []]).flat();
+/** @typedef {[Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell] & {type: 'group' | 'col' | 'row'}}CellList */
 
 function checkErrors() {
+  /** @type {[CellList, CellList, CellList]} */
+  const cells = [...document.querySelectorAll('#sudoku > tbody > tr > td')].reduce((acc, e) => {
+    for (let i = 0, x = ['group', 'col', 'row']; i < x.length; i++) {
+      const id = Number(e.firstChild.dataset[x[i]]) - 1;
+
+      acc[i][id] ??= [];
+      acc[i][id].type ??= x[i];
+      acc[i][id].push(e);
+    }
+
+    return acc;
+  }, [[], [], []]).flat();
+
   for (const elementGroup of cells) {
     const idx = elementGroup[0].firstChild.dataset[elementGroup.type] - 1;
-    const parents = elementGroup.type == 'row' || elementGroup.type == 'col'
-      ? [document.querySelectorAll('#sudoku > tbody > tr').item(idx)]
-      : document.querySelectorAll(`#sudoku > tbody > tr > td:has(input[data-group='${idx + 1}']`);
+
+    let parents;
+    if (elementGroup.type == 'row') parents = [document.querySelectorAll('#sudoku > tbody > tr').item(idx)];
+    else if (elementGroup.type == 'col') parents = [document.querySelectorAll('#sudoku > colgroup > col').item(idx)];
+    else parents = document.querySelectorAll(`#sudoku > tbody > tr > td:has(input[data-group='${idx + 1}']`);
 
     const values = elementGroup.map(e => Number(e.firstChild.value) || undefined);
-    if (!values.includes(undefined) && values.length > new Set(values).size)
+    if (values.length > new Set(values).size + values.filter(e => e == undefined).length - 1)
       for (const parent of parents) parent.classList.add('error');
     else for (const parent of parents) parent.classList.remove('error');
   }
@@ -202,3 +214,5 @@ document.querySelector('#sudoku').addEventListener('keydown', event => {
 
   nextCell?.focus();
 });
+
+// TODO: sudokus broken
