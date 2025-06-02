@@ -148,6 +148,6 @@ function isUnsafe(board, boxSize, rowId, colId, value) {
 export function displayBoard(board) {
   for (const cell of globalThis.htmlBoard.flat()) {
     cell.value = board[Number(cell.dataset.row) - 1][Number(cell.dataset.col) - 1];
-    if (board[Number(cell.dataset.row) - 1][Number(cell.dataset.col) - 1] !== undefined) cell.disabled = true;
+    cell.disabled = !!board[Number(cell.dataset.row) - 1][Number(cell.dataset.col) - 1];
   }
 }
