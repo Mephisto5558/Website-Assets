@@ -21,7 +21,7 @@ globalThis.htmlBoard = [...document.querySelectorAll('#sudoku > tbody > tr')].ma
 
 function checkErrors() {
   /** @type {[CellList, CellList, CellList]} */
-  const cells = htmlBoard.flat().reduce((acc, e) => {
+  const cells = globalThis.htmlBoard.flat().reduce((acc, e) => {
     for (let i = 0, types = ['group', 'col', 'row']; i < types.length; i++) {
       const id = Number(e.dataset[types[i]]) - 1;
 
@@ -89,23 +89,23 @@ sudoku.addEventListener('keydown', event => {
     const col = Number((nextCell ?? event.target).dataset.col) - 1;
 
     switch (event.key) {
-      case eventKeys[0]: nextCell = htmlBoard[row == 0 ? boardMax : row - 1][col]; break;
-      case eventKeys[1]: nextCell = htmlBoard[row == boardMax ? 0 : row + 1][col]; break;
-      case eventKeys[2]: nextCell = htmlBoard[row][col == 0 ? boardMax : col - 1]; break;
-      case eventKeys[3]: nextCell = htmlBoard[row][col == boardMax ? 0 : col + 1]; break;
+      case eventKeys[0]: nextCell = globalThis.htmlBoard[row == 0 ? boardMax : row - 1][col]; break;
+      case eventKeys[1]: nextCell = globalThis.htmlBoard[row == boardMax ? 0 : row + 1][col]; break;
+      case eventKeys[2]: nextCell = globalThis.htmlBoard[row][col == 0 ? boardMax : col - 1]; break;
+      case eventKeys[3]: nextCell = globalThis.htmlBoard[row][col == boardMax ? 0 : col + 1]; break;
       case eventKeys[4]:
         if (event.shiftKey) { // TODO: FIX
           // backwards cyclic
-          if (row == 0 && col == 0) nextCell = htmlBoard[boardMax][boardMax];
-          if (row == 0) nextCell = htmlBoard[boardMax][col - 1];
-          nextCell = htmlBoard[row - 1][boardMax];
+          if (row == 0 && col == 0) nextCell = globalThis.htmlBoard[boardMax][boardMax];
+          if (row == 0) nextCell = globalThis.htmlBoard[boardMax][col - 1];
+          nextCell = globalThis.htmlBoard[row - 1][boardMax];
           break;
         }
 
         // forwards cyclic
-        if (row == boardMax && col == boardMax) nextCell = htmlBoard[0][0];
-        if (row == boardMax) nextCell = htmlBoard[row][col + 1];
-        nextCell = htmlBoard[row + 1][col];
+        if (row == boardMax && col == boardMax) nextCell = globalThis.htmlBoard[0][0];
+        if (row == boardMax) nextCell = globalThis.htmlBoard[row][col + 1];
+        nextCell = globalThis.htmlBoard[row + 1][col];
         break;
     }
   }
