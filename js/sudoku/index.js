@@ -81,7 +81,7 @@ sudoku.addEventListener('keydown', event => {
   if (!eventKeys.includes(event.key)) return;
   event.preventDefault();
 
-  const boardMax = (globalThis.boardSize ?? DEFAULT_BOARD_SIZE) - 1;
+  const boardMax = globalThis.htmlBoard.length - 1;
 
   let nextCell;
   while ((!nextCell || nextCell.disabled) && !(nextCell && nextCell.dataset.row == event.target.dataset.row && nextCell.dataset.col == event.target.dataset.col)) {
