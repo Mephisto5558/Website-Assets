@@ -14,7 +14,7 @@ const SEC_IN_MIN = 60;
 const MIN_HOLES = Math.floor(DEFAULT_BOARD_SIZE ** 2 * .2);
 const MAX_HOLES = Math.ceil(DEFAULT_BOARD_SIZE ** 2 * .9);
 
-document.documentElement.removeAttribute('style'); // Remove visibility: hidden
+document.documentElement.removeAttribute('style'); // remove temp background-color
 
 /** @type {CellInput[][]} */
 globalThis.htmlBoard = [...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild));
@@ -27,25 +27,25 @@ function checkErrors() {
 
       /* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- false positive */
       acc[i][id] ??= [];
-      acc[i][id].type ??= types[i];
+      acc[i][id].type = types[i];
       acc[i][id].push(e.parentElement);
     }
 
     return acc;
   }, [[], [], []]).flat();
+
+  const errorCells = new Set();
   for (const elementGroup of cells) {
-    const idx = Number(elementGroup[0].firstChild.dataset[elementGroup.type]) - 1;
+    const elements = [...document.querySelectorAll(`#sudoku > tbody > tr > td > input[data-${elementGroup.type}='${elementGroup[0].firstChild.dataset[elementGroup.type]}']`)];
+    const values = elements.map(e => Number(e.value)).filter(Boolean);
 
-    let parents;
-    if (elementGroup.type == 'row') parents = [elementGroup[0].parentElement];
-    else if (elementGroup.type == 'col') parents = [document.querySelectorAll('#sudoku > colgroup > col').item(idx)];
-    else parents = document.querySelectorAll(`#sudoku > tbody > tr > td:has(input[data-group='${idx + 1}']`);
+    if (values.length > new Set(values).size)
+      for (const element of elements) errorCells.add(JSON.stringify(element.dataset));
+  }
 
-    const values = elementGroup.map(e => Number(e.firstChild.value) || undefined);
-    if (values.length > new Set(values).size + (values.includes(undefined) ? values.filter(e => e == undefined).length : 0))
-      for (const parent of parents) parent.classList.add('error');
-    else
-      for (const parent of parents) parent.classList.remove('error');
+  for (const cell of globalThis.htmlBoard.flat()) {
+    if (errorCells.has(JSON.stringify(cell.dataset))) cell.parentElement.classList.add('error');
+    else cell.parentElement.classList.remove('error');
   }
 }
 
@@ -53,6 +53,7 @@ function checkErrors() {
 const sudoku = document.querySelector('#sudoku');
 
 sudoku.addEventListener('keypress', event => {
+  if (event.key == event.target.value) return event.preventDefault();
   if (event.key == ' ') {
     event.target.value = '';
     checkErrors();
@@ -76,6 +77,12 @@ sudoku.addEventListener('keypress', event => {
 });
 
 sudoku.addEventListener('keydown', event => {
+  if (event.key == 'Backspace') {
+    event.target.value = '';
+    checkErrors();
+    return event.preventDefault();
+  }
+
   const eventKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'];
 
   if (!eventKeys.includes(event.key)) return;
@@ -113,12 +120,24 @@ sudoku.addEventListener('keydown', event => {
   nextCell.focus();
 });
 
+const loadingContainer = document.querySelector('#loading-container');
+
 /** @type {HTMLButtonElement} */
 const regenerateBtn = document.querySelector('#regenerate-btn');
 regenerateBtn.addEventListener('click', () => {
+  sudoku.parentElement.style.setProperty('visibility', 'hidden');
+  loadingContainer.style.removeProperty('display');
+
+  const start = performance.now();
   const holes = rando(MIN_HOLES, MAX_HOLES);
+
   console.log(`Size: ${DEFAULT_BOARD_SIZE}, Holes: ${holes}/${MAX_HOLES} (min: ${MIN_HOLES})`);
   displayBoard(generateSudoku(DEFAULT_BOARD_SIZE, holes));
   checkErrors();
+
+  console.debug(`Took ${performance.now() - start}ms to generate and render.`);
+
+  loadingContainer.style.setProperty('display', 'none');
+  sudoku.parentElement.style.removeProperty('visibility');
 });
 regenerateBtn.click();

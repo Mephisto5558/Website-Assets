@@ -1,8 +1,12 @@
-/*NOT FOR PROD*/
-
 :root {
   font-family: Arial, sans-serif;
   font-size: 250%;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
 }
 
 body {
@@ -11,12 +15,35 @@ body {
 
 button {
   font-size: .5rem;
-  cursor: pointer
+  cursor: pointer;
+}
+
+input:hover {
+  backdrop-filter: brightness(115%);
+}
+
+button:hover,
+button:focus,
+input:focus {
+  backdrop-filter: brightness(150%);
+  outline: none;
+}
+
+#loading-container {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: progress;
+
+  & > p {
+    font-size: 150%;
+  }
 }
 
 #sudoku-container {
   margin: 1rem auto;
-  gap: 1rem;
+  gap: .1rem;
   display: grid;
   justify-content: center;
   justify-items: center;
@@ -29,19 +56,6 @@ table#sudoku {
   & > colgroup,
   & > tbody {
     border: solid medium;
-  }
-
-  & > tfoot {
-    border: solid medium transparent;
-  }
-
-  & > tfoot > tr > th > button {
-    vertical-align: top;
-    margin: .1rem 0;
-    background-color: rgba(0, 0, 0, .15);
-    padding: .1rem .2rem;
-    border-radius: .1rem;
-    border: none;
   }
 
   & td {
@@ -69,28 +83,45 @@ table#sudoku {
         margin: 0;
       }
 
-      &:focus {
-        outline: none;
-      }
-
       &:disabled {
         color: black;
       }
     }
-
-    &:has(>input:focus) {
-      backdrop-filter: brightness(150%);
-    }
   }
 
-  & .error {
-    background-color: red;
+  & .error td,
+  & td.error {
+    background-image: linear-gradient(
+      45deg,
+    rgba(255, 0, 0, 0.25) 25%, transparent 25%,
+      transparent 50%, rgba(255, 0, 0, 0.25) 50%,
+    rgba(255, 0, 0, 0.25) 75%, transparent 75%,
+      transparent 100%
+    );
+    background-size: 1.4rem 1.4rem; /* table cell size */
+    background-position: left;
   }
 }
 
 #timer {
+  grid-column: span 1;
   margin-top: 1.25rem;
   justify-self: left;
+}
+
+#btn-container {
+  grid-column: span 1;
+  margin: .1rem 0;
+  display: flex;
+  justify-content: space-between;
+  gap: .5rem;
+
+  & > * {
+    background-color: rgba(0, 0, 0, .15);
+    padding: .1rem .2rem;
+    border-radius: .1rem;
+    border: none;
+  }
 }
 
 .info-text {
@@ -112,5 +143,5 @@ table#sudoku {
 }
 
 #sudoku:is(:has(tbody .error), :has(tbody > tr > td > input:invalid)) ~ #win-info {
-  display: none;
+  visibility: hidden;
 }
