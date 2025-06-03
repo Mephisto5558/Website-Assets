@@ -2,7 +2,7 @@ const MAX_FULL_RETRIES = 100;
 
 /** @typedef {(1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | undefined)[][]} Board */
 
-export function generateSudoku(size = 9, holes = size ** 2 - 20, retry = 1) {
+export async function generateSudoku(size = 9, holes = size ** 2 - 20, retry = 1) {
   const boxSize = Math.sqrt(size);
   if (!Number.isInteger(boxSize)) throw new Error('Size must be quadratic.');
 
@@ -45,7 +45,7 @@ export function generateSudoku(size = 9, holes = size ** 2 - 20, retry = 1) {
     removed = 0,
     attempts = 0,
     consecutiveAttempt = 0;
-  for (; removed < holes && attempts < maxAttempts && consecutiveAttempt < maxConsecutiveAttempt; attempts++) {
+  for (let wait; removed < holes && attempts < maxAttempts && consecutiveAttempt < maxConsecutiveAttempt; attempts++) {
     console.debug(`Digging. Holes: ${removed}/${holes}, Attempts: ${attempts}/${maxAttempts}, Consecutive attempts: ${consecutiveAttempt}/${maxConsecutiveAttempt}`);
 
     const rowId = rando(0, size - 1);
@@ -60,10 +60,15 @@ export function generateSudoku(size = 9, holes = size ** 2 - 20, retry = 1) {
       consecutiveAttempt++;
       let logMsg = 'Sudoku has more than one possible solution. ';
       if (consecutiveAttempt > maxConsecutiveAttempt) logMsg += 'Max consecutive attempts reached. Not retrying.';
-      else if (attempts < maxAttempts) logMsg += `Retrying ${attempts + 1}/${maxAttempts}`;
-      else logMsg += 'Max attempts reached. Not retrying.';
+      else if (attempts > maxAttempts) logMsg += 'Max attempts reached. Not retrying.';
+      else {
+        logMsg += `Retrying ${attempts + 1}/${maxAttempts}`;
+        wait = new Promise(res => setTimeout(res, 10)); // Wait 10ms
+      }
 
       console.debug(logMsg);
+
+      await wait;
       continue;
     }
 
