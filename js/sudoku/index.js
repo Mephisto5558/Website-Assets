@@ -19,6 +19,18 @@ document.documentElement.removeAttribute('style'); // remove temp background-col
 /** @type {CellInput[][]} */
 globalThis.htmlBoard = [...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild));
 
+/** @type {HTMLTableElement} */
+const sudoku = document.querySelector('#sudoku');
+
+/** @type {HTMLSpanElement} */
+const timerSpan = document.querySelector('#timer');
+
+/** @type {HTMLDivElement} */
+const loadingContainer = document.querySelector('#loading-container');
+
+/** @type {HTMLButtonElement} */
+const regenerateBtn = document.querySelector('#regenerate-btn');
+
 function checkErrors() {
   /** @type {[CellList, CellList, CellList]} */
   const cells = globalThis.htmlBoard.flat().reduce((acc, e) => {
@@ -49,8 +61,19 @@ function checkErrors() {
   }
 }
 
-/** @type {HTMLTableElement} */
-const sudoku = document.querySelector('#sudoku');
+function startTimer() {
+  const start = performance.now();
+
+  globalThis.timerInterval = setInterval(() => {
+    const secs = (performance.now() - start) / MS_IN_SEC;
+    timerSpan.textContent = `${String(Math.floor(secs / SEC_IN_MIN)).padStart(2, '0')}:${String(Math.round(secs % SEC_IN_MIN)).padStart(2, '0')}`;
+  }, MS_IN_SEC);
+}
+
+function clearTimer() {
+  globalThis.timerInterval = clearInterval(globalThis.timerInterval);
+  timerSpan.textContent = '00:00';
+}
 
 sudoku.addEventListener('keypress', event => {
   if (event.key == event.target.value) return event.preventDefault();
@@ -60,15 +83,7 @@ sudoku.addEventListener('keypress', event => {
   }
   if (!/[1-9]/.test(event.key)) return event.preventDefault();
 
-  if (!globalThis.timerInterval) {
-    const timer = document.querySelector('#timer');
-    const start = performance.now();
-
-    globalThis.timerInterval = setInterval(() => {
-      const secs = (performance.now() - start) / MS_IN_SEC;
-      timer.textContent = `${String(Math.floor(secs / SEC_IN_MIN)).padStart(2, '0')}:${String(Math.round(secs % SEC_IN_MIN)).padStart(2, '0')}`;
-    }, MS_IN_SEC);
-  }
+  if (!globalThis.timerInterval) startTimer();
 
   event.preventDefault();
   event.target.value = event.key;
@@ -76,14 +91,13 @@ sudoku.addEventListener('keypress', event => {
   checkErrors();
 });
 
+const eventKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'];
 sudoku.addEventListener('keydown', event => {
   if (event.key == 'Backspace') {
     event.target.value = '';
     checkErrors();
     return event.preventDefault();
   }
-
-  const eventKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'];
 
   if (!eventKeys.includes(event.key)) return;
   event.preventDefault();
@@ -120,13 +134,14 @@ sudoku.addEventListener('keydown', event => {
   nextCell.focus();
 });
 
-const loadingContainer = document.querySelector('#loading-container');
+let generating = false;
+regenerateBtn.addEventListener('click', event => {
+  if (generating) return event.preventDefault();
+  generating = true;
 
-/** @type {HTMLButtonElement} */
-const regenerateBtn = document.querySelector('#regenerate-btn');
-regenerateBtn.addEventListener('click', () => {
   sudoku.parentElement.style.setProperty('visibility', 'hidden');
   loadingContainer.style.removeProperty('display');
+  clearTimer();
 
   const start = performance.now();
   const holes = rando(MIN_HOLES, MAX_HOLES);
