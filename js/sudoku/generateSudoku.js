@@ -6,41 +6,57 @@ export async function generateSudoku(size = 9, holes = size ** 2 - 20, retry = 1
   const boxSize = Math.sqrt(size);
   if (!Number.isInteger(boxSize)) throw new Error('Size must be quadratic.');
 
+  if (globalThis.debug && globalThis.debugBoard) {
+    return {
+      board: [
+      /* eslint-disable @typescript-eslint/no-magic-numbers */
+        [6, 5, 8, 4, 2, 0, 0, 0, 0],
+        [0, 2, 3, 7, 0, 0, 4, 0, 0],
+        [4, 1, 7, 6, 0, 9, 0, 0, 5],
+        [0, 0, 6, 8, 0, 5, 7, 4, 2],
+        [0, 9, 2, 3, 0, 7, 5, 6, 1],
+        [7, 4, 5, 1, 6, 2, 9, 0, 8],
+        [0, 0, 1, 5, 0, 4, 2, 8, 0],
+        [0, 7, 0, 9, 8, 0, 0, 5, 0],
+        [5, 0, 9, 2, 0, 3, 6, 0, 4]
+      ].map(e => e.map(e => e || undefined)),
+      fullBoard: [
+        [6, 5, 8, 4, 2, 1, 3, 9, 7],
+        [9, 2, 3, 7, 5, 8, 4, 1, 6],
+        [4, 1, 7, 6, 3, 9, 8, 2, 5],
+        [1, 3, 6, 8, 9, 5, 7, 4, 2],
+        [8, 9, 2, 3, 0, 7, 5, 6, 1],
+        [7, 4, 5, 1, 6, 2, 9, 3, 8],
+        [3, 6, 1, 5, 7, 4, 2, 8, 9],
+        [2, 7, 4, 9, 8, 6, 1, 5, 3],
+        [5, 8, 9, 2, 1, 3, 6, 7, 4]
+        /* eslint-enable @typescript-eslint/no-magic-numbers */
+      ]
+    };
+  }
+
   console.debug(`Generating initial full Sudoku. Try ${retry}/${MAX_FULL_RETRIES}`);
+  const fullBoard = Array.from({ length: size }, () => Array.from({ length: size }));
+  fill(fullBoard, boxSize);
 
-  const board = Array.from({ length: size }, () => Array.from({ length: size }));
-  fill(board, boxSize);
-
-  // const board = [
-  //   /* eslint-disable @typescript-eslint/no-magic-numbers */
-  //   [6, 5, 8, 4, 2, 1, 3, 9, 7],
-  //   [9, 2, 3, 7, 5, 8, 4, 1, 6],
-  //   [4, 1, 7, 6, 3, 9, 8, 2, 5],
-  //   [1, 3, 6, 8, 9, 5, 7, 4, 2],
-  //   [8, 9, 2, 3, 4, 7, 5, 6, 1],
-  //   [7, 4, 5, 1, 6, 2, 9, 3, 8],
-  //   [3, 6, 1, 5, 7, 4, 2, 8, 9],
-  //   [2, 7, 4, 9, 8, 6, 1, 5, 3],
-  //   [5, 8, 9, 2, 1, 3, 6, 7, 4]
-  //   /* eslint-enable @typescript-eslint/no-magic-numbers */
-  // ];
-
-  if (!countSolutions(structuredClone(board), boxSize)) {
+  if (!countSolutions(structuredClone(fullBoard), boxSize)) {
     console.error('An invalid Sudoku has been generated. ' + (retry < MAX_FULL_RETRIES ? `Retrying ${retry + 1}/${MAX_FULL_RETRIES}` : 'Max retry reached. Not retrying.'));
 
     if (globalThis.debug) {
-      console.error(JSON.stringify(board));
-      return board;
+      console.error(JSON.stringify(fullBoard));
+      return fullBoard;
     }
     if (retry < MAX_FULL_RETRIES) return generateSudoku(size, holes, retry + 1);
 
-    console.error(JSON.stringify(board));
+    console.error(JSON.stringify(fullBoard));
     return Array.from({ length: size }, () => Array.from({ length: size }, () => 0));
   }
 
+  const board = structuredClone(fullBoard);
   const maxAttempts = size ** 2 * 5;
   const maxConsecutiveAttempt = size ** 2;
   console.debug(`Starting to dig holes. Max Attempts: ${maxAttempts}`);
+
   let
     removed = 0,
     attempts = 0,
@@ -77,7 +93,7 @@ export async function generateSudoku(size = 9, holes = size ** 2 - 20, retry = 1
   }
   console.debug(`Dug ${removed}/${holes} holes. Took ${attempts}/${maxAttempts} attemepts (last consecutive attempts: ${consecutiveAttempt}/${maxConsecutiveAttempt}).`);
 
-  return board;
+  return { fullBoard, board };
 }
 
 
@@ -132,8 +148,7 @@ function countSolutions(board, boxSize, rowId = 0, colId = 0) {
  * @param {number} rowId
  * @param {number} colId
  * @param {number} value
- * Check if a value is in the same row, column or box already
- */
+ * Check if a value is in the same row, column or box already */
 function isUnsafe(board, boxSize, rowId, colId, value) {
   for (let idx = 0; idx < board.length; idx++)
     if (board[rowId][idx] === value || board[idx][colId] === value) return true;
@@ -148,6 +163,13 @@ function isUnsafe(board, boxSize, rowId, colId, value) {
   return false;
 }
 
+/** @param {Board} board */
+export function getNumberAmounts(board) {
+  return board.flat(2).reduce((acc, e) => acc.set(e, (acc.get(e) ?? 0) + 1), new Map());
+}
+
+/** @type {HTMLSpanElement[]} */
+const numberOverviewSpans = document.querySelectorAll('#number-overview > tbody > tr > td > span');
 
 /** @param {Board} board */
 export function displayBoard(board) {
@@ -155,4 +177,6 @@ export function displayBoard(board) {
     cell.value = board[Number(cell.dataset.row) - 1][Number(cell.dataset.col) - 1];
     cell.disabled = !!board[Number(cell.dataset.row) - 1][Number(cell.dataset.col) - 1];
   }
+
+  for (const [i, amt] of getNumberAmounts(board)) if (i) numberOverviewSpans[i - 1].textContent = amt;
 }

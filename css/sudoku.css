@@ -1,6 +1,9 @@
 :root {
   font-family: Arial, sans-serif;
   font-size: 250%;
+  --cell-size: 1.4rem;
+  --sudoku-row-count: 9;
+  --row-count: var(--sudoku-row-count) + 1 /* adds caption */
 }
 
 html,
@@ -44,14 +47,21 @@ input:focus {
 #sudoku-container {
   margin: 1rem auto;
   gap: .1rem;
-  display: grid;
   justify-content: center;
-  justify-items: center;
+  display: grid;
+  grid-auto-rows: calc(var(--cell-size) - .05rem);
+  /* half gap */
 }
 
 table#sudoku {
   border-collapse: collapse;
   grid-column: span 1;
+  grid-row: 1 / calc(var(--row-count) + 1);
+  justify-self: center;
+
+  & > caption {
+    height: var(--cell-size);
+  }
 
   & > colgroup,
   & > tbody {
@@ -61,8 +71,8 @@ table#sudoku {
   & td {
     border: solid thin;
     padding: 0;
-    height: 1.4rem;
-    width: 1.4rem;
+    height: var(--cell-size);
+    width: var(--cell-size);
     aspect-ratio: 1/1;
 
     & > input {
@@ -91,29 +101,49 @@ table#sudoku {
 
   & .error td,
   & td.error {
-    background-image: linear-gradient(
-      45deg,
-    rgba(255, 0, 0, 0.25) 25%, transparent 25%,
-      transparent 50%, rgba(255, 0, 0, 0.25) 50%,
-    rgba(255, 0, 0, 0.25) 75%, transparent 75%,
-      transparent 100%
-    );
-    background-size: 1.4rem 1.4rem; /* table cell size */
+    background-image: linear-gradient(45deg,
+        rgba(255, 0, 0, 0.25) 25%, transparent 25%,
+        transparent 50%, rgba(255, 0, 0, 0.25) 50%,
+        rgba(255, 0, 0, 0.25) 75%, transparent 75%,
+        transparent 100%);
+    background-size: var(--cell-size) var(--cell-size);
+    /* table cell size */
     background-position: left;
   }
 }
 
 #timer {
-  grid-column: span 1;
-  margin-top: 1.25rem;
+  grid-row: 2;
+}
+
+#number-overview {
+  grid-row-start: 4;
+  grid-row-end: var(--row-count);
+  border-collapse: collapse;
+  border: solid .04rem;
   justify-self: left;
+  font-size: 60%;
+
+  & > tbody > tr > td {
+    border: solid .01rem;
+    width: 1.4rem;
+    padding: .3rem;
+
+    & > span {
+      color: #bababa;
+      &.complete {
+        color: #19be14;
+      }
+    }
+  }
 }
 
 #btn-container {
-  grid-column: span 1;
+  grid-row: calc(var(--row-count) + 1);
   margin: .1rem 0;
   display: flex;
   justify-content: space-between;
+  justify-self: center;
   gap: .5rem;
 
   & > * {
@@ -127,6 +157,7 @@ table#sudoku {
 .info-text {
   margin: 1rem auto;
   width: max-content;
+  justify-self: center;
   grid-column: span 2;
 }
 

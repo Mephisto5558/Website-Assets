@@ -3,9 +3,11 @@
 /** @typedef {import('.').CellInput} CellInput */
 /** @typedef {import('.').CellList} CellList */
 
-import { displayBoard, generateSudoku } from './generateSudoku.js';
+import { displayBoard, generateSudoku, getNumberAmounts } from './generateSudoku.js';
 
-globalThis.debug = true;
+globalThis.debug = false;
+globalThis.debugBoard = true;
+
 const DEFAULT_BOARD_SIZE = 9;
 const MS_IN_SEC = 1000;
 const SEC_IN_MIN = 60;
@@ -30,6 +32,9 @@ const loadingContainer = document.querySelector('#loading-container');
 
 /** @type {HTMLButtonElement} */
 const regenerateBtn = document.querySelector('#regenerate-btn');
+
+/** @type {HTMLSpanElement[]} */
+const numberOverviewSpans = [...document.querySelectorAll('#number-overview > tbody > tr > td > span')];
 
 function checkErrors() {
   /** @type {[CellList, CellList, CellList]} */
@@ -75,9 +80,21 @@ function clearTimer() {
   timerSpan.textContent = '00:00';
 }
 
+function updateNumberOverviewSpan(val, up = true) {
+  const span = numberOverviewSpans[val - 1];
+  span.textContent = Number(span.textContent) + (up ? 1 : -1);
+  if (globalThis.fullBoardNumberAmt.get(val - 1) == span.textContent)
+    span.classList.add('complete');
+  else span.classList.remove('complete');
+
+  if (!numberOverviewSpans.some(e => !e.classList.contains('complete')))
+    globalThis.timerInterval = clearInterval(globalThis.timerInterval);
+}
+
 sudoku.addEventListener('keypress', event => {
   if (event.key == event.target.value) return event.preventDefault();
   if (event.key == ' ') {
+    updateNumberOverviewSpan(Number(event.target.value), false);
     event.target.value = '';
     checkErrors();
   }
@@ -87,13 +104,17 @@ sudoku.addEventListener('keypress', event => {
 
   event.preventDefault();
   event.target.value = event.key;
+  updateNumberOverviewSpan(Number(event.target.value), true);
 
   checkErrors();
 });
 
+// TODO: support for POS1 and END keys
 const eventKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'];
 sudoku.addEventListener('keydown', event => {
   if (event.key == 'Backspace') {
+    updateNumberOverviewSpan(Number(event.target.value), false);
+
     event.target.value = '';
     checkErrors();
     return event.preventDefault();
@@ -144,8 +165,17 @@ regenerateBtn.addEventListener('click', async event => {
   const start = performance.now();
   const holes = rando(MIN_HOLES, MAX_HOLES);
 
-  console.log(`Size: ${DEFAULT_BOARD_SIZE}, Holes: ${holes}/${MAX_HOLES} (min: ${MIN_HOLES})`);
-  displayBoard(await generateSudoku(DEFAULT_BOARD_SIZE, holes));
+  if (globalThis.debug && globalThis.debugBoard)
+    console.debug('Using debug board.');
+  else
+    console.log(`Size: ${DEFAULT_BOARD_SIZE}, Holes: ${holes}/${MAX_HOLES} (min: ${MIN_HOLES})`);
+
+  const { fullBoard, board } = await generateSudoku(DEFAULT_BOARD_SIZE, holes);
+
+  /* eslint-disable-next-line require-atomic-updates -- not an issue because not reassigning globalThis anywhere */
+  globalThis.fullBoardNumberAmt = getNumberAmounts(fullBoard);
+
+  displayBoard(board);
   checkErrors();
 
   console.debug(`Took ${performance.now() - start}ms to generate and render.`);
