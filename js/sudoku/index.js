@@ -134,10 +134,8 @@ sudoku.addEventListener('keydown', event => {
   nextCell.focus();
 });
 
-let generating = false;
-regenerateBtn.addEventListener('click', event => {
-  if (generating) return event.preventDefault();
-  generating = true;
+regenerateBtn.addEventListener('click', async event => {
+  event.target.disabled = true;
 
   sudoku.parentElement.style.setProperty('visibility', 'hidden');
   loadingContainer.style.removeProperty('display');
@@ -147,12 +145,14 @@ regenerateBtn.addEventListener('click', event => {
   const holes = rando(MIN_HOLES, MAX_HOLES);
 
   console.log(`Size: ${DEFAULT_BOARD_SIZE}, Holes: ${holes}/${MAX_HOLES} (min: ${MIN_HOLES})`);
-  displayBoard(generateSudoku(DEFAULT_BOARD_SIZE, holes));
+  displayBoard(await generateSudoku(DEFAULT_BOARD_SIZE, holes));
   checkErrors();
 
   console.debug(`Took ${performance.now() - start}ms to generate and render.`);
 
   loadingContainer.style.setProperty('display', 'none');
   sudoku.parentElement.style.removeProperty('visibility');
+
+  event.target.disabled = false;
 });
 regenerateBtn.click();
