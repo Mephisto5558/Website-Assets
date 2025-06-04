@@ -180,5 +180,10 @@ export function displayBoard(board) {
     cell.disabled = !!board[Number(cell.dataset.row) - 1][Number(cell.dataset.col) - 1];
   }
 
-  for (const [i, amt] of getNumberAmounts(board)) if (i) numberOverviewSpans[i - 1].textContent = amt;
+  for (const [i, amt] of getNumberAmounts(board)) {
+    if (!i) continue;
+
+    numberOverviewSpans[i - 1].textContent = amt;
+    if (globalThis.fullBoardNumberAmt.get(i) == amt) numberOverviewSpans[i - 1].classList.add('complete');
+  }
 }

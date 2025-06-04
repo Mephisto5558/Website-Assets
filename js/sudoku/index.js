@@ -83,7 +83,7 @@ function clearTimer() {
 function updateNumberOverviewSpan(val, up = true) {
   const span = numberOverviewSpans[val - 1];
   span.textContent = Number(span.textContent) + (up ? 1 : -1);
-  if (globalThis.fullBoardNumberAmt.get(val - 1) == span.textContent)
+  if (globalThis.fullBoardNumberAmt.get(val) == span.textContent)
     span.classList.add('complete');
   else span.classList.remove('complete');
 
