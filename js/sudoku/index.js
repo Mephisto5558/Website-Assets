@@ -103,6 +103,7 @@ sudoku.addEventListener('keypress', event => {
   if (!globalThis.timerInterval) startTimer();
 
   event.preventDefault();
+  if (event.target.value) updateNumberOverviewSpan(Number(event.target.value), false);
   event.target.value = event.key;
   updateNumberOverviewSpan(Number(event.target.value), true);
 
@@ -179,6 +180,10 @@ regenerateBtn.addEventListener('click', async event => {
   checkErrors();
 
   console.debug(`Took ${performance.now() - start}ms to generate and render.`);
+
+  document.documentElement.style.setProperty('--sudoku-row-count', board.length);
+  if (globalThis.screen.availWidth < Number.parseFloat(getComputedStyle(sudoku).width) * 1.2)
+    document.documentElement.style.setProperty('font-size', 'unset');
 
   loadingContainer.style.setProperty('display', 'none');
   sudoku.parentElement.style.removeProperty('visibility');
