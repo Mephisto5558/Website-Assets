@@ -61,7 +61,7 @@ export async function generateSudoku(size = 9, holes = size ** 2 - 20, retry = 1
     removed = 0,
     attempts = 0,
     consecutiveAttempt = 0;
-  for (let wait; removed < holes && attempts < maxAttempts && consecutiveAttempt < maxConsecutiveAttempt; attempts++) {
+  for (; removed < holes && attempts < maxAttempts && consecutiveAttempt < maxConsecutiveAttempt; attempts++) {
     console.debug(`Digging. Holes: ${removed}/${holes}, Attempts: ${attempts}/${maxAttempts}, Consecutive attempts: ${consecutiveAttempt}/${maxConsecutiveAttempt}`);
 
     const rowId = rando(0, size - 1);
@@ -74,11 +74,13 @@ export async function generateSudoku(size = 9, holes = size ** 2 - 20, retry = 1
     const solutions = countSolutions(puzzle, boxSize);
     if (solutions > 1) {
       consecutiveAttempt++;
+
+      let wait;
       let logMsg = 'Sudoku has more than one possible solution. ';
       if (consecutiveAttempt > maxConsecutiveAttempt) logMsg += 'Max consecutive attempts reached. Not retrying.';
       else if (attempts > maxAttempts) logMsg += 'Max attempts reached. Not retrying.';
       else {
-        logMsg += `Retrying ${attempts + 1}/${maxAttempts}`;
+        logMsg += `Retrying ${attempts + 1}/${maxAttempts}. Waiting 10ms`;
         wait = new Promise(res => setTimeout(res, 10)); // Wait 10ms
       }
 
