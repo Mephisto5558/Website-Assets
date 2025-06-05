@@ -30,6 +30,9 @@ const timerSpan = document.querySelector('#timer');
 /** @type {HTMLDivElement} */
 const loadingContainer = document.querySelector('#loading-container');
 
+/** @type {Element[]} */
+const loadingContainerSiblings = [...loadingContainer.parentElement.children].filter(e => e != loadingContainer);
+
 /** @type {HTMLButtonElement} */
 const regenerateBtn = document.querySelector('#regenerate-btn');
 
@@ -177,7 +180,8 @@ sudoku.addEventListener('keydown', event => {
 regenerateBtn.addEventListener('click', async event => {
   event.target.disabled = true;
 
-  sudoku.parentElement.style.setProperty('visibility', 'hidden');
+  for (const element of loadingContainerSiblings)
+    element.style.setProperty('visibility', 'hidden');
   loadingContainer.style.removeProperty('display');
   clearTimer();
 
@@ -204,7 +208,7 @@ regenerateBtn.addEventListener('click', async event => {
     document.documentElement.style.setProperty('font-size', 'unset');
 
   loadingContainer.style.setProperty('display', 'none');
-  sudoku.parentElement.style.removeProperty('visibility');
+  for (const element of loadingContainerSiblings) element.style.removeProperty('visibility');
 
   event.target.disabled = false;
 });
