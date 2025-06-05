@@ -4,6 +4,7 @@
   /* requires hex values */
   --background-color: #2f4f4f;
   --foreground-color: #000;
+  --foreground-color-inverted: #fff;
   --cell-size: 1.4rem;
   --sudoku-row-count: 9;
   --row-count: var(--sudoku-row-count) + 1
@@ -113,7 +114,7 @@ table#sudoku {
 
     & > input {
       background-color: transparent;
-      color: white; /*TODO*/
+      color: var(--foreground-color-inverted);
       border: none;
       -moz-appearance: none;
       appearance: textfield;

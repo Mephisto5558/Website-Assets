@@ -36,6 +36,12 @@ const regenerateBtn = document.querySelector('#regenerate-btn');
 /** @type {HTMLSpanElement[]} */
 const numberOverviewSpans = [...document.querySelectorAll('#number-overview > tbody > tr > td > span')];
 
+/** @param {`#{number}` | `${number}`} hex */ /* eslint-disable-line jsdoc/valid-types -- false positive */
+function invertHex(hex) {
+  hex = hex.replace('#', '');
+  return '#' + (hex.length == 3 ? [...hex] : hex.match(/\w{2}/g)).map(e => (255 - Number.parseInt(e, 16)).toString(16).padStart(2, '0')).join('');
+}
+
 function checkErrors() {
   /** @type {[CellList, CellList, CellList]} */
   const cells = globalThis.htmlBoard.flat().reduce((acc, e) => {
@@ -119,6 +125,7 @@ const fgColorSwitcher = document.querySelector('#fg-color-switch');
 fgColorSwitcher.setAttribute('value', globalThis.getComputedStyle(document.documentElement).getPropertyValue('--foreground-color'));
 fgColorSwitcher.addEventListener('change', event => {
   document.documentElement.style.setProperty('--foreground-color', event.target.value);
+  document.documentElement.style.setProperty('--foreground-color-inverted', invertHex(event.target.value));
 });
 
 // TODO: support for POS1 and END keys
