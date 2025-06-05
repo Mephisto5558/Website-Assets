@@ -1,19 +1,24 @@
 :root {
   font-family: Arial, sans-serif;
   font-size: 250%;
+  /* requires hex values */
+  --background-color: #2f4f4f;
+  --foreground-color: #000;
   --cell-size: 1.4rem;
   --sudoku-row-count: 9;
-  --row-count: var(--sudoku-row-count) + 1 /* adds caption */
+  --row-count: var(--sudoku-row-count) + 1
+    /* adds caption */
 }
 
 html,
 body {
-  height: 100%;
+  min-height: 100%;
   margin: 0;
 }
 
 body {
-  background-color: darkslategrey;
+  background-color: var(--background-color);
+  color: var(--foreground-color);
 }
 
 button {
@@ -32,6 +37,37 @@ input:focus {
   outline: none;
 }
 
+#color-switcher-container {
+  font-size: 40%;
+  padding: .1rem;
+  background: rgba(0, 0, 0, .1);
+
+  & > div {
+    display: flex;
+    justify-content: flex-end;
+
+    & > input {
+      margin: 0 .1rem;
+      -webkit-appearance: none;
+      width: .5rem;
+      height: .5rem;
+      appearance: none;
+      border: 1px solid gray;
+      padding: 0;
+
+      &::-webkit-color-swatch,
+      &::-moz-color-swatch {
+        border: 1px solid gray;
+      }
+
+      &::-webkit-color-swatch-wrapper {
+        padding: 0;
+        margin: 0;
+      }
+    }
+  }
+}
+
 #loading-container {
   height: 100%;
   display: flex;
@@ -45,7 +81,7 @@ input:focus {
 }
 
 #sudoku-container {
-  margin: 1rem auto;
+  padding-top: .5rem;
   gap: .1rem;
   justify-content: center;
   display: grid;
@@ -77,7 +113,7 @@ table#sudoku {
 
     & > input {
       background-color: transparent;
-      color: white;
+      color: white; /*TODO*/
       border: none;
       -moz-appearance: none;
       appearance: textfield;
@@ -94,7 +130,7 @@ table#sudoku {
       }
 
       &:disabled {
-        color: black;
+        color: var(--foreground-color);
       }
     }
   }
@@ -130,7 +166,8 @@ table#sudoku {
     padding: .3rem;
 
     & > span {
-      color: #bababa;
+      color: #bababa; /* todo: --foreground-color*/
+
       &.complete {
         color: #19be14;
       }

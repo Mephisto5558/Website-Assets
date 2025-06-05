@@ -110,6 +110,17 @@ sudoku.addEventListener('keypress', event => {
   checkErrors();
 });
 
+const bgColorSwitcher = document.querySelector('#bg-color-switch');
+bgColorSwitcher.setAttribute('value', globalThis.getComputedStyle(document.documentElement).getPropertyValue('--background-color'));
+bgColorSwitcher.addEventListener('change', event => {
+  document.documentElement.style.setProperty('--background-color', event.target.value);
+});
+const fgColorSwitcher = document.querySelector('#fg-color-switch');
+fgColorSwitcher.setAttribute('value', globalThis.getComputedStyle(document.documentElement).getPropertyValue('--foreground-color'));
+fgColorSwitcher.addEventListener('change', event => {
+  document.documentElement.style.setProperty('--foreground-color', event.target.value);
+});
+
 // TODO: support for POS1 and END keys
 const eventKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'];
 sudoku.addEventListener('keydown', event => {
