@@ -1,7 +1,15 @@
-export type CellInput = HTMLInputElement & { type: 'number'; dataset: { group: string; row: string; col: string } };
+/* eslint-disable-next-line @typescript-eslint/no-magic-numbers */
+type LowNum = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+
+export type CellInput = HTMLInputElement & { type: 'number'; dataset: { group: `${number}`; row: `${number}`; col: `${number}` } };
 export type Cell = HTMLTableCaptionElement & { firstChild: CellInput };
-export type CellList = [Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell, Cell] & { type: 'group' | 'col' | 'row' };
-/* eslint-disable sonarjs/max-union-size, @typescript-eslint/no-magic-numbers */
-export type Board = (1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | undefined)[][];
-export type FullBoard = (1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9)[][];
-/* eslint-enable sonarjs/max-union-size, @typescript-eslint/no-magic-numbers */
+export type HTMLBoard = CellInput[][];
+
+export type Board = LowNum[][];
+export type FullBoard = Exclude<LowNum, 0>[][];
+
+export function setRootStyle(key: string, value: string | null, priority?: string): void;
+export function getRootStyle(key: string): string;
+export function invertHex(hex: string): `#${string}`;
+export function saveToClipboard(value: string): Promise<void>;
+export function initializeColorPicker(picker: HTMLInputElement, storageKey: string, onColorChange: (color: string) => void): void;

@@ -20,57 +20,61 @@ function bigIntToBase62(num) {
  * Converts a Base62 string back to a BigInt.
  * @param {string} base62 */
 function base62ToBigInt(base62) {
-  return base62.reduce((acc, e) => acc * BASE + BigInt(BASE_ALPHABET.indexOf(e)), 0n);
+  return [...base62].reduce((acc, e) => acc * BASE + BigInt(BASE_ALPHABET.indexOf(e)), 0n);
 }
 
 /**
- * Generates the shortest possible shareable URL.
  * @param {Board} board
  * @param {FullBoard} fullBoard */
 export function generateShareURL(board, fullBoard) {
-  const
-    solution = BigInt(fullBoard.flat().join('')),
-    mask = BigInt('0b' + board.flat().map(cell => cell ? '1' : '0').join('')), // parsed as binary
-    url = new URL(globalThis.location.href);
+  const data = {
+    /* eslint-disable id-length */
+    s: BigInt(fullBoard.flat().join('')),
+    m: BigInt('0b' + board.flat().map(cell => cell ? '1' : '0').join('')), // parsed as binary
+    d: BigInt(board.length)
+    /* eslint-enable id-length */
+  };
 
-  url.searchParams.set('s', bigIntToBase62(solution));
-  url.searchParams.set('m', bigIntToBase62(mask));
-  url.searchParams.set('d', board.length);
+  const url = new URL(globalThis.location.href);
+  for (const [k, v] of Object.entries(data)) url.searchParams.set(k, bigIntToBase62(v));
 
   return url.toString();
 }
 
-/**
- * Loads puzzle and solution from the shortest URL format.
- * @returns {{ fullBoard: FullBoard, board: board } | undefined} */
+/** @returns {{ fullBoard: FullBoard, board: Board } | undefined} */
 export function loadFromShareURL() {
-  const params = new URLSearchParams(globalThis.location.search);
-  const compressedSolution = params.get('s');
-  const compressedMask = params.get('m');
-  const dimension = Number(params.get('d'));
+  const
+    params = new URLSearchParams(globalThis.location.search),
+    compressedDimension = params.get('d'),
+    compressedSolution = params.get('s'),
+    compressedMask = params.get('m');
 
-  if (!compressedSolution && !compressedMask && !dimension) return;
-  if (!compressedSolution || !compressedMask || !dimension)
+  if (!compressedSolution && !compressedMask && !compressedDimension) return;
+  if (!compressedSolution || !compressedMask || !compressedDimension)
     return console.error('Missing URL param. Expected "s", "m" and "d", got', JSON.stringify(Object.fromEntries(params)));
 
   try {
-    const solutionString = base62ToBigInt(compressedSolution).toString().padStart(dimension ** 2, '0');
-    const maskString = base62ToBigInt(compressedMask).toString(2).padStart(dimension ** 2, '0'); // toString(2) for binary
+    const
+      dimension = Number(base62ToBigInt(compressedDimension)),
+      solutionString = base62ToBigInt(compressedSolution).toString().padStart(dimension ** 2, '0'),
+      maskString = base62ToBigInt(compressedMask).toString(2).padStart(dimension ** 2, '0'), // toString(2) for binary
+      board = [],
+      fullBoard = [];
 
-    const solutionChars = [...solutionString];
-    const board = [];
-    const fullBoard = [];
+    for (let rowId = 0; rowId < dimension; rowId++) {
+      const boardRow = [];
+      const fullBoardRow = [];
 
-    for (let row = 0, boardRow = [], fullBoardRow = []; row < dimension; row++) {
-      for (let col = 0, rowId = row * dimension + col; col < dimension; col++) {
-        const solutionDigit = Number(solutionChars[rowId]);
+      for (let colId = 0; colId < dimension; colId++) {
+        const i = rowId * dimension + colId;
+        const solutionDigit = Number(solutionString[i]);
 
         fullBoardRow.push(solutionDigit);
-        boardRow.push(maskString[rowId] === '1' ? solutionDigit : undefined);
+        boardRow.push(maskString[i] === '1' ? solutionDigit : 0);
       }
 
-      fullBoard.push(fullBoardRow);
       board.push(boardRow);
+      fullBoard.push(fullBoardRow);
     }
 
     return { fullBoard, board };

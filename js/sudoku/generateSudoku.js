@@ -1,68 +1,92 @@
-const MAX_FULL_RETRIES = 100;
-
-/** @typedef {import('.').FullBoard} FullBoard */
 /** @typedef {import('.').Board} Board */
+
+const MAX_FULL_RETRIES = 100;
+const CONSECUTIVE_RETRY_COOLDOWN_MS = 5;
+const DEBUG_BOARDS = {
+  board: [
+    /* eslint-disable @typescript-eslint/no-magic-numbers */
+    [6, 5, 8, 4, 2, 0, 0, 0, 0],
+    [0, 2, 3, 7, 0, 0, 4, 0, 0],
+    [4, 1, 7, 6, 0, 9, 0, 0, 5],
+    [0, 0, 6, 8, 0, 5, 7, 4, 2],
+    [0, 9, 2, 3, 0, 7, 5, 6, 1],
+    [7, 4, 5, 1, 6, 2, 9, 0, 8],
+    [0, 0, 1, 5, 0, 4, 2, 8, 0],
+    [0, 7, 0, 9, 8, 0, 0, 5, 0],
+    [5, 0, 9, 2, 0, 3, 6, 0, 4]
+  ],
+  fullBoard: [
+    [6, 5, 8, 4, 2, 1, 3, 9, 7],
+    [9, 2, 3, 7, 5, 8, 4, 1, 6],
+    [4, 1, 7, 6, 3, 9, 8, 2, 5],
+    [1, 3, 6, 8, 9, 5, 7, 4, 2],
+    [8, 9, 2, 3, 4, 7, 5, 6, 1],
+    [7, 4, 5, 1, 6, 2, 9, 3, 8],
+    [3, 6, 1, 5, 7, 4, 2, 8, 9],
+    [2, 7, 4, 9, 8, 6, 1, 5, 3],
+    [5, 8, 9, 2, 1, 3, 6, 7, 4]
+    /* eslint-enable @typescript-eslint/no-magic-numbers */
+  ]
+};
+
+/**
+ * @param {Board} board
+ * @returns {Map<number, number | undefined>} */
+export function getNumberAmounts(board) {
+  return board.flat().reduce((acc, e) => acc.set(e, (acc.get(e) ?? 0) + 1), new Map());
+}
+
+/**
+ * @param {number} size
+ * @param {any} filler */
+function getEmptySudoku(size, filler) {
+  return Array.from({ length: size }, () => Array.from({ length: size }, filler === undefined ? undefined : () => filler));
+}
+
+/**
+ * @param {number} rowId
+ * @param {number} colId
+ * @param {number} boardSize
+ * @returns {[number, number]} [rowId, colId] */
+function getNext(rowId, colId, boardSize) {
+  return colId == boardSize - 1 ? [rowId + 1, 0] : [rowId, colId + 1];
+}
 
 /**
  * @param {number} size
  * @param {number} holes
- * @param {number} retry internal use */
-export async function generateSudoku(size, holes, retry = 1) {
+ * @param {number} retries internal use */
+export async function generateSudoku(size, holes, retries = 1) {
+  if (globalThis.debug && globalThis.debugBoard) return DEBUG_BOARDS;
+
   const boxSize = Math.sqrt(size);
   if (!Number.isInteger(boxSize)) throw new Error('Size must be quadratic.');
 
-  if (globalThis.debug && globalThis.debugBoard) {
-    return {
-      board: [
-      /* eslint-disable @typescript-eslint/no-magic-numbers */
-        [6, 5, 8, 4, 2, 0, 0, 0, 0],
-        [0, 2, 3, 7, 0, 0, 4, 0, 0],
-        [4, 1, 7, 6, 0, 9, 0, 0, 5],
-        [0, 0, 6, 8, 0, 5, 7, 4, 2],
-        [0, 9, 2, 3, 0, 7, 5, 6, 1],
-        [7, 4, 5, 1, 6, 2, 9, 0, 8],
-        [0, 0, 1, 5, 0, 4, 2, 8, 0],
-        [0, 7, 0, 9, 8, 0, 0, 5, 0],
-        [5, 0, 9, 2, 0, 3, 6, 0, 4]
-      ].map(e => e.map(e => e || undefined)),
-      fullBoard: [
-        [6, 5, 8, 4, 2, 1, 3, 9, 7],
-        [9, 2, 3, 7, 5, 8, 4, 1, 6],
-        [4, 1, 7, 6, 3, 9, 8, 2, 5],
-        [1, 3, 6, 8, 9, 5, 7, 4, 2],
-        [8, 9, 2, 3, 4, 7, 5, 6, 1],
-        [7, 4, 5, 1, 6, 2, 9, 3, 8],
-        [3, 6, 1, 5, 7, 4, 2, 8, 9],
-        [2, 7, 4, 9, 8, 6, 1, 5, 3],
-        [5, 8, 9, 2, 1, 3, 6, 7, 4]
-        /* eslint-enable @typescript-eslint/no-magic-numbers */
-      ]
-    };
-  }
+  console.debug(`Generating initial full Sudoku. Try ${retries}/${MAX_FULL_RETRIES}`);
 
-  console.debug(`Generating initial full Sudoku. Try ${retry}/${MAX_FULL_RETRIES}`);
-
-  /** @type {FullBoard} */
-  const fullBoard = Array.from({ length: size }, () => Array.from({ length: size }));
+  /** @type {import('.').FullBoard} */
+  const fullBoard = getEmptySudoku(size);
   fill(fullBoard, boxSize);
 
   if (!countSolutions(structuredClone(fullBoard), boxSize)) {
-    console.error('An invalid Sudoku has been generated. ' + (retry < MAX_FULL_RETRIES ? `Retrying ${retry + 1}/${MAX_FULL_RETRIES}` : 'Max retry reached. Not retrying.'));
+    let err = 'An invalid Sudoku has been generated. ';
+    if (globalThis.debug) err += 'Returning the Sudoku due to being in debug mode.';
+    else err += retries < MAX_FULL_RETRIES ? `Retrying ${retries + 1}/${MAX_FULL_RETRIES}` : 'Max retries reached. Not retrying.';
 
-    if (globalThis.debug) {
-      console.error(JSON.stringify(fullBoard));
-      return fullBoard;
-    }
-    if (retry < MAX_FULL_RETRIES) return generateSudoku(size, holes, retry + 1);
-
+    console.error(err);
     console.error(JSON.stringify(fullBoard));
-    return Array.from({ length: size }, () => Array.from({ length: size }, () => 0));
+
+    if (globalThis.debug) return fullBoard;
+    if (retries < MAX_FULL_RETRIES) return generateSudoku(size, holes, retries + 1);
+    return getEmptySudoku(size, 0);
   }
 
   /** @type {Board} */
   const board = structuredClone(fullBoard);
   const maxAttempts = size ** 2 * 5; /* eslint-disable-line @typescript-eslint/no-magic-numbers -- arbitrary */
   const maxConsecutiveAttempts = size ** 2;
+  const tooManySolutionsMsg = 'Sudoku has more than one possible solution. ';
+
   console.debug(`Starting to dig holes. Max Attempts: ${maxAttempts}`);
 
   let
@@ -72,38 +96,24 @@ export async function generateSudoku(size, holes, retry = 1) {
   for (; removed < holes && attempts < maxAttempts && consecutiveAttempts < maxConsecutiveAttempts; attempts++) {
     console.debug(`Digging. Holes: ${removed}/${holes}, Attempts: ${attempts}/${maxAttempts}, Consecutive attempts: ${consecutiveAttempts}/${maxConsecutiveAttempts}`);
 
-    const rowId = rando(0, size - 1);
-    const colId = rando(0, size - 1);
-    if (!board[rowId][colId]) continue;
-
-    const puzzle = structuredClone(board);
-    puzzle[rowId][colId] = undefined;
-
-    const solutions = countSolutions(puzzle, boxSize);
-    if (solutions > 1) {
-      consecutiveAttempts++;
-
-      let wait;
-      let logMsg = 'Sudoku has more than one possible solution. ';
-      if (consecutiveAttempts > maxConsecutiveAttempts) logMsg += 'Max consecutive attempts reached. Not retrying.';
-      else if (attempts > maxAttempts) logMsg += 'Max attempts reached. Not retrying.';
-      else {
-        logMsg += `Retrying ${attempts + 1}/${maxAttempts}. Waiting 10ms`;
-        wait = new Promise(res => setTimeout(res, 10)); // Wait 10ms
-      }
-
-      console.debug(logMsg);
-
-      await wait;
+    const success = dig(board, boxSize);
+    if (success) {
+      consecutiveAttempts = 0;
+      removed++;
       continue;
     }
+    if (success === undefined) continue;
 
-    board[rowId][colId] = undefined;
-
-    consecutiveAttempts = 0;
-    removed++;
+    consecutiveAttempts++;
+    if (consecutiveAttempts > maxConsecutiveAttempts) console.debug(tooManySolutionsMsg + 'Max consecutive attempts reached. Not retrying.');
+    else if (attempts > maxAttempts) console.debug(tooManySolutionsMsg + 'Max attempts reached. Not retrying.');
+    else {
+      console.debug(tooManySolutionsMsg + `Retrying ${attempts + 1}/${maxAttempts}. Waiting 5ms`);
+      await new Promise(res => setTimeout(res, CONSECUTIVE_RETRY_COOLDOWN_MS));
+    }
   }
-  console.debug(`Dug ${removed}/${holes} holes. Took ${attempts}/${maxAttempts} attemepts (last consecutive attempts: ${consecutiveAttempts}/${maxConsecutiveAttempts}).`);
+
+  console.debug(`Dug ${removed}/${holes} holes. Took ${attempts}/${maxAttempts} attempts (last consecutive attempts: ${consecutiveAttempts}/${maxConsecutiveAttempts}).`);
   if (globalThis.debug) {
     console.debug('Board:', JSON.stringify(board));
     console.debug('Full Board:', JSON.stringify(fullBoard));
@@ -112,6 +122,19 @@ export async function generateSudoku(size, holes, retry = 1) {
   return { fullBoard, board };
 }
 
+function dig(board, boxSize) {
+  const rowId = rando(0, board.length - 1);
+  const colId = rando(0, board.length - 1);
+  if (!board[rowId][colId]) return;
+
+  const puzzle = structuredClone(board);
+  puzzle[rowId][colId] = 0;
+
+  if (countSolutions(puzzle, boxSize) > 1) return false;
+
+  board[rowId][colId] = 0;
+  return true;
+}
 
 /**
  * @param {Board} board
@@ -121,13 +144,13 @@ export async function generateSudoku(size, holes, retry = 1) {
 function fill(board, boxSize, rowId = 0, colId = 0) {
   if (rowId > board.length - 1) return true;
 
-  const [nextRow, nextCol] = colId == board.length - 1 ? [rowId + 1, 0] : [rowId, colId + 1];
+  const [nextRowId, nextColId] = getNext(rowId, colId, board.length);
   for (const value of randoSequence(1, board.length)) {
     if (isUnsafe(board, boxSize, rowId, colId, value)) continue;
 
     board[rowId][colId] = value;
-    if (fill(board, boxSize, nextRow, nextCol)) return true;
-    board[rowId][colId] = undefined;
+    if (fill(board, boxSize, nextRowId, nextColId)) return true;
+    board[rowId][colId] = 0;
   }
 
   return false;
@@ -139,9 +162,9 @@ function fill(board, boxSize, rowId = 0, colId = 0) {
  * @param {number} rowId
  * @param {number} colId */
 function countSolutions(board, boxSize, rowId = 0, colId = 0) {
-  if (rowId === board.length) return 1;
+  if (rowId > board.length - 1) return 1;
 
-  const [nextRowId, nextColId] = colId === board.length - 1 ? [rowId + 1, 0] : [rowId, colId + 1];
+  const [nextRowId, nextColId] = getNext(rowId, colId, board.length);
   if (board[rowId][colId]) return countSolutions(board, boxSize, nextRowId, nextColId);
 
   let total = 0;
@@ -150,7 +173,7 @@ function countSolutions(board, boxSize, rowId = 0, colId = 0) {
 
     board[rowId][colId] = val;
     total += countSolutions(board, boxSize, nextRowId, nextColId);
-    board[rowId][colId] = undefined;
+    board[rowId][colId] = 0;
 
     if (total > 1) break;
   }
@@ -164,34 +187,29 @@ function countSolutions(board, boxSize, rowId = 0, colId = 0) {
  * @param {number} rowId
  * @param {number} colId
  * @param {number} value
- * Check if a value is in the same row, column or box already */
+ * Check if a value is already in the same row, column or box */
 function isUnsafe(board, boxSize, rowId, colId, value) {
-  for (let idx = 0; idx < board.length; idx++)
-    if (board[rowId][idx] === value || board[idx][colId] === value) return true;
+  for (let id = 0; id < board.length; id++)
+    if (board[rowId][id] === value || board[id][colId] === value) return true;
 
   const startRow = Math.floor(rowId / boxSize) * boxSize;
   const startCol = Math.floor(colId / boxSize) * boxSize;
-  for (let row = 0; row < boxSize; row++) {
-    for (let col = 0; col < boxSize; col++)
-      if (board[startRow + row][startCol + col] === value) return true;
+  for (let row = startRow; row < startRow + boxSize; row++) {
+    for (let col = startCol; col < startCol + boxSize; col++)
+      if (board[row][col] === value) return true;
   }
 
   return false;
 }
 
-/** @param {Board} board */
-export function getNumberAmounts(board) {
-  return board.flat().reduce((acc, e) => acc.set(e, (acc.get(e) ?? 0) + 1), new Map());
-}
-
-/** @type {HTMLSpanElement[]} */
-const numberOverviewSpans = document.querySelectorAll('#number-overview > tbody > tr > td > span');
-
-/** @param {Board} board */
-export function displayBoard(board) {
-  for (const cell of globalThis.htmlBoard.flat()) {
-    cell.value = board[Number(cell.dataset.row) - 1][Number(cell.dataset.col) - 1];
-    cell.disabled = !!board[Number(cell.dataset.row) - 1][Number(cell.dataset.col) - 1];
+/**
+ * @param {Board} board
+ * @param {import('.').HTMLBoard} htmlBoard
+ * @param {HTMLSpanElement[]} numberOverviewSpans */
+export function displayBoard(board, htmlBoard, numberOverviewSpans) {
+  for (const cell of htmlBoard.flat()) {
+    cell.value = board[Number(cell.dataset.row) - 1][Number(cell.dataset.col) - 1] || undefined;
+    cell.disabled = !!cell.value;
   }
 
   for (const [i, amt] of getNumberAmounts(board)) {
