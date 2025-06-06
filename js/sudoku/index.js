@@ -1,5 +1,3 @@
-/* NOT FOR PROD*/
-
 /** @typedef {import('.').CellInput} CellInput */
 /** @typedef {import('.').CellList} CellList */
 
@@ -130,6 +128,7 @@ fgColorSwitcher.addEventListener('change', event => {
   document.documentElement.style.setProperty('--foreground-color', event.target.value);
   document.documentElement.style.setProperty('--foreground-color-inverted', invertHex(event.target.value));
 });
+document.documentElement.style.setProperty('--foreground-color-secondary-inverted', invertHex(globalThis.getComputedStyle(document.documentElement).getPropertyValue('--foreground-color-secondary')));
 
 const eventKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'];
 sudoku.addEventListener('keydown', event => {

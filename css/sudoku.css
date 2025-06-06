@@ -5,6 +5,8 @@
   --background-color: #2f4f4f;
   --foreground-color: #000;
   --foreground-color-inverted: #fff;
+  --foreground-color-secondary: #bababa;
+  --foreground-color-secondary-inverted: #454545;
   --cell-size: 1.4rem;
   --sudoku-row-count: 9;
   --row-count: var(--sudoku-row-count) + 1
@@ -49,7 +51,6 @@ input:focus {
 
     & > input {
       margin: 0 .1rem;
-      -webkit-appearance: none;
       width: .5rem;
       height: .5rem;
       appearance: none;
@@ -117,7 +118,6 @@ table#sudoku {
       background-color: transparent;
       color: var(--foreground-color-inverted);
       border: none;
-      -moz-appearance: none;
       appearance: textfield;
       text-align: center;
       padding: 0;
@@ -127,7 +127,7 @@ table#sudoku {
 
       &::-webkit-outer-spin-button,
       &::-webkit-inner-spin-button {
-        -webkit-appearance: none;
+        appearance: none;
         margin: 0;
       }
 
@@ -168,7 +168,7 @@ table#sudoku {
     padding: .3rem;
 
     & > span {
-      color: #bababa; /* todo: --foreground-color*/
+      color: var(--foreground-color-secondary);
 
       &.complete {
         color: #19be14;
