@@ -120,7 +120,6 @@ table#sudoku {
     padding: 0;
     height: var(--cell-size);
     width: var(--cell-size);
-    aspect-ratio: 1/1;
 
     & > input {
       background-color: transparent;
