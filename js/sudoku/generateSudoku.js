@@ -62,15 +62,15 @@ export async function generateSudoku(size, holes, retry = 1) {
   /** @type {Board} */
   const board = structuredClone(fullBoard);
   const maxAttempts = size ** 2 * 5;
-  const maxConsecutiveAttempt = size ** 2;
+  const maxConsecutiveAttempts = size ** 2;
   console.debug(`Starting to dig holes. Max Attempts: ${maxAttempts}`);
 
   let
     removed = 0,
     attempts = 0,
-    consecutiveAttempt = 0;
-  for (; removed < holes && attempts < maxAttempts && consecutiveAttempt < maxConsecutiveAttempt; attempts++) {
-    console.debug(`Digging. Holes: ${removed}/${holes}, Attempts: ${attempts}/${maxAttempts}, Consecutive attempts: ${consecutiveAttempt}/${maxConsecutiveAttempt}`);
+    consecutiveAttempts = 0;
+  for (; removed < holes && attempts < maxAttempts && consecutiveAttempts < maxConsecutiveAttempts; attempts++) {
+    console.debug(`Digging. Holes: ${removed}/${holes}, Attempts: ${attempts}/${maxAttempts}, Consecutive attempts: ${consecutiveAttempts}/${maxConsecutiveAttempts}`);
 
     const rowId = rando(0, size - 1);
     const colId = rando(0, size - 1);
@@ -81,11 +81,11 @@ export async function generateSudoku(size, holes, retry = 1) {
 
     const solutions = countSolutions(puzzle, boxSize);
     if (solutions > 1) {
-      consecutiveAttempt++;
+      consecutiveAttempts++;
 
       let wait;
       let logMsg = 'Sudoku has more than one possible solution. ';
-      if (consecutiveAttempt > maxConsecutiveAttempt) logMsg += 'Max consecutive attempts reached. Not retrying.';
+      if (consecutiveAttempts > maxConsecutiveAttempts) logMsg += 'Max consecutive attempts reached. Not retrying.';
       else if (attempts > maxAttempts) logMsg += 'Max attempts reached. Not retrying.';
       else {
         logMsg += `Retrying ${attempts + 1}/${maxAttempts}. Waiting 10ms`;
@@ -99,9 +99,11 @@ export async function generateSudoku(size, holes, retry = 1) {
     }
 
     board[rowId][colId] = undefined;
+
+    consecutiveAttempts = 0;
     removed++;
   }
-  console.debug(`Dug ${removed}/${holes} holes. Took ${attempts}/${maxAttempts} attemepts (last consecutive attempts: ${consecutiveAttempt}/${maxConsecutiveAttempt}).`);
+  console.debug(`Dug ${removed}/${holes} holes. Took ${attempts}/${maxAttempts} attemepts (last consecutive attempts: ${consecutiveAttempts}/${maxConsecutiveAttempts}).`);
   if (globalThis.debug) {
     console.debug('Board:', JSON.stringify(board));
     console.debug('Full Board:', JSON.stringify(fullBoard));
