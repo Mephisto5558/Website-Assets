@@ -112,6 +112,34 @@ function updateNumberOverviewSpan(val, up = true) {
     globalThis.timerInterval = clearInterval(globalThis.timerInterval);
 }
 
+async function saveToClipboard(value) {
+  /* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions -- is `undefined` on HTTP pages */
+  if (globalThis.navigator.clipboard) {
+    await globalThis.navigator.clipboard.writeText(value);
+    return alert('Saved the link in your clipboard.');
+  }
+
+  const copyArea = document.createElement('textarea');
+  copyArea.value = value;
+  copyArea.style.display = 'none';
+
+  document.body.append(copyArea);
+  copyArea.focus({ preventScroll: true });
+  copyArea.select();
+
+  try {
+    /* eslint-disable-next-line @typescript-eslint/no-deprecated -- workaround for HTTP context*/
+    if (!document.execCommand('copy')) throw new Error('Did not save');
+    alert('Saved the link in your clipboard.');
+  }
+  catch (err) {
+    console.error('Could not copy to clipboard using document.execCommand:', err);
+    alert('Cold not copy the URL to your clipboard. Please copy it manually from the address bar.');
+  }
+
+  copyArea.remove();
+}
+
 const bgColorSwitcher = document.querySelector('#bg-color-switch');
 bgColorSwitcher.setAttribute('value', globalThis.getComputedStyle(document.documentElement).getPropertyValue('--background-color'));
 bgColorSwitcher.addEventListener('change', event => {
@@ -198,11 +226,20 @@ sudoku.addEventListener('keydown', event => {
 });
 
 let shareEventListener;
-regenerateBtn.addEventListener('click', async event => {
-  event.target.disabled = true;
 
-  for (const element of loadingContainerSiblings)
-    element.style.setProperty('visibility', 'hidden');
+/**
+ * @param {Event | undefined} event
+ * @param {boolean | undefined} firstTime */
+async function regenerate(event, firstTime) {
+  if (event) event.target.disabled = true;
+  if (!firstTime) {
+    const url = new URL(globalThis.location.href);
+    url.search = '';
+
+    globalThis.history.pushState({}, '', url);
+  }
+
+  for (const element of loadingContainerSiblings) element.style.setProperty('visibility', 'hidden');
   loadingContainer.style.removeProperty('display');
   clearTimer();
 
@@ -233,11 +270,10 @@ regenerateBtn.addEventListener('click', async event => {
   shareButton.removeEventListener('click', shareEventListener);
 
   shareEventListener = async () => {
-    const url = generateShareURL(board, fullBoard);
-    globalThis.history.pushState({}, '', url);
+    const url = globalThis.location.search ? globalThis.location.href : generateShareURL(board, fullBoard);
+    if (url != globalThis.location.href) globalThis.history.pushState({}, '', url);
 
-    await globalThis.navigator.clipboard.writeText(url);
-    alert('Saved link in your clipboard.');
+    await saveToClipboard(url);
   };
 
   shareButton.addEventListener('click', shareEventListener);
@@ -245,6 +281,8 @@ regenerateBtn.addEventListener('click', async event => {
   loadingContainer.style.setProperty('display', 'none');
   for (const element of loadingContainerSiblings) element.style.removeProperty('visibility');
 
-  event.target.disabled = false;
-});
-regenerateBtn.click();
+  if (event) event.target.disabled = false;
+}
+
+regenerateBtn.addEventListener('click', regenerate);
+void regenerate(undefined, true);
