@@ -346,8 +346,8 @@
   function createCardElement(card) {
     const cardElement = createElement('div', { className: 'card', id: card.id });
 
-    const titleElement = createElement('h2', { id: 'title', textContent: card.title, contentEditable: String(!!user?.dev) }, cardElement);
-    const descriptionElement = card.body || user.dev ? createElement('p', { id: 'description', textContent: card.body, contentEditable: String(!!user?.dev) }, cardElement) : undefined;
+    const titleElement = createElement('h2', { id: 'title', textContent: card.title, contentEditable: user?.dev ? 'plaintext-only' : 'false' }, cardElement);
+    const descriptionElement = card.body || user.dev ? createElement('p', { id: 'description', textContent: card.body, contentEditable: user?.dev ? 'plaintext-only' : 'false' }, cardElement) : undefined;
 
     const voteButtonsElement = createElement('div', { className: 'vote-buttons' }, cardElement);
     const upvoteCounterElement = createElement('span', { className: 'vote-counter', textContent: card.pending ? '' : card.votes ?? 0 });
@@ -471,15 +471,6 @@
     }
   }
 
-  /** @type {import('.').vote.preventFormattedPaste} */
-  function preventFormattedPaste(event) {
-    if (!event.target?.isContentEditable) return;
-
-    event.preventDefault();
-    /* eslint-disable-next-line @typescript-eslint/no-deprecated -- see https://github.com/Mephisto5558/Website-Assets/issues/12 */
-    document.execCommand('insertText', false, event.clipboardData.getData('text/plain'));
-  }
-
   // Listener
 
   headerContainer.querySelector('#toggle-cards-display').addEventListener('click', () => toggleCardDisplayMode());
@@ -525,13 +516,9 @@
 
     displayCards();
     if (user.dev) {
-      cardsContainer.addEventListener('paste', preventFormattedPaste);
-
       if (cardsContainerPending.childElementCount) {
         document.body.insertBefore(createElement('h2', { id: 'new-requests', textContent: 'New Requests' }), cardsContainerPending);
         document.body.insertBefore(createElement('h2', { id: 'old-requests', textContent: 'Approved Requests' }), cardsContainer);
-
-        cardsContainerPending.addEventListener('paste', preventFormattedPaste);
       }
 
       saveButtonElement = createElement('button', { id: 'save-button', title: 'Save', classList: 'blue-button' }, document.body);
