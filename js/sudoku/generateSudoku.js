@@ -94,6 +94,10 @@ export async function generateSudoku(size = 9, holes = size ** 2 - 20, retry = 1
     removed++;
   }
   console.debug(`Dug ${removed}/${holes} holes. Took ${attempts}/${maxAttempts} attemepts (last consecutive attempts: ${consecutiveAttempt}/${maxConsecutiveAttempt}).`);
+  if (globalThis.debug) {
+    console.debug('Board:', JSON.stringify(board));
+    console.debug('Full Board:', JSON.stringify(fullBoard));
+  }
 
   return { fullBoard, board };
 }
@@ -105,13 +109,13 @@ export async function generateSudoku(size = 9, holes = size ** 2 - 20, retry = 1
  * @param {number} rowId
  * @param {number} colId */
 function fill(board, boxSize, rowId = 0, colId = 0) {
-  if (rowId == board.length - 1) return true;
+  if (rowId > board.length - 1) return true;
 
+  const [nextRow, nextCol] = colId == board.length - 1 ? [rowId + 1, 0] : [rowId, colId + 1];
   for (const value of randoSequence(1, board.length)) {
     if (isUnsafe(board, boxSize, rowId, colId, value)) continue;
 
     board[rowId][colId] = value;
-    const [nextRow, nextCol] = colId == board.length - 1 ? [rowId + 1, 0] : [rowId, colId + 1];
     if (fill(board, boxSize, nextRow, nextCol)) return true;
     board[rowId][colId] = undefined;
   }
