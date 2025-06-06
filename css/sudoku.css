@@ -255,7 +255,7 @@ table#sudoku {
 
 #message-container {
   grid-column: span 2;
-  grid-row: span calc(var(--row-count) + 4);
+  grid-row: calc(var(--row-count) + 4);
   width: max-content;
   height: max-content;
 
