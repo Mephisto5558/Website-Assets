@@ -31,7 +31,7 @@ button {
 
 input:not([type='range']):hover,
 input[type='range']:hover::-webkit-slider-thumb,
-input[type='range']:hover::-moz-range-thumb
+input[type='range']:hover::-moz-range-thumb,
 input[type='range']:hover::-webkit-slider-runnable-track,
 input[type='range']:hover::-moz-range-track {
   backdrop-filter: brightness(115%);
@@ -105,6 +105,7 @@ table#sudoku {
   grid-column: span 1;
   grid-row: 1 / calc(var(--row-count) + 1);
   justify-self: center;
+  margin: 0 1rem;
 
   & > caption {
     height: var(--cell-size);
@@ -252,25 +253,25 @@ table#sudoku {
   }
 }
 
-.info-text {
-  margin: 1rem auto;
-  width: max-content;
-  justify-self: center;
+#message-container {
   grid-column: span 2;
+  grid-row: span calc(var(--row-count) + 4);
+  width: max-content;
+  height: max-content;
+
+  & > #error-info {
+    color: red;
+  }
+
+  & #win-info {
+    color: greenyellow;
+  }
 }
 
-#error-info {
-  color: red;
-}
-
-#win-info {
-  color: greenyellow;
-}
-
-#sudoku:not(:has(tbody .error)) ~ #error-info {
+#sudoku:not(:has(tbody .error)) ~ #message-container > #error-info {
   display: none;
 }
 
-#sudoku:is(:has(tbody .error), :has(tbody > tr > td > input:invalid)) ~ #win-info {
-  visibility: hidden;
+#sudoku:is(:has(tbody .error), :has(tbody > tr > td > input:invalid)) ~ #message-container > #win-info {
+  display: none;
 }
