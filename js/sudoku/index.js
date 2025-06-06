@@ -240,8 +240,6 @@ async function regenerate(event, firstTime) {
   console.debug(`Took ${performance.now() - start}ms to generate and render.`);
 
   setRootStyle('--sudoku-row-count', board.length);
-  if (globalThis.screen.availWidth < Number.parseFloat(getComputedStyle(sudoku).width) * 1.2)
-    setRootStyle('font-size', 'unset');
 
   shareButton.removeEventListener('click', shareEventListener);
 

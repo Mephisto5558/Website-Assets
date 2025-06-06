@@ -159,7 +159,10 @@ table#sudoku {
 }
 
 #timer {
-  grid-row: 2;
+  position: absolute;
+  top: 0;
+  left: .2rem;
+  z-index: 10;
 }
 
 #number-overview {
@@ -274,4 +277,74 @@ table#sudoku {
 
 #sudoku:is(:has(tbody .error), :has(tbody > tr > td > input:invalid)) ~ #message-container > #win-info {
   display: none;
+}
+
+@media (max-width: 600px) {
+  #sudoku-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 0;
+  }
+
+  table#sudoku {
+    order: 1;
+  }
+
+  #timer {
+    order: 2;
+  }
+
+  #number-overview {
+    order: 3;
+  }
+
+  #difficulty-container {
+    order: 4;
+  }
+
+  #btn-container {
+    order: 5;
+  }
+
+  #message-container {
+    order: 6;
+  }
+
+  table#sudoku {
+    width: 95vw;
+    max-width: 500px; /* prevents being to big on large tablets */
+    margin-bottom: 1.5rem;
+
+    & > tbody > tr > td {
+      height: auto;
+
+      & > input {
+        font-size: 5.5vw;
+      }
+    }
+  }
+
+  #timer {
+    font-size: 8vw;
+    top: .1rem;
+  }
+
+  #number-overview {
+    font-size: 4vw;
+  }
+
+  #difficulty-container {
+    width: 80%;
+  }
+
+  #btn-container {
+    width: 80%;
+    gap: 2rem;
+
+    & > button {
+      font-size: 4.5vw;
+      padding: .5rem .8rem;
+    }
+  }
 }
