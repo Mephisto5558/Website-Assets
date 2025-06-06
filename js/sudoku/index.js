@@ -2,6 +2,7 @@
 /** @typedef {import('.').CellList} CellList */
 
 import { displayBoard, generateSudoku, getNumberAmounts } from './generateSudoku.js';
+import { generateShareURL, loadFromShareURL } from './shareSudoku.js';
 
 globalThis.debug = false;
 globalThis.debugBoard = true;
@@ -10,9 +11,10 @@ const DEFAULT_BOARD_SIZE = 9;
 const MS_IN_SEC = 1000;
 const SEC_IN_MIN = 60;
 
-// min 20%, max 90%
-const MIN_HOLES = Math.floor(DEFAULT_BOARD_SIZE ** 2 * .2);
-const MAX_HOLES = Math.ceil(DEFAULT_BOARD_SIZE ** 2 * .9);
+const MIN_HOLES_PERCENTAGE = .2;
+const MAX_HOLES_PERCENTAGE = .75;
+const MIN_HOLES = Math.floor(DEFAULT_BOARD_SIZE ** 2 * MIN_HOLES_PERCENTAGE);
+const MAX_HOLES = Math.ceil(DEFAULT_BOARD_SIZE ** 2 * MAX_HOLES_PERCENTAGE);
 
 document.documentElement.removeAttribute('style'); // remove temp background-color
 
@@ -37,6 +39,9 @@ const regenerateBtn = document.querySelector('#regenerate-btn');
 /** @type {HTMLSpanElement[]} */
 const numberOverviewSpans = [...document.querySelectorAll('#number-overview > tbody > tr > td > span')];
 
+/** @type {HTMLButtonElement} */
+const shareButton = document.querySelector('#share-btn');
+
 /** @type {HTMLInputElement} */
 const difficultySlider = document.querySelector('#difficulty-slider');
 const difficultyOutput = document.querySelector('#difficulty-slider + output');
@@ -48,6 +53,7 @@ difficultySlider.max = MAX_HOLES;
 /** @param {`#{number}` | `${number}`} hex */ /* eslint-disable-line jsdoc/valid-types -- false positive */
 function invertHex(hex) {
   hex = hex.replace('#', '');
+  /* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- hex math */
   return '#' + (hex.length == 3 ? [...hex] : hex.match(/\w{2}/g)).map(e => (255 - Number.parseInt(e, 16)).toString(16).padStart(2, '0')).join('');
 }
 
@@ -106,6 +112,19 @@ function updateNumberOverviewSpan(val, up = true) {
     globalThis.timerInterval = clearInterval(globalThis.timerInterval);
 }
 
+const bgColorSwitcher = document.querySelector('#bg-color-switch');
+bgColorSwitcher.setAttribute('value', globalThis.getComputedStyle(document.documentElement).getPropertyValue('--background-color'));
+bgColorSwitcher.addEventListener('change', event => {
+  document.documentElement.style.setProperty('--background-color', event.target.value);
+});
+const fgColorSwitcher = document.querySelector('#fg-color-switch');
+fgColorSwitcher.setAttribute('value', globalThis.getComputedStyle(document.documentElement).getPropertyValue('--foreground-color'));
+fgColorSwitcher.addEventListener('change', event => {
+  document.documentElement.style.setProperty('--foreground-color', event.target.value);
+  document.documentElement.style.setProperty('--foreground-color-inverted', invertHex(event.target.value));
+});
+document.documentElement.style.setProperty('--foreground-color-secondary-inverted', invertHex(globalThis.getComputedStyle(document.documentElement).getPropertyValue('--foreground-color-secondary')));
+
 sudoku.addEventListener('keypress', event => {
   if (event.key == event.target.value) return event.preventDefault();
   if (event.key == ' ') {
@@ -125,19 +144,6 @@ sudoku.addEventListener('keypress', event => {
   checkErrors();
 });
 
-const bgColorSwitcher = document.querySelector('#bg-color-switch');
-bgColorSwitcher.setAttribute('value', globalThis.getComputedStyle(document.documentElement).getPropertyValue('--background-color'));
-bgColorSwitcher.addEventListener('change', event => {
-  document.documentElement.style.setProperty('--background-color', event.target.value);
-});
-const fgColorSwitcher = document.querySelector('#fg-color-switch');
-fgColorSwitcher.setAttribute('value', globalThis.getComputedStyle(document.documentElement).getPropertyValue('--foreground-color'));
-fgColorSwitcher.addEventListener('change', event => {
-  document.documentElement.style.setProperty('--foreground-color', event.target.value);
-  document.documentElement.style.setProperty('--foreground-color-inverted', invertHex(event.target.value));
-});
-document.documentElement.style.setProperty('--foreground-color-secondary-inverted', invertHex(globalThis.getComputedStyle(document.documentElement).getPropertyValue('--foreground-color-secondary')));
-
 const eventKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'];
 sudoku.addEventListener('keydown', event => {
   if (event.key == 'Backspace') {
@@ -153,6 +159,7 @@ sudoku.addEventListener('keydown', event => {
 
   const boardMax = globalThis.htmlBoard.length - 1;
 
+  /* eslint-disable @typescript-eslint/no-magic-numbers */
   let nextCell;
   if (event.key == eventKeys[5] || event.key == eventKeys[6]) {
     const fn = event.key == eventKeys[5] ? 'find' : 'findLast';
@@ -184,11 +191,13 @@ sudoku.addEventListener('keydown', event => {
         else nextCell = globalThis.htmlBoard[rowId + 1][colId];
         break;
     }
+    /* eslint-enable @typescript-eslint/no-magic-numbers */
   }
 
   nextCell.focus();
 });
 
+let shareEventListener;
 regenerateBtn.addEventListener('click', async event => {
   event.target.disabled = true;
 
@@ -207,7 +216,7 @@ regenerateBtn.addEventListener('click', async event => {
   else
     console.log(`Size: ${DEFAULT_BOARD_SIZE}, Holes: ${holes}/${MAX_HOLES} (min: ${MIN_HOLES})`);
 
-  const { fullBoard, board } = await generateSudoku(DEFAULT_BOARD_SIZE, holes);
+  const { fullBoard, board } = loadFromShareURL() ?? await generateSudoku(DEFAULT_BOARD_SIZE, holes);
 
   /* eslint-disable-next-line require-atomic-updates -- not an issue because not reassigning globalThis anywhere */
   globalThis.fullBoardNumberAmt = getNumberAmounts(fullBoard);
@@ -220,6 +229,18 @@ regenerateBtn.addEventListener('click', async event => {
   document.documentElement.style.setProperty('--sudoku-row-count', board.length);
   if (globalThis.screen.availWidth < Number.parseFloat(getComputedStyle(sudoku).width) * 1.2)
     document.documentElement.style.setProperty('font-size', 'unset');
+
+  shareButton.removeEventListener('click', shareEventListener);
+
+  shareEventListener = async () => {
+    const url = generateShareURL(board, fullBoard);
+    globalThis.history.pushState({}, '', url);
+
+    await globalThis.navigator.clipboard.writeText(url);
+    alert('Saved link in your clipboard.');
+  };
+
+  shareButton.addEventListener('click', shareEventListener);
 
   loadingContainer.style.setProperty('display', 'none');
   for (const element of loadingContainerSiblings) element.style.removeProperty('visibility');
