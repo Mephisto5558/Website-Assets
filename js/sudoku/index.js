@@ -140,13 +140,21 @@ async function saveToClipboard(value) {
   copyArea.remove();
 }
 
+/** @type {InputEvent} */
 const bgColorSwitcher = document.querySelector('#bg-color-switch');
-bgColorSwitcher.setAttribute('value', globalThis.getComputedStyle(document.documentElement).getPropertyValue('--background-color'));
+if (bgColorSwitcher.value) document.documentElement.style.setProperty('--background-color', bgColorSwitcher.value);
+else bgColorSwitcher.setAttribute('value', globalThis.getComputedStyle(document.documentElement).getPropertyValue('--background-color'));
 bgColorSwitcher.addEventListener('change', event => {
   document.documentElement.style.setProperty('--background-color', event.target.value);
 });
+
+/** @type {InputEvent} */
 const fgColorSwitcher = document.querySelector('#fg-color-switch');
-fgColorSwitcher.setAttribute('value', globalThis.getComputedStyle(document.documentElement).getPropertyValue('--foreground-color'));
+if (fgColorSwitcher.value) {
+  document.documentElement.style.setProperty('--foreground-color', fgColorSwitcher.value);
+  document.documentElement.style.setProperty('--foreground-color-inverted', invertHex(fgColorSwitcher.value));
+}
+else fgColorSwitcher.setAttribute('value', globalThis.getComputedStyle(document.documentElement).getPropertyValue('--foreground-color'));
 fgColorSwitcher.addEventListener('change', event => {
   document.documentElement.style.setProperty('--foreground-color', event.target.value);
   document.documentElement.style.setProperty('--foreground-color-inverted', invertHex(event.target.value));
