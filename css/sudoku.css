@@ -29,13 +29,21 @@ button {
   cursor: pointer;
 }
 
-input:hover {
+input:not([type='range']):hover,
+input[type='range']:hover::-webkit-slider-thumb,
+input[type='range']:hover::-moz-range-thumb
+input[type='range']:hover::-webkit-slider-runnable-track,
+input[type='range']:hover::-moz-range-track {
   backdrop-filter: brightness(115%);
 }
 
 button:hover,
 button:focus,
-input:focus {
+input:not([type='range']):focus,
+input[type='range']:focus::-webkit-slider-thumb,
+input[type='range']:focus::-moz-range-thumb,
+input[type='range']:focus::-webkit-slider-runnable-track,
+input[type='range']:focus::-moz-range-track {
   backdrop-filter: brightness(150%);
   outline: none;
 }
@@ -169,6 +177,7 @@ table#sudoku {
 
     & > span {
       color: var(--foreground-color-secondary);
+      /* todo: --foreground-color*/
 
       &.complete {
         color: #19be14;
@@ -177,8 +186,59 @@ table#sudoku {
   }
 }
 
+#difficulty-container {
+  grid-row: calc(var(--row-count) + 1) / calc(var(--row-count) + 2);
+  justify-self: center;
+  width: 75%;
+  max-width: 95%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 30%;
+  margin: .5rem 0;
+
+  & > #difficulty-labels {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    color: var(--foreground-color-secondary);
+  }
+
+  & > input[type=range] {
+    appearance: none;
+    width: 100%;
+    background-color: transparent;
+    cursor: pointer;
+
+    &::-webkit-slider-runnable-track,
+    &::-moz-range-track {
+      height: .2rem;
+      background-color: rgba(0, 0, 0, .15);
+      border-radius: .2rem;
+    }
+
+    &::-webkit-slider-thumb,
+    &::-moz-range-thumb {
+      height: .5rem;
+      width: .5rem;
+      box-sizing: border-box;
+      background-color: rgba(0, 0, 0, 0.15);
+      border: .08rem solid var(--foreground-color);
+      border-radius: 50%;
+    }
+
+    &::-webkit-slider-thumb {
+      appearance: none;
+    }
+  }
+
+  & output {
+    color: var(--foreground-color-secondary);
+  }
+}
+
 #btn-container {
-  grid-row: calc(var(--row-count) + 1);
+  grid-row: calc(var(--row-count) + 3);
   margin: .1rem 0;
   display: flex;
   justify-content: space-between;

@@ -37,6 +37,14 @@ const regenerateBtn = document.querySelector('#regenerate-btn');
 /** @type {HTMLSpanElement[]} */
 const numberOverviewSpans = [...document.querySelectorAll('#number-overview > tbody > tr > td > span')];
 
+/** @type {HTMLInputElement} */
+const difficultySlider = document.querySelector('#difficulty-slider');
+const difficultyOutput = document.querySelector('#difficulty-slider + output');
+
+difficultySlider.addEventListener('input', event => difficultyOutput.textContent = event.target.value);
+difficultySlider.min = MIN_HOLES;
+difficultySlider.max = MAX_HOLES;
+
 /** @param {`#{number}` | `${number}`} hex */ /* eslint-disable-line jsdoc/valid-types -- false positive */
 function invertHex(hex) {
   hex = hex.replace('#', '');
@@ -190,7 +198,9 @@ regenerateBtn.addEventListener('click', async event => {
   clearTimer();
 
   const start = performance.now();
-  const holes = rando(MIN_HOLES, MAX_HOLES);
+  const holes = Number(difficultySlider.value) || rando(MIN_HOLES, MAX_HOLES);
+  difficultySlider.value = holes;
+  difficultySlider.parentElement.querySelector('output').textContent = holes;
 
   if (globalThis.debug && globalThis.debugBoard)
     console.debug('Using debug board.');
