@@ -1,8 +1,13 @@
 const MAX_FULL_RETRIES = 100;
 
-/** @typedef {(1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | undefined)[][]} Board */
+/** @typedef {import('.').FullBoard} FullBoard */
+/** @typedef {import('.').Board} Board */
 
-export async function generateSudoku(size = 9, holes = size ** 2 - 20, retry = 1) {
+/**
+ * @param {number} size
+ * @param {number} holes
+ * @param {number} retry internal use */
+export async function generateSudoku(size, holes, retry = 1) {
   const boxSize = Math.sqrt(size);
   if (!Number.isInteger(boxSize)) throw new Error('Size must be quadratic.');
 
@@ -36,6 +41,8 @@ export async function generateSudoku(size = 9, holes = size ** 2 - 20, retry = 1
   }
 
   console.debug(`Generating initial full Sudoku. Try ${retry}/${MAX_FULL_RETRIES}`);
+
+  /** @type {FullBoard} */
   const fullBoard = Array.from({ length: size }, () => Array.from({ length: size }));
   fill(fullBoard, boxSize);
 
@@ -52,6 +59,7 @@ export async function generateSudoku(size = 9, holes = size ** 2 - 20, retry = 1
     return Array.from({ length: size }, () => Array.from({ length: size }, () => 0));
   }
 
+  /** @type {Board} */
   const board = structuredClone(fullBoard);
   const maxAttempts = size ** 2 * 5;
   const maxConsecutiveAttempt = size ** 2;
@@ -171,7 +179,7 @@ function isUnsafe(board, boxSize, rowId, colId, value) {
 
 /** @param {Board} board */
 export function getNumberAmounts(board) {
-  return board.flat(2).reduce((acc, e) => acc.set(e, (acc.get(e) ?? 0) + 1), new Map());
+  return board.flat().reduce((acc, e) => acc.set(e, (acc.get(e) ?? 0) + 1), new Map());
 }
 
 /** @type {HTMLSpanElement[]} */
