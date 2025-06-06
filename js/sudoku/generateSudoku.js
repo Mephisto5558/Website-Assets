@@ -61,7 +61,7 @@ export async function generateSudoku(size, holes, retry = 1) {
 
   /** @type {Board} */
   const board = structuredClone(fullBoard);
-  const maxAttempts = size ** 2 * 5;
+  const maxAttempts = size ** 2 * 5; /* eslint-disable-line @typescript-eslint/no-magic-numbers -- arbitrary */
   const maxConsecutiveAttempts = size ** 2;
   console.debug(`Starting to dig holes. Max Attempts: ${maxAttempts}`);
 
