@@ -131,8 +131,7 @@ fgColorSwitcher.addEventListener('change', event => {
   document.documentElement.style.setProperty('--foreground-color-inverted', invertHex(event.target.value));
 });
 
-// TODO: support for POS1 and END keys
-const eventKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab'];
+const eventKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'];
 sudoku.addEventListener('keydown', event => {
   if (event.key == 'Backspace') {
     updateNumberOverviewSpan(Number(event.target.value), false);
@@ -148,6 +147,12 @@ sudoku.addEventListener('keydown', event => {
   const boardMax = globalThis.htmlBoard.length - 1;
 
   let nextCell;
+  if (event.key == eventKeys[5] || event.key == eventKeys[6]) {
+    const fn = event.key == eventKeys[5] ? 'find' : 'findLast';
+    const findCell = cell => !cell.disabled && (!event.shiftKey || cell.dataset.group == event.target.dataset.group);
+    nextCell = (event.ctrlKey ? globalThis.htmlBoard[fn](row => row.some(findCell)) : globalThis.htmlBoard[Number(event.target.dataset.row) - 1])[fn](findCell);
+  }
+
   while ((!nextCell || nextCell.disabled) && !(nextCell && nextCell.dataset.row == event.target.dataset.row && nextCell.dataset.col == event.target.dataset.col)) {
     const rowId = Number((nextCell ?? event.target).dataset.row) - 1;
     const colId = Number((nextCell ?? event.target).dataset.col) - 1;
