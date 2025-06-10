@@ -7,7 +7,7 @@ import { generateShareURL, loadFromShareURL } from './shareSudoku.js';
 import { setRootStyle, getRootStyle, invertHex, saveToClipboard, initializeColorPicker, clearTimer, checkErrors, updateMinMax } from './utils.js';
 import __ from './events.js';
 
-const sudokuWorker = new Worker('./sudoku.worker.js');
+const sudokuWorker = new Worker((globalThis.debug ? '.' : 'https://mephisto5558.github.io/Website-Assets/min/js/sudoku') + '/sudoku.worker.js');
 
 document.documentElement.removeAttribute('style'); // remove temp background-color
 
