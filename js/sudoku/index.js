@@ -25,9 +25,10 @@ const
   /** @type {HTMLSpanElement} */ timerSpan = document.querySelector('#timer'),
   /** @type {HTMLDivElement} */ loadingContainer = document.querySelector('#loading-container'),
   /** @type {Element[]} */ loadingContainerSiblings = [...loadingContainer.parentElement.children].filter(e => e != loadingContainer),
-  /** @type {HTMLButtonElement} */ regenerateBtn = document.querySelector('#regenerate-btn'),
   /** @type {HTMLSpanElement[]} */ numberOverviewSpans = [...document.querySelectorAll('#number-overview > tbody > tr > td > span')],
-  /** @type {HTMLButtonElement} */ shareButton = document.querySelector('#share-btn'),
+  /** @type {HTMLButtonElement} */ solutionBtn = document.querySelector('#solution-btn'),
+  /** @type {HTMLButtonElement} */ regenerateBtn = document.querySelector('#regenerate-btn'),
+  /** @type {HTMLButtonElement} */ shareBtn = document.querySelector('#share-btn'),
   /** @type {HTMLInputElement} */ difficultySlider = document.querySelector('#difficulty-slider'),
   /** @type {HTMLOutputElement} */ difficultyOutput = document.querySelector('#difficulty-slider + output'),
   /** @type {HTMLInputElement} */ bgColorSwitcher = document.querySelector('#bg-color-switch'),
@@ -201,7 +202,36 @@ sudoku.addEventListener('keydown', event => {
   nextCell.focus();
 });
 
-let shareEventListener;
+let shareEventListener, solutionEventListener;
+
+function updateBtnListeners(board, fullBoard) {
+  let solutionShown = false;
+
+  shareBtn.removeEventListener('click', shareEventListener);
+  solutionBtn.removeEventListener('click', solutionEventListener);
+
+  shareEventListener = async () => {
+    const url = globalThis.location.search ? globalThis.location.href : generateShareURL(board, fullBoard);
+    if (url != globalThis.location.href) globalThis.history.pushState({}, '', url);
+
+    await saveToClipboard(url);
+  };
+  solutionEventListener = event => {
+    solutionShown = !solutionShown;
+    if (solutionShown) {
+      console.debug('Showing solution.');
+      displayBoard(fullBoard, htmlBoard, numberOverviewSpans, true);
+      return event.target.textContent = 'Hide Solution';
+    }
+
+    console.debug('Hiding solution.');
+    displayBoard(board, htmlBoard, numberOverviewSpans, false);
+    event.target.textContent = 'Show Solution';
+  };
+
+  shareBtn.addEventListener('click', shareEventListener);
+  solutionBtn.addEventListener('click', solutionEventListener);
+}
 
 /**
  * @param {Event | undefined} event
@@ -241,16 +271,7 @@ async function regenerate(event, firstTime) {
 
   setRootStyle('--sudoku-row-count', board.length);
 
-  shareButton.removeEventListener('click', shareEventListener);
-
-  shareEventListener = async () => {
-    const url = globalThis.location.search ? globalThis.location.href : generateShareURL(board, fullBoard);
-    if (url != globalThis.location.href) globalThis.history.pushState({}, '', url);
-
-    await saveToClipboard(url);
-  };
-
-  shareButton.addEventListener('click', shareEventListener);
+  updateBtnListeners(board, fullBoard);
 
   loadingContainer.style.setProperty('display', 'none');
   for (const element of loadingContainerSiblings) element.style.removeProperty('visibility');

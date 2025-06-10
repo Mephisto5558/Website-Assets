@@ -139,7 +139,7 @@ table#sudoku {
         margin: 0;
       }
 
-      &:disabled {
+      &:not(.solution):disabled {
         color: var(--foreground-color);
       }
     }
@@ -275,7 +275,7 @@ table#sudoku {
   display: none;
 }
 
-#sudoku:is(:has(tbody .error), :has(tbody > tr > td > input:invalid)) ~ #message-container > #win-info {
+#sudoku:is(:has(tbody .error), :has(tbody > tr > td > input:is(:invalid, .solution))) ~ #message-container > #win-info {
   display: none;
 }
 

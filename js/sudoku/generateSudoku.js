@@ -205,11 +205,20 @@ function isUnsafe(board, boxSize, rowId, colId, value) {
 /**
  * @param {Board} board
  * @param {import('.').HTMLBoard} htmlBoard
- * @param {HTMLSpanElement[]} numberOverviewSpans */
-export function displayBoard(board, htmlBoard, numberOverviewSpans) {
+ * @param {HTMLSpanElement[]} numberOverviewSpans
+ * @param {boolean} isSolution */
+export function displayBoard(board, htmlBoard, numberOverviewSpans, isSolution = false) {
   for (const cell of htmlBoard.flat()) {
-    cell.value = board[Number(cell.dataset.row) - 1][Number(cell.dataset.col) - 1] || undefined;
-    cell.disabled = !!cell.value;
+    if (!isSolution) cell.classList.remove('solution');
+    if (isSolution && !cell.disabled) {
+      if (cell.value) cell.dataset.val = cell.value;
+      cell.classList.add('solution');
+    }
+
+    cell.value = board[Number(cell.dataset.row) - 1][Number(cell.dataset.col) - 1] || Number(cell.dataset.val) || undefined;
+    cell.disabled = isSolution || !!cell.value && !cell.dataset.val;
+
+    if (!isSolution) delete cell.dataset.val;
   }
 
   for (const [i, amt] of getNumberAmounts(board)) {
