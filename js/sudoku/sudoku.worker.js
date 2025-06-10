@@ -79,7 +79,7 @@ function solver(board, { findJustOne = true, useRandomSequence = true } = {}) {
       const result = run(nextRowId, nextColId);
 
       if (findJustOne) {
-        if (result > 0) return result;
+        if (result > 0) return solutionCount + result;
       }
       else {
         solutionCount += result;
@@ -99,6 +99,7 @@ function solver(board, { findJustOne = true, useRandomSequence = true } = {}) {
       board[rowId][colId] = 0;
     }
 
+    if (solutionCount)globalThis.postMessage({ type: 'progress', message: `Found ${solutionCount}${findJustOne ? '/1' : ''} solution(s).` });
     return solutionCount;
   }
 
