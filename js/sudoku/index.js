@@ -87,7 +87,8 @@ function regenerate(event, firstTime) {
 
   if (htmlBoard.length != size) {
     createHTMLBoard(globalThis.debugBoard ? DEFAULT_BOARD_SIZE : size);
-    htmlBoard.splice(0, -1, ...[...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild)));
+    htmlBoard.length = 0;
+    htmlBoard.push(...[...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild)));
   }
 
   const { fullBoard, board } = loadFromShareURL() ?? generateSudoku(size, holes);
