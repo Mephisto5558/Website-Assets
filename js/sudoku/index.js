@@ -7,7 +7,7 @@ import { setRootStyle, getRootStyle, invertHex, saveToClipboard, initializeColor
 
 document.documentElement.removeAttribute('style'); // remove temp background-color
 
-globalThis.debug = false;
+globalThis.debug = true;
 /* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, sonarjs/no-redundant-boolean, no-constant-binary-expression */
 globalThis.debugBoard = true && globalThis.debug;
 
@@ -210,6 +210,16 @@ sudoku.addEventListener('keydown', event => {
   nextCell.focus();
 });
 
+document.querySelector('#stepper-up').addEventListener('click', () => {
+  sizeOption.stepUp();
+  sizeOption.dispatchEvent(new Event('input', { bubbles: true }));
+});
+
+document.querySelector('#stepper-down').addEventListener('click', () => {
+  sizeOption.stepDown();
+  sizeOption.dispatchEvent(new Event('input', { bubbles: true }));
+});
+
 let shareEventListener, solutionEventListener;
 
 function updateBtnListeners(board, fullBoard) {
@@ -270,8 +280,8 @@ async function regenerate(event, firstTime) {
   else
     console.log(`Size: ${size}, Holes: ${holes}/${MAX_HOLES} (min: ${MIN_HOLES})`);
 
-  if (htmlBoard.length != size && !globalThis.debugBoard) {
-    createHTMLBoard(size);
+  if (htmlBoard.length != size) {
+    createHTMLBoard(globalThis.debugBoard ? 9 : size);
     htmlBoard = [...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild));
   }
 

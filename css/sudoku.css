@@ -122,9 +122,10 @@ header {
 table#sudoku {
   border-collapse: collapse;
   grid-column: span 1;
-  grid-row: 1 / calc(var(--row-count) + 1);
+  grid-row: 1 / var(--row-count);
   justify-self: center;
   margin: 0 1rem;
+  height: fit-content;
 
   & > caption {
     height: var(--cell-size);
@@ -178,8 +179,8 @@ table#sudoku {
 }
 
 #number-overview {
-  grid-row-start: 4;
-  grid-row-end: var(--row-count);
+  grid-row: 2;
+  grid-column: 2;
   border-collapse: collapse;
   border: solid .04rem;
   justify-self: left;
@@ -201,8 +202,8 @@ table#sudoku {
   }
 }
 
-#difficulty-container {
-  grid-row: calc(var(--row-count) + 1) / calc(var(--row-count) + 2);
+#settings-container {
+  grid-row: calc(var(--row-count)) / calc(var(--row-count) + 2);
   justify-self: center;
   width: 75%;
   max-width: 95%;
@@ -212,7 +213,7 @@ table#sudoku {
   font-size: 30%;
   margin: .5rem 0;
 
-  & > #difficulty-labels {
+  & > datalist {
     width: 100%;
     display: flex;
     justify-content: space-between;
@@ -220,10 +221,10 @@ table#sudoku {
   }
 
   & > input[type=range] {
-    appearance: none;
-    width: 100%;
     background-color: transparent;
     cursor: pointer;
+    appearance: none;
+    width: 100%;
 
     &::-webkit-slider-runnable-track,
     &::-moz-range-track {
@@ -247,8 +248,62 @@ table#sudoku {
     }
   }
 
-  & output {
+  & > output {
     color: var(--foreground-color-secondary);
+  }
+
+  & > #size-option-container {
+    position: relative;
+
+    & > input[type=number] {
+      border: 1px solid var(--foreground-color);
+      background-color: rgba(0, 0, 0, .15);
+      color: var(--foreground-color-secondary);
+      border-radius: 4px;
+      padding: .15rem 0;
+      width: 2rem;
+      text-align: center;
+      font-size: inherit;
+      appearance: textfield;
+
+      &::-webkit-outer-spin-button,
+      &::-webkit-inner-spin-button {
+        appearance: none;
+        margin: 0;
+      }
+    }
+
+    & > #stepper-buttons {
+      position: absolute;
+      right: 1px;
+      top: 1px;
+      bottom: 1px;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--foreground-color);;
+
+      & > button {
+        appearance: none;
+        border: none;
+        background-color: transparent;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        width: .75rem;
+        color: var(--foreground-color-secondary);
+        font-size: 0.8em;
+
+        cursor: pointer;
+        transition: background-color 0.2s;
+
+        &#stepper-up {
+          border-bottom: 1px solid var(--foreground-color);
+        }
+      }
+    }
   }
 }
 
@@ -270,7 +325,7 @@ table#sudoku {
 
 #message-container {
   grid-column: span 2;
-  grid-row: calc(var(--row-count) + 4);
+  grid-row: calc(var(--row-count) + 3);
   width: max-content;
   height: max-content;
 
