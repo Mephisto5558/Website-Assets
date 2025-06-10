@@ -54,58 +54,55 @@ function getNext(rowId, colId, boardSize) {
   return colId == boardSize - 1 ? [rowId + 1, 0] : [rowId, colId + 1];
 }
 
+/**
+ * @param {number} size
+ * @throws {Error} on non-quadratic numbers */
 export function createHTMLBoard(size) {
   const boxSize = Math.sqrt(size);
   if (!Number.isInteger(boxSize)) throw new Error('Size must be quadratic.');
 
   console.debug(`Creating HTML board of size ${size}`);
+  const sudokuTable = document.querySelector('#sudoku');
+  sudokuTable.innerHTML = '';
 
-  const colGroup = document.createElement('colgroup');
-  colGroup.append(...Array.from({ length: boxSize }, () => document.createElement('col')));
+  for (let colGroupI = 0; colGroupI < boxSize; colGroupI++) {
+    const colGroup = document.createElement('colgroup');
 
-  const input = document.createElement('input');
-  input.type = 'number';
-  input.required = true;
-  input.autocomplete = 'off';
-  input.title = '';
+    for (let colI = 0; colI < boxSize; colI++)
+      colGroup.append(document.createElement('col'));
 
-  const tCell = document.createElement('td');
-  tCell.append(input.cloneNode());
+    sudokuTable.append(colGroup);
+  }
 
-  const tRow = document.createElement('tr');
-  tRow.append(...Array.from({ length: size }, (_, i) => {
-    /** @type {HTMLTableCellElement & {firstChild: HTMLInputElement}} */
-    const cell = tCell.cloneNode(true);
-    cell.firstChild.dataset.col = i + 1;
+  for (let bodyI = 0; bodyI < boxSize; bodyI++) {
+    const tBody = document.createElement('tbody');
 
-    return cell;
-  }));
+    for (let rowI = 0; rowI < boxSize; rowI++) {
+      const tRow = document.createElement('tr');
+      const rowId = bodyI * boxSize + rowI;
 
-  const tBody = document.createElement('tbody');
-  tBody.append(...Array.from({ length: boxSize }, (_, i) => {
-    const row = tRow.cloneNode(true);
-    for (const cell of row.childNodes) cell.firstChild.dataset.row = i + 1;
+      for (let k = 0; k < size; k++) {
+        const tCell = document.createElement('td');
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.required = true;
+        input.autocomplete = 'off';
 
-    return row;
-  }));
+        const colId = k;
+        input.dataset.row = rowId + 1;
+        input.dataset.col = colId + 1;
+        input.dataset.group = getGroupId(rowId, colId, boxSize) + 1;
+        input.ariaLabel = `Row ${rowId + 1}, Column ${colId + 1}`;
 
-  document.querySelector('#sudoku').append(
-    ...Array.from({ length: boxSize }, () => colGroup.cloneNode(true)),
-    ...Array.from({ length: boxSize }, (_, i) => {
-      const body = tBody.cloneNode(true);
-      if (!i) return body;
-      for (const row of body.childNodes) {
-        for (const cell of row.childNodes) {
-          cell.firstChild.dataset.row = Number(cell.firstChild.dataset.row) + i * boxSize;
-          cell.firstChild.dataset.group = getGroupId(Number(cell.firstChild.dataset.row) - 1, Number(cell.firstChild.dataset.col) - 1, boxSize) + 1;
-
-          cell.firstChild.ariaLabel = `Row ${cell.firstChild.dataset.row}, Column ${cell.firstChild.dataset.col}`;
-        }
+        tCell.append(input);
+        tRow.append(tCell);
       }
 
-      return body;
-    })
-  );
+      tBody.append(tRow);
+    }
+
+    sudokuTable.append(tBody);
+  }
 }
 
 /**
