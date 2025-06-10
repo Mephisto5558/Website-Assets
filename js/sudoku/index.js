@@ -1,11 +1,13 @@
 /** @typedef {import('.').CellInput} CellInput */
 /** @typedef {import('.').CellList} CellList */
 
-import { bgColorSwitcher, DEFAULT_BOARD_SIZE, fgColorSwitcher, htmlBoard, loadingContainer, loadingContainerSiblings, numberOverviewSpans, regenerateBtn, shareBtn, solutionBtn } from './constants.js';
-import { createHTMLBoard, generateSudoku, displayBoard, getNumberAmounts } from './generateSudoku.js';
+import { bgColorSwitcher, DEFAULT_BOARD_SIZE, fgColorSwitcher, htmlBoard, loadingContainer, MS_IN_SEC, numberOverviewSpans, regenerateBtn, shareBtn, solutionBtn } from './constants.js';
+import { createHTMLBoard, displayBoard, getNumberAmounts } from './generateSudoku.js';
 import { generateShareURL, loadFromShareURL } from './shareSudoku.js';
 import { setRootStyle, getRootStyle, invertHex, saveToClipboard, initializeColorPicker, clearTimer, checkErrors, updateMinMax } from './utils.js';
 import __ from './events.js';
+
+const sudokuWorker = new Worker('./sudoku.worker.js');
 
 document.documentElement.removeAttribute('style'); // remove temp background-color
 
@@ -60,10 +62,25 @@ function updateBtnListeners(board, fullBoard) {
   solutionBtn.addEventListener('click', solutionEventListener);
 }
 
+let resolveFunction;
+sudokuWorker.addEventListener('message', e => {
+  if (e.data.type == 'result') {
+    console.log('UI: Received result from worker.');
+
+    resolveFunction?.(e.data.payload);
+    return resolveFunction = undefined;
+  }
+
+  (console[e.data.type == 'progress' ? 'debug' : e.data.type] ?? console.log)('Worker: ' + e.data.message);
+  if (e.data.type == 'progress') loadingContainer.children.namedItem('loading-status').textContent = e.data.message;
+});
+
+let showedLoading = false;
+
 /**
  * @param {Event | undefined} event
  * @param {boolean | undefined} firstTime */
-function regenerate(event, firstTime) {
+async function regenerate(event, firstTime) {
   if (event) event.target.disabled = true;
   if (!firstTime) {
     const url = new URL(globalThis.location.href);
@@ -72,8 +89,13 @@ function regenerate(event, firstTime) {
     globalThis.history.pushState({}, '', url);
   }
 
-  for (const element of loadingContainerSiblings) element.style.setProperty('visibility', 'hidden');
-  loadingContainer.style.removeProperty('display');
+  const loadingTimeout = setTimeout(() => {
+    showedLoading = true;
+
+    loadingContainer.classList.remove('hiding');
+    loadingContainer.style.removeProperty('display');
+  }, MS_IN_SEC / 10);
+
   clearTimer();
 
   const start = performance.now();
@@ -91,24 +113,34 @@ function regenerate(event, firstTime) {
     htmlBoard.push(...[...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild)));
   }
 
-  const { fullBoard, board } = loadFromShareURL() ?? generateSudoku(size, holes);
+  /** @type {{ fullBoard: import('.').FullBoard, board: import('.').Board }} */
+  const { fullBoard, board } = loadFromShareURL() ?? await new Promise(res => {
+    resolveFunction = res;
+
+    console.log('UI: Posting task to worker...');
+    sudokuWorker.postMessage({ size, holes, debugBoard: globalThis.debugBoard });
+  });
+
 
   globalThis.fullBoardNumberAmt = getNumberAmounts(fullBoard);
+  setRootStyle('--sudoku-row-count', board.length);
 
   displayBoard(board, htmlBoard, numberOverviewSpans);
   checkErrors(htmlBoard);
 
   console.debug(`Took ${performance.now() - start}ms to generate and render.`);
 
-  setRootStyle('--sudoku-row-count', board.length);
-
   updateBtnListeners(board, fullBoard);
 
-  loadingContainer.style.setProperty('display', 'none');
-  for (const element of loadingContainerSiblings) element.style.removeProperty('visibility');
+  clearTimeout(loadingTimeout);
+  if (showedLoading) {
+    loadingContainer.classList.add('hiding');
+    loadingContainer.addEventListener('animationend', () => loadingContainer.style.display = 'none', { once: true });
+  }
+  else loadingContainer.style.display = 'none';
 
   if (event) event.target.disabled = false;
 }
 
 regenerateBtn.addEventListener('click', regenerate);
-regenerate(undefined, true);
+void regenerate(undefined, true);
