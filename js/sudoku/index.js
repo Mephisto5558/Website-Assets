@@ -108,12 +108,6 @@ async function regenerate(event, firstTime) {
   else
     console.log(`Size: ${size}, Holes: ${holes}/${maxHoles} (min: ${minHoles})`);
 
-  if (htmlBoard.length != size) {
-    createHTMLBoard(globalThis.debugBoard ? DEFAULT_BOARD_SIZE : size);
-    htmlBoard.length = 0;
-    htmlBoard.push(...[...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild)));
-  }
-
   /** @type {{ fullBoard: import('.').FullBoard, board: import('.').Board }} */
   const { fullBoard, board } = loadFromShareURL() ?? await new Promise(res => {
     resolveFunction = res;
@@ -122,9 +116,14 @@ async function regenerate(event, firstTime) {
     sudokuWorker.postMessage({ size, holes, debugBoard: globalThis.debugBoard });
   });
 
-
   globalThis.fullBoardNumberAmt = getNumberAmounts(fullBoard);
   setRootStyle('--sudoku-row-count', board.length);
+
+  if (fullBoard.length != htmlBoard.length) {
+    createHTMLBoard(globalThis.debugBoard ? DEFAULT_BOARD_SIZE : fullBoard.length);
+    htmlBoard.length = 0;
+    htmlBoard.push(...[...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild)));
+  }
 
   displayBoard(board, htmlBoard, numberOverviewSpans);
   checkErrors(htmlBoard);

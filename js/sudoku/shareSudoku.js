@@ -27,11 +27,18 @@ function base62ToBigInt(base62) {
  * @param {Board} board
  * @param {FullBoard} fullBoard */
 export function generateShareURL(board, fullBoard) {
+  const dimension = BigInt(board.length);
+  const base = dimension + 1n;
+
+  let solutionBigInt = 0n;
+  for (const num of fullBoard.flat())
+    solutionBigInt = solutionBigInt * base + BigInt(num);
+
   const data = {
     /* eslint-disable id-length */
-    s: BigInt(fullBoard.flat().join('')),
-    m: BigInt('0b' + board.flat().map(cell => cell ? '1' : '0').join('')), // parsed as binary
-    d: BigInt(board.length)
+    s: solutionBigInt,
+    m: BigInt('0b' + board.flat().map(cell => cell ? '1' : '0').join('')),
+    d: dimension
     /* eslint-enable id-length */
   };
 
@@ -43,23 +50,32 @@ export function generateShareURL(board, fullBoard) {
 
 /** @returns {{ fullBoard: FullBoard, board: Board } | undefined} */
 export function loadFromShareURL() {
-  const
-    params = new URLSearchParams(globalThis.location.search),
-    compressedDimension = params.get('d'),
-    compressedSolution = params.get('s'),
-    compressedMask = params.get('m');
+  const params = new URLSearchParams(globalThis.location.search);
+  const compressedDimension = params.get('d');
+  const compressedSolution = params.get('s');
+  const compressedMask = params.get('m');
 
-  if (!compressedSolution && !compressedMask && !compressedDimension) return;
-  if (!compressedSolution || !compressedMask || !compressedDimension)
-    return console.error('Missing URL param. Expected "s", "m" and "d", got', JSON.stringify(Object.fromEntries(params)));
+  if (!compressedSolution || !compressedMask || !compressedDimension) return;
 
   try {
-    const
-      dimension = Number(base62ToBigInt(compressedDimension)),
-      solutionString = base62ToBigInt(compressedSolution).toString().padStart(dimension ** 2, '0'),
-      maskString = base62ToBigInt(compressedMask).toString(2).padStart(dimension ** 2, '0'), // toString(2) for binary
-      board = [],
-      fullBoard = [];
+    const dimension = Number(base62ToBigInt(compressedDimension));
+    const totalCells = dimension * dimension;
+    const base = BigInt(dimension + 1);
+
+    let solutionBigInt = base62ToBigInt(compressedSolution);
+    const solutionNumbers = [];
+
+    for (let i = 0; i < totalCells; i++) {
+      const remainder = solutionBigInt % base;
+      solutionNumbers.push(Number(remainder));
+      solutionBigInt /= base;
+    }
+
+    solutionNumbers.reverse();
+
+    const maskString = base62ToBigInt(compressedMask).toString(2).padStart(totalCells, '0');
+    const board = [];
+    const fullBoard = [];
 
     for (let rowId = 0; rowId < dimension; rowId++) {
       const boardRow = [];
@@ -67,7 +83,7 @@ export function loadFromShareURL() {
 
       for (let colId = 0; colId < dimension; colId++) {
         const i = rowId * dimension + colId;
-        const solutionDigit = Number(solutionString[i]);
+        const solutionDigit = solutionNumbers[i];
 
         fullBoardRow.push(solutionDigit);
         boardRow.push(maskString[i] === '1' ? solutionDigit : 0);
@@ -77,9 +93,14 @@ export function loadFromShareURL() {
       fullBoard.push(fullBoardRow);
     }
 
+    if (board.length !== dimension || fullBoard.length !== dimension)
+      throw new Error(`Failed to construct board of size ${dimension}.`);
+
     return { fullBoard, board };
   }
   catch (err) {
-    return console.error('Failed to parse short Sudoku URL:', err);
+    console.error('Failed to parse shared Sudoku URL:', err);
+    globalThis.history.replaceState({}, '', globalThis.location.pathname);
+    return;
   }
 }
