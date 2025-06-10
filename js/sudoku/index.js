@@ -24,7 +24,7 @@ const MAX_HOLES = Math.ceil(DEFAULT_BOARD_SIZE ** 2 * MAX_HOLES_PERCENTAGE);
 
 const
 /** @type {HTMLTableElement} */ sudoku = document.querySelector('#sudoku'),
-  /** @type {HTMLSpanElement} */ timerSpan = document.querySelector('#timer'),
+  /** @type {HTMLTimeElement} */ timer = document.querySelector('#timer'),
   /** @type {HTMLDivElement} */ loadingContainer = document.querySelector('#loading-container'),
   /** @type {Element[]} */ loadingContainerSiblings = [...loadingContainer.parentElement.children].filter(e => e != loadingContainer),
   /** @type {HTMLSpanElement[]} */ numberOverviewSpans = [...document.querySelectorAll('#number-overview > tbody > tr > td > span')],
@@ -92,14 +92,19 @@ function startTimer() {
   const start = performance.now();
 
   globalThis.timerInterval = setInterval(() => {
-    const secs = (performance.now() - start) / MS_IN_SEC;
-    timerSpan.textContent = `${String(Math.floor(secs / SEC_IN_MIN)).padStart(2, '0')}:${String(Math.round(secs % SEC_IN_MIN)).padStart(2, '0')}`;
+    const totalSecs = (performance.now() - start) / MS_IN_SEC;
+    const mins = Math.floor(totalSecs / SEC_IN_MIN).toString().padStart(2, '0');
+    const secs = Math.round(totalSecs % SEC_IN_MIN).toString().padStart(2, '0');
+
+    timer.textContent = `${mins}:${secs}`;
+    timer.setAttribute('datetime', `PT${mins}M${secs}S`);
   }, MS_IN_SEC);
 }
 
 function clearTimer() {
   globalThis.timerInterval = clearInterval(globalThis.timerInterval);
-  timerSpan.textContent = '00:00';
+  timer.textContent = '00:00';
+  timer.setAttribute('datetime', 'PT0S');
 }
 
 function updateNumberOverviewSpan(val, up = true) {

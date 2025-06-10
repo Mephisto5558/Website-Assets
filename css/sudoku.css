@@ -48,32 +48,51 @@ input[type='range']:focus::-moz-range-track {
   outline: none;
 }
 
-#color-switcher-container {
+header {
   font-size: 40%;
-  padding: .1rem;
+  padding: .1rem .2rem;
   background: rgba(0, 0, 0, .1);
+  display: flex;
 
-  & > div {
-    display: flex;
-    justify-content: flex-end;
+  & > #timer {
+    font-size: 150%;
+    align-self: center;
+  }
 
-    & > input {
-      margin: 0 .1rem;
-      width: .5rem;
-      height: .5rem;
-      appearance: none;
-      border: 1px solid gray;
-      padding: 0;
-      cursor: pointer;
+  & > h1 {
+    margin: auto;
+  }
 
-      &::-webkit-color-swatch,
-      &::-moz-color-swatch {
-        border: 1px solid gray;
+  & > #color-switcher-container {
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: center;
+    gap: .2rem .2rem;
+
+    & > div {
+      display: contents;
+
+      & > label {
+        justify-self: end;
       }
 
-      &::-webkit-color-swatch-wrapper {
+      & > input {
+        width: .5rem;
+        height: .5rem;
+        appearance: none;
+        border: 1px solid gray;
         padding: 0;
-        margin: 0;
+        cursor: pointer;
+
+        &::-webkit-color-swatch,
+        &::-moz-color-swatch {
+          border: 1px solid gray;
+        }
+
+        &::-webkit-color-swatch-wrapper {
+          padding: 0;
+          margin: 0;
+        }
       }
     }
   }
@@ -156,13 +175,6 @@ table#sudoku {
     /* table cell size */
     background-position: left;
   }
-}
-
-#timer {
-  position: absolute;
-  top: 0;
-  left: .2rem;
-  z-index: 10;
 }
 
 #number-overview {
@@ -313,7 +325,8 @@ table#sudoku {
 
   table#sudoku {
     width: 95vw;
-    max-width: 500px; /* prevents being to big on large tablets */
+    max-width: 500px;
+    /* prevents being to big on large tablets */
     margin-bottom: 1.5rem;
 
     & > tbody > tr > td {
