@@ -10,7 +10,7 @@ sudoku.addEventListener('keypress', event => {
     event.target.value = '';
     checkErrors(htmlBoard);
   }
-  if (!/[1-9]/.test(event.key)) return event.preventDefault();
+  if (!Number(event.key) || htmlBoard.length < Number(event.key)) return event.preventDefault();
 
   if (!globalThis.timerInterval) startTimer();
 
