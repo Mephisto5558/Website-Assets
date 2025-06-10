@@ -74,6 +74,7 @@ sudokuWorker.addEventListener('message', e => {
   (console[e.data.type == 'progress' ? 'debug' : e.data.type] ?? console.log)('Worker: ' + e.data.message);
   if (e.data.type == 'progress') loadingContainer.children.namedItem('loading-status').textContent = e.data.message;
 });
+sudokuWorker.addEventListener('error', e => console.error('Worker: ' + e.message));
 
 let showedLoading = false;
 
