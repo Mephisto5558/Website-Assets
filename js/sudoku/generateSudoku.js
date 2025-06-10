@@ -19,65 +19,75 @@ function getEmptySudoku(size, filler = 0) {
 
 /**
  * @param {Board} board
- * @param {number} size
- * @returns {boolean} */
-function solve(board, size) {
+ * @param {object | undefined} options
+ * @param {boolean} options.findJustOne
+ * @param {boolean} options.useRandomSequence */
+function solver(board, { findJustOne = true, useRandomSequence = true } = {}) {
+  const size = board.length;
   const boxSize = Math.sqrt(size);
 
   const rows = Array.from({ length: size }, () => new Set());
   const cols = Array.from({ length: size }, () => new Set());
   const boxes = Array.from({ length: size }, () => new Set());
 
-  const sequences = Array.from({ length: size ** 2 });
-  const sequenceIndices = Array.from({ length: size ** 2 }).fill(0);
+  for (let rowId = 0; rowId < size; rowId++) {
+    for (let colId = 0; colId < size; colId++) {
+      const value = board[rowId][colId];
+      if (value === 0) continue;
 
-  let i = 0;
-  while (i >= 0 && i < size * size) {
-    const row = Math.floor(i / size);
-    const col = i % size;
-    const boxId = getGroupId(row, col, boxSize);
-
-    if (sequences[i] === undefined) {
-      sequences[i] = randoSequence(1, size);
-      sequenceIndices[i] = 0;
-    }
-
-    const previousValue = board[row][col];
-    if (previousValue !== 0) {
-      rows[row].delete(previousValue);
-      cols[col].delete(previousValue);
-      boxes[boxId].delete(previousValue);
-    }
-
-    let foundValidNumber = false;
-    let currentIndex = sequenceIndices[i] + 1;
-
-    while (currentIndex < size) {
-      const num = sequences[i][currentIndex];
-
-      if (!rows[row].has(num) && !cols[col].has(num) && !boxes[boxId].has(num)) {
-        board[row][col] = num;
-        rows[row].add(num);
-        cols[col].add(num);
-        boxes[boxId].add(num);
-
-        sequenceIndices[i] = currentIndex;
-        foundValidNumber = true;
-        break;
-      }
-
-      currentIndex++;
-    }
-
-    if (foundValidNumber) i++;
-    else {
-      sequences[i] = undefined;
-      board[row][col] = 0;
-      i--;
+      rows[rowId].add(value);
+      cols[colId].add(value);
+      boxes[getGroupId(rowId, colId, boxSize)].add(value);
     }
   }
 
-  return i > 0;
+  function run(rowId = 0, colId = 0) {
+    if (rowId >= size) return 1;
+
+    const [nextRowId, nextColId] = colId === size - 1 ? [rowId + 1, 0] : [rowId, colId + 1];
+    if (board[rowId][colId] !== 0) return run(nextRowId, nextColId);
+
+    const boxId = getGroupId(rowId, colId, boxSize);
+    const valuesToTry = useRandomSequence ? randoSequence(1, size) : Array.from({ length: size }, (_, i) => i + 1);
+
+    let solutionCount = 0;
+
+    for (const value of valuesToTry) {
+      if (rows[rowId].has(value) || cols[colId].has(value) || boxes[boxId].has(value)) continue;
+
+      board[rowId][colId] = value;
+      rows[rowId].add(value);
+      cols[colId].add(value);
+      boxes[boxId].add(value);
+
+      const result = run(nextRowId, nextColId);
+
+      if (findJustOne) {
+        if (result > 0) return result;
+      }
+      else {
+        solutionCount += result;
+        if (solutionCount > 1) {
+          rows[rowId].delete(value);
+          cols[colId].delete(value);
+          boxes[boxId].delete(value);
+          board[rowId][colId] = 0;
+
+          return solutionCount;
+        }
+      }
+
+      rows[rowId].delete(value);
+      cols[colId].delete(value);
+      boxes[boxId].delete(value);
+      board[rowId][colId] = 0;
+    }
+
+    return solutionCount;
+  }
+
+  const result = run();
+  return findJustOne ? result > 0 : result;
 }
 
 /**
@@ -145,7 +155,7 @@ export function generateSudoku(size, holes) {
   const start = performance.now();
 
   const fullBoard = getEmptySudoku(size);
-  const success = solve(fullBoard, size);
+  const success = solver(fullBoard, { findJustOne: true, useRandomSequence: true });
 
   if (!success) {
     console.error('Failed to generate a valid Sudoku board.');
@@ -167,7 +177,7 @@ export function generateSudoku(size, holes) {
   for (; removed < holes && attempts < maxAttempts && consecutiveAttempts < maxConsecutiveAttempts; attempts++) {
     console.debug(`Digging. Holes: ${removed}/${holes}, Attempts: ${attempts}/${maxAttempts}, Consecutive attempts: ${consecutiveAttempts}/${maxConsecutiveAttempts}`);
 
-    const success = dig(board, boxSize);
+    const success = dig(board);
     if (success) {
       consecutiveAttempts = 0;
       removed++;
@@ -180,7 +190,7 @@ export function generateSudoku(size, holes) {
   return { fullBoard, board };
 }
 
-function dig(board, boxSize) {
+function dig(board) {
   const rowId = rando(0, board.length - 1);
   const colId = rando(0, board.length - 1);
   if (!board[rowId][colId]) return;
@@ -188,57 +198,12 @@ function dig(board, boxSize) {
   const originalValue = board[rowId][colId];
   board[rowId][colId] = 0;
 
-  if (countSolutions(structuredClone(board), boxSize) > 1) {
+  if (solver(structuredClone(board), { findJustOne: false, useRandomSequence: false }) > 1) {
     board[rowId][colId] = originalValue;
     return false;
   }
 
   return true;
-}
-
-function countSolutions(board, boxSize, rowId = 0, colId = 0) {
-  const size = board.length;
-  if (rowId >= size) return 1;
-
-  let nextRowId, nextColId;
-  if (rowId === size - 1 && colId === size - 1) [nextRowId, nextColId] = [rowId + 1, colId + 1];
-  else [nextRowId, nextColId] = colId === size - 1 ? [rowId + 1, 0] : [rowId, colId + 1];
-
-  if (board[rowId][colId]) return countSolutions(board, boxSize, nextRowId, nextColId);
-
-  let total = 0;
-  for (let val = 1; val <= size; val++) {
-    if (isUnsafe(board, boxSize, rowId, colId, val)) continue;
-
-    board[rowId][colId] = val;
-    total += countSolutions(board, boxSize, nextRowId, nextColId);
-    board[rowId][colId] = 0;
-
-    if (total > 1) break;
-  }
-
-  return total;
-}
-
-/**
- * @param {Board} board
- * @param {number} boxSize
- * @param {number} rowId
- * @param {number} colId
- * @param {number} value
- * Check if a value is already in the same row, column or box */
-function isUnsafe(board, boxSize, rowId, colId, value) {
-  for (let id = 0; id < board.length; id++)
-    if (board[rowId][id] === value || board[id][colId] === value) return true;
-
-  const startRow = Math.floor(rowId / boxSize) * boxSize;
-  const startCol = Math.floor(colId / boxSize) * boxSize;
-  for (let row = startRow; row < startRow + boxSize; row++) {
-    for (let col = startCol; col < startCol + boxSize; col++)
-      if (board[row][col] === value) return true;
-  }
-
-  return false;
 }
 
 /**
