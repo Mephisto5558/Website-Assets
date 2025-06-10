@@ -12,3 +12,4 @@ export function getRootStyle(key: string): string;
 export function invertHex(hex: string): `#${string}`;
 export function saveToClipboard(value: string): Promise<void>;
 export function initializeColorPicker(picker: HTMLInputElement, storageKey: string, onColorChange: (color: string) => void): void;
+export function getGroupId(rowId: number, colId: number, boxSize: number): number;

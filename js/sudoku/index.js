@@ -1,14 +1,15 @@
 /** @typedef {import('.').CellInput} CellInput */
 /** @typedef {import('.').CellList} CellList */
 
-import { displayBoard, generateSudoku, getNumberAmounts } from './generateSudoku.js';
+import { createHTMLBoard, generateSudoku, displayBoard, getNumberAmounts } from './generateSudoku.js';
 import { generateShareURL, loadFromShareURL } from './shareSudoku.js';
 import { setRootStyle, getRootStyle, invertHex, saveToClipboard, initializeColorPicker } from './utils.js';
 
 document.documentElement.removeAttribute('style'); // remove temp background-color
 
 globalThis.debug = false;
-globalThis.debugBoard = true;
+/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, sonarjs/no-redundant-boolean, no-constant-binary-expression */
+globalThis.debugBoard = true && globalThis.debug;
 
 const DEFAULT_BOARD_SIZE = 9;
 const MS_IN_SEC = 1000;
@@ -19,9 +20,10 @@ const MAX_HOLES_PERCENTAGE = .75;
 const MIN_HOLES = Math.floor(DEFAULT_BOARD_SIZE ** 2 * MIN_HOLES_PERCENTAGE);
 const MAX_HOLES = Math.ceil(DEFAULT_BOARD_SIZE ** 2 * MAX_HOLES_PERCENTAGE);
 
+/** @type {import('.').HTMLBoard} */ let htmlBoard = [];
+
 const
-  /** @type {import('.').HTMLBoard} */ htmlBoard = [...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild)),
-  /** @type {HTMLTableElement} */ sudoku = document.querySelector('#sudoku'),
+/** @type {HTMLTableElement} */ sudoku = document.querySelector('#sudoku'),
   /** @type {HTMLSpanElement} */ timerSpan = document.querySelector('#timer'),
   /** @type {HTMLDivElement} */ loadingContainer = document.querySelector('#loading-container'),
   /** @type {Element[]} */ loadingContainerSiblings = [...loadingContainer.parentElement.children].filter(e => e != loadingContainer),
@@ -31,6 +33,7 @@ const
   /** @type {HTMLButtonElement} */ shareBtn = document.querySelector('#share-btn'),
   /** @type {HTMLInputElement} */ difficultySlider = document.querySelector('#difficulty-slider'),
   /** @type {HTMLOutputElement} */ difficultyOutput = document.querySelector('#difficulty-slider + output'),
+  /** @type {HTMLInputElement} */ sizeOption = document.querySelector('#size-option'),
   /** @type {HTMLInputElement} */ bgColorSwitcher = document.querySelector('#bg-color-switch'),
   /** @type {HTMLInputElement} */ fgColorSwitcher = document.querySelector('#fg-color-switch');
 
@@ -254,12 +257,20 @@ async function regenerate(event, firstTime) {
   difficultySlider.value = holes;
   difficultySlider.parentElement.querySelector('output').textContent = holes;
 
-  if (globalThis.debug && globalThis.debugBoard)
+  const size = Number(sizeOption.value) ** 2 || DEFAULT_BOARD_SIZE;
+  sizeOption.value = Math.sqrt(size);
+
+  if (globalThis.debugBoard)
     console.debug('Using debug board.');
   else
-    console.log(`Size: ${DEFAULT_BOARD_SIZE}, Holes: ${holes}/${MAX_HOLES} (min: ${MIN_HOLES})`);
+    console.log(`Size: ${size}, Holes: ${holes}/${MAX_HOLES} (min: ${MIN_HOLES})`);
 
-  const { fullBoard, board } = loadFromShareURL() ?? await generateSudoku(DEFAULT_BOARD_SIZE, holes);
+  if (htmlBoard.length != size && !globalThis.debugBoard) {
+    createHTMLBoard(size);
+    htmlBoard = [...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild));
+  }
+
+  const { fullBoard, board } = loadFromShareURL() ?? await generateSudoku(size, holes);
 
   /* eslint-disable-next-line require-atomic-updates -- not an issue because not reassigning globalThis anywhere */
   globalThis.fullBoardNumberAmt = getNumberAmounts(fullBoard);

@@ -56,3 +56,8 @@ export function initializeColorPicker(picker, storageKey, onColorChange) {
     onColorChange(newColor);
   });
 }
+
+/** @type {import('.')['getGroupId']} */
+export function getGroupId(rowId, colId, boxSize) {
+  return Math.floor(rowId / boxSize) * boxSize + Math.floor(colId / boxSize);
+}

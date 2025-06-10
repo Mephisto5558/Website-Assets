@@ -1,5 +1,7 @@
 /** @typedef {import('.').Board} Board */
 
+import { getGroupId } from './utils.js';
+
 const MAX_FULL_RETRIES = 100;
 const CONSECUTIVE_RETRY_COOLDOWN_MS = 5;
 const DEBUG_BOARDS = {
@@ -52,12 +54,66 @@ function getNext(rowId, colId, boardSize) {
   return colId == boardSize - 1 ? [rowId + 1, 0] : [rowId, colId + 1];
 }
 
+export function createHTMLBoard(size) {
+  const boxSize = Math.sqrt(size);
+  if (!Number.isInteger(boxSize)) throw new Error('Size must be quadratic.');
+
+  console.debug(`Creating HTML board of size ${size}`);
+
+  const colGroup = document.createElement('colgroup');
+  colGroup.append(...Array.from({ length: boxSize }, () => document.createElement('col')));
+
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.required = true;
+  input.autocomplete = 'off';
+  input.title = '';
+
+  const tCell = document.createElement('td');
+  tCell.append(input.cloneNode());
+
+  const tRow = document.createElement('tr');
+  tRow.append(...Array.from({ length: size }, (_, i) => {
+    /** @type {HTMLTableCellElement & {firstChild: HTMLInputElement}} */
+    const cell = tCell.cloneNode(true);
+    cell.firstChild.dataset.col = i + 1;
+
+    return cell;
+  }));
+
+  const tBody = document.createElement('tbody');
+  tBody.append(...Array.from({ length: boxSize }, (_, i) => {
+    const row = tRow.cloneNode(true);
+    for (const cell of row.childNodes) cell.firstChild.dataset.row = i + 1;
+
+    return row;
+  }));
+
+  document.querySelector('#sudoku').append(
+    ...Array.from({ length: boxSize }, () => colGroup.cloneNode(true)),
+    ...Array.from({ length: boxSize }, (_, i) => {
+      const body = tBody.cloneNode(true);
+      if (!i) return body;
+      for (const row of body.childNodes) {
+        for (const cell of row.childNodes) {
+          cell.firstChild.dataset.row = Number(cell.firstChild.dataset.row) + i * boxSize;
+          cell.firstChild.dataset.group = getGroupId(Number(cell.firstChild.dataset.row) - 1, Number(cell.firstChild.dataset.col) - 1, boxSize) + 1;
+
+          cell.firstChild.ariaLabel = `Row ${cell.firstChild.dataset.row}, Column ${cell.firstChild.dataset.col}`;
+        }
+      }
+
+      return body;
+    })
+  );
+}
+
 /**
  * @param {number} size
  * @param {number} holes
  * @param {number} retries internal use */
 export async function generateSudoku(size, holes, retries = 1) {
-  if (globalThis.debug && globalThis.debugBoard) return DEBUG_BOARDS;
+  if (globalThis.debugBoard) return DEBUG_BOARDS;
 
   const boxSize = Math.sqrt(size);
   if (!Number.isInteger(boxSize)) throw new Error('Size must be quadratic.');
