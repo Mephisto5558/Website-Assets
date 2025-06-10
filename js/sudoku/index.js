@@ -208,12 +208,12 @@ sudoku.addEventListener('keydown', event => {
 
 document.querySelector('#stepper-up').addEventListener('click', () => {
   sizeOption.stepUp();
-  sizeOption.dispatchEvent(new Event('input', { bubbles: true }));
+  sizeOption.dispatchEvent(new Event('change', { bubbles: true }));
 });
 
 document.querySelector('#stepper-down').addEventListener('click', () => {
   sizeOption.stepDown();
-  sizeOption.dispatchEvent(new Event('input', { bubbles: true }));
+  sizeOption.dispatchEvent(new Event('change', { bubbles: true }));
 });
 
 let shareEventListener, solutionEventListener;
@@ -247,10 +247,28 @@ function updateBtnListeners(board, fullBoard) {
   solutionBtn.addEventListener('click', solutionEventListener);
 }
 
+function updateMinMax() {
+  const size = Number(sizeOption.value) ** 2 || DEFAULT_BOARD_SIZE;
+  sizeOption.value = Math.sqrt(size);
+
+  const minHoles = Math.floor(size ** 2 * MIN_HOLES_PERCENTAGE);
+  const maxHoles = Math.ceil(size ** 2 * MAX_HOLES_PERCENTAGE);
+  difficultySlider.min = minHoles;
+  difficultySlider.max = maxHoles;
+
+  const holes = Number(difficultySlider.value) || rando(minHoles, maxHoles);
+  difficultySlider.value = holes;
+  difficultySlider.parentElement.querySelector('output').textContent = holes;
+
+  return { size, minHoles, maxHoles, holes };
+}
+
+sizeOption.addEventListener('change', updateMinMax);
+
 /**
  * @param {Event | undefined} event
  * @param {boolean | undefined} firstTime */
-async function regenerate(event, firstTime) {
+function regenerate(event, firstTime) {
   if (event) event.target.disabled = true;
   if (!firstTime) {
     const url = new URL(globalThis.location.href);
@@ -265,17 +283,7 @@ async function regenerate(event, firstTime) {
 
   const start = performance.now();
 
-  const size = Number(sizeOption.value) ** 2 || DEFAULT_BOARD_SIZE;
-  sizeOption.value = Math.sqrt(size);
-
-  const minHoles = Math.floor(size ** 2 * MIN_HOLES_PERCENTAGE);
-  const maxHoles = Math.ceil(size ** 2 * MAX_HOLES_PERCENTAGE);
-  difficultySlider.min = minHoles;
-  difficultySlider.max = maxHoles;
-
-  const holes = Number(difficultySlider.value) || rando(minHoles, maxHoles);
-  difficultySlider.value = holes;
-  difficultySlider.parentElement.querySelector('output').textContent = holes;
+  const { size, minHoles, maxHoles, holes } = updateMinMax();
 
   if (globalThis.debugBoard)
     console.debug('Using debug board.');
@@ -283,13 +291,12 @@ async function regenerate(event, firstTime) {
     console.log(`Size: ${size}, Holes: ${holes}/${maxHoles} (min: ${minHoles})`);
 
   if (htmlBoard.length != size) {
-    createHTMLBoard(globalThis.debugBoard ? 9 : size);
+    createHTMLBoard(globalThis.debugBoard ? DEFAULT_BOARD_SIZE : size);
     htmlBoard = [...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild));
   }
 
-  const { fullBoard, board } = loadFromShareURL() ?? await generateSudoku(size, holes);
+  const { fullBoard, board } = loadFromShareURL() ?? generateSudoku(size, holes);
 
-  /* eslint-disable-next-line require-atomic-updates -- not an issue because not reassigning globalThis anywhere */
   globalThis.fullBoardNumberAmt = getNumberAmounts(fullBoard);
 
   displayBoard(board, htmlBoard, numberOverviewSpans);
@@ -308,4 +315,4 @@ async function regenerate(event, firstTime) {
 }
 
 regenerateBtn.addEventListener('click', regenerate);
-void regenerate(undefined, true);
+regenerate(undefined, true);
