@@ -13,3 +13,8 @@ export function invertHex(hex: string): `#${string}`;
 export function saveToClipboard(value: string): Promise<void>;
 export function initializeColorPicker(picker: HTMLInputElement, storageKey: string, onColorChange: (color: string) => void): void;
 export function getGroupId(rowId: number, colId: number, boxSize: number): number;
+export function startTimer(): void;
+export function clearTimer(): void;
+export function updateNumberOverviewSpan(val: number, up?: boolean): void;
+export function checkErrors(htmlBoard: HTMLBoard): void;
+export function updateMinMax(): void;
