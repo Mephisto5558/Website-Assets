@@ -7,7 +7,7 @@ import { setRootStyle, getRootStyle, invertHex, saveToClipboard, initializeColor
 
 document.documentElement.removeAttribute('style'); // remove temp background-color
 
-globalThis.debug = true;
+globalThis.debug = false;
 /* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, sonarjs/no-redundant-boolean, no-constant-binary-expression */
 globalThis.debugBoard = true && globalThis.debug;
 
@@ -17,8 +17,6 @@ const SEC_IN_MIN = 60;
 
 const MIN_HOLES_PERCENTAGE = .2;
 const MAX_HOLES_PERCENTAGE = .75;
-const MIN_HOLES = Math.floor(DEFAULT_BOARD_SIZE ** 2 * MIN_HOLES_PERCENTAGE);
-const MAX_HOLES = Math.ceil(DEFAULT_BOARD_SIZE ** 2 * MAX_HOLES_PERCENTAGE);
 
 /** @type {import('.').HTMLBoard} */ let htmlBoard = [];
 
@@ -38,8 +36,6 @@ const
   /** @type {HTMLInputElement} */ fgColorSwitcher = document.querySelector('#fg-color-switch');
 
 difficultySlider.addEventListener('input', event => difficultyOutput.textContent = event.target.value);
-difficultySlider.min = MIN_HOLES;
-difficultySlider.max = MAX_HOLES;
 
 function checkErrors() {
   /* eslint-disable-next-line jsdoc/valid-types */
@@ -268,17 +264,23 @@ async function regenerate(event, firstTime) {
   clearTimer();
 
   const start = performance.now();
-  const holes = Number(difficultySlider.value) || rando(MIN_HOLES, MAX_HOLES);
-  difficultySlider.value = holes;
-  difficultySlider.parentElement.querySelector('output').textContent = holes;
 
   const size = Number(sizeOption.value) ** 2 || DEFAULT_BOARD_SIZE;
   sizeOption.value = Math.sqrt(size);
 
+  const minHoles = Math.floor(size ** 2 * MIN_HOLES_PERCENTAGE);
+  const maxHoles = Math.ceil(size ** 2 * MAX_HOLES_PERCENTAGE);
+  difficultySlider.min = minHoles;
+  difficultySlider.max = maxHoles;
+
+  const holes = Number(difficultySlider.value) || rando(minHoles, maxHoles);
+  difficultySlider.value = holes;
+  difficultySlider.parentElement.querySelector('output').textContent = holes;
+
   if (globalThis.debugBoard)
     console.debug('Using debug board.');
   else
-    console.log(`Size: ${size}, Holes: ${holes}/${MAX_HOLES} (min: ${MIN_HOLES})`);
+    console.log(`Size: ${size}, Holes: ${holes}/${maxHoles} (min: ${minHoles})`);
 
   if (htmlBoard.length != size) {
     createHTMLBoard(globalThis.debugBoard ? 9 : size);

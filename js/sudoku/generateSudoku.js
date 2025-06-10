@@ -119,10 +119,13 @@ export async function generateSudoku(size, holes, retries = 1) {
   if (!Number.isInteger(boxSize)) throw new Error('Size must be quadratic.');
 
   console.debug(`Generating initial full Sudoku. Try ${retries}/${MAX_FULL_RETRIES}`);
+  const start = performance.now();
 
   /** @type {import('.').FullBoard} */
   const fullBoard = getEmptySudoku(size);
   fill(fullBoard, boxSize);
+
+  console.debug(`Took ${performance.now() - start}ms to generate.`);
 
   if (!countSolutions(structuredClone(fullBoard), boxSize)) {
     let err = 'An invalid Sudoku has been generated. ';
