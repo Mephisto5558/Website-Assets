@@ -1,13 +1,11 @@
 /** @typedef {import('.').CellInput} CellInput */
 /** @typedef {import('.').CellList} CellList */
 
-import { bgColorSwitcher, DEFAULT_BOARD_SIZE, fgColorSwitcher, htmlBoard, loadingContainer, MS_IN_SEC, numberOverviewSpans, regenerateBtn, shareBtn, solutionBtn } from './constants.js';
+import { bgColorSwitcher, DEFAULT_BOARD_SIZE, fgColorSwitcher, htmlBoard, loadingContainer, MS_IN_SEC, numberOverviewSpans, regenerateBtn, REPORT_PROD_WORKER_URL, shareBtn, solutionBtn } from './constants.js';
 import { createHTMLBoard, displayBoard, getNumberAmounts } from './generateSudoku.js';
 import { generateShareURL, loadFromShareURL } from './shareSudoku.js';
 import { setRootStyle, getRootStyle, invertHex, saveToClipboard, initializeColorPicker, clearTimer, checkErrors, updateMinMax } from './utils.js';
 import __ from './events.js';
-
-const sudokuWorker = new Worker((globalThis.debug ? '.' : 'https://mephisto5558.github.io/Website-Assets/min/js/sudoku') + '/sudoku.worker.js');
 
 document.documentElement.removeAttribute('style'); // remove temp background-color
 
@@ -62,27 +60,46 @@ function updateBtnListeners(board, fullBoard) {
   solutionBtn.addEventListener('click', solutionEventListener);
 }
 
+async function createCrossDomainWorker(url) {
+  const workerScript = await fetch(url).then(res => res.text());
+  const blobUrl = URL.createObjectURL(new Blob([workerScript], { type: 'application/javascript' }));
+
+  return new Worker(blobUrl);
+}
+
 let resolveFunction;
-sudokuWorker.addEventListener('message', e => {
-  if (e.data.type == 'result') {
-    console.log('UI: Received result from worker.');
+async function createSudokuWorker() {
+  const sudokuWorker = await createCrossDomainWorker(globalThis.debug ? REPORT_PROD_WORKER_URL : './sudoku.worker.js');
 
-    resolveFunction?.(e.data.payload);
-    return resolveFunction = undefined;
-  }
+  sudokuWorker.addEventListener('message', e => {
+    if (e.data.type == 'result') {
+      console.log('UI: Received result from worker.');
 
-  (console[e.data.type == 'progress' ? 'debug' : e.data.type] ?? console.log)('Worker: ' + e.data.message);
-  if (e.data.type == 'progress') loadingContainer.children.namedItem('loading-status').textContent = e.data.message;
-});
-sudokuWorker.addEventListener('error', e => console.error('Worker: ' + e.message));
+      resolveFunction?.(e.data.payload);
+      return resolveFunction = undefined;
+    }
 
+    (console[e.data.type == 'progress' ? 'debug' : e.data.type] ?? console.log)('Worker: ' + e.data.message);
+    if (e.data.type == 'progress') loadingContainer.children.namedItem('loading-status').textContent = e.data.message;
+  });
+  sudokuWorker.addEventListener('error', e => console.error('Worker: ' + e.message));
+
+  return sudokuWorker;
+}
+
+let sudokuWorker;
 let showedLoading = false;
+let isGenerating = false;
 
 /**
  * @param {Event | undefined} event
  * @param {boolean | undefined} firstTime */
 async function regenerate(event, firstTime) {
+  if (isGenerating) return;
+  isGenerating = true;
+
   if (event) event.target.disabled = true;
+
   if (!firstTime) {
     const url = new URL(globalThis.location.href);
     url.search = '';
@@ -97,48 +114,57 @@ async function regenerate(event, firstTime) {
     loadingContainer.style.removeProperty('display');
   }, MS_IN_SEC / 10);
 
-  clearTimer();
+  try {
+    clearTimer();
 
-  const start = performance.now();
+    const start = performance.now();
 
-  const { size, minHoles, maxHoles, holes } = updateMinMax();
+    const { size, minHoles, maxHoles, holes } = updateMinMax();
 
-  if (globalThis.debugBoard)
-    console.debug('Using debug board.');
-  else
-    console.log(`Size: ${size}, Holes: ${holes}/${maxHoles} (min: ${minHoles})`);
+    if (globalThis.debugBoard)
+      console.debug('Using debug board.');
+    else
+      console.log(`Size: ${size}, Holes: ${holes}/${maxHoles} (min: ${minHoles})`);
 
-  /** @type {{ fullBoard: import('.').FullBoard, board: import('.').Board }} */
-  const { fullBoard, board } = loadFromShareURL() ?? await new Promise(res => {
-    resolveFunction = res;
+    /* eslint-disable-next-line require-atomic-updates -- safe due to being in a try*/
+    sudokuWorker ??= await createSudokuWorker();
 
-    console.log('UI: Posting task to worker...');
-    sudokuWorker.postMessage({ size, holes, debugBoard: globalThis.debugBoard });
-  });
+    /** @type {{ fullBoard: import('.').FullBoard, board: import('.').Board }} */
+    const { fullBoard, board } = loadFromShareURL() ?? await new Promise(res => {
+      resolveFunction = res;
 
-  globalThis.fullBoardNumberAmt = getNumberAmounts(fullBoard);
-  setRootStyle('--sudoku-row-count', board.length);
+      console.log('UI: Posting task to worker...');
+      sudokuWorker.postMessage({ size, holes, debugBoard: globalThis.debugBoard });
+    });
 
-  if (fullBoard.length != htmlBoard.length) {
-    createHTMLBoard(globalThis.debugBoard ? DEFAULT_BOARD_SIZE : fullBoard.length);
-    htmlBoard.length = 0;
-    htmlBoard.push(...[...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild)));
+    /* eslint-disable-next-line require-atomic-updates -- globalThis won't change */
+    globalThis.fullBoardNumberAmt = getNumberAmounts(fullBoard);
+    setRootStyle('--sudoku-row-count', board.length);
+
+    if (fullBoard.length != htmlBoard.length) {
+      createHTMLBoard(globalThis.debugBoard ? DEFAULT_BOARD_SIZE : fullBoard.length);
+      htmlBoard.length = 0;
+      htmlBoard.push(...[...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild)));
+    }
+
+    displayBoard(board, htmlBoard, numberOverviewSpans);
+    checkErrors(htmlBoard);
+
+    console.debug(`Took ${performance.now() - start}ms to generate and render.`);
+
+    updateBtnListeners(board, fullBoard);
+  }
+  finally {
+    clearTimeout(loadingTimeout);
+    if (showedLoading) {
+      loadingContainer.classList.add('hiding');
+      loadingContainer.addEventListener('animationend', () => loadingContainer.style.display = 'none', { once: true });
+    }
+    else loadingContainer.style.display = 'none';
   }
 
-  displayBoard(board, htmlBoard, numberOverviewSpans);
-  checkErrors(htmlBoard);
-
-  console.debug(`Took ${performance.now() - start}ms to generate and render.`);
-
-  updateBtnListeners(board, fullBoard);
-
-  clearTimeout(loadingTimeout);
-  if (showedLoading) {
-    loadingContainer.classList.add('hiding');
-    loadingContainer.addEventListener('animationend', () => loadingContainer.style.display = 'none', { once: true });
-  }
-  else loadingContainer.style.display = 'none';
-
+  /* eslint-disable-next-line require-atomic-updates -- false positive: can never execute if the variable is already false */
+  isGenerating = false;
   if (event) event.target.disabled = false;
 }
 

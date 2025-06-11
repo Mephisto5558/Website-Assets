@@ -9,6 +9,8 @@ export const MAX_HOLES_PERCENTAGE = .75;
 export const MS_IN_SEC = 1000;
 export const SEC_IN_MIN = 60;
 
+export const REPORT_PROD_WORKER_URL = 'https://mephisto5558.github.io/Website-Assets/min/js/sudoku/sudoku.worker.js';
+
 /** @type {import('.').HTMLBoard} */
 export const htmlBoard = [];
 
