@@ -69,7 +69,7 @@ async function createCrossDomainWorker(url) {
 
 let resolveFunction;
 async function createSudokuWorker() {
-  const sudokuWorker = await createCrossDomainWorker(globalThis.debug ? REPORT_PROD_WORKER_URL : './sudoku.worker.js');
+  const sudokuWorker = await createCrossDomainWorker(globalThis.debug ? './sudoku.worker.js' : REPORT_PROD_WORKER_URL);
 
   sudokuWorker.addEventListener('message', e => {
     if (e.data.type == 'result') {
