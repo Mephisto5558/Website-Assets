@@ -40,6 +40,7 @@ export function createHTMLBoard(size) {
         const tCell = document.createElement('td');
         const input = document.createElement('input');
         input.type = 'number';
+        input.title = '';
         input.required = true;
         input.autocomplete = 'off';
 
