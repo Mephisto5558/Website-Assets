@@ -27,10 +27,20 @@ const DEBUG_BOARDS = {
     /* eslint-enable @typescript-eslint/no-magic-numbers */
   ]
 };
+const THROTTLE_INTERVAL_MS = 500;
 
 /** @type {import('.')['getGroupId']} */
 function getGroupId(rowId, colId, boxSize) {
   return Math.floor(rowId / boxSize) * boxSize + Math.floor(colId / boxSize);
+}
+
+let lastProgressTimestamp;
+function sendProgress(message) {
+  const now = Date.now();
+  if (now <= lastProgressTimestamp + THROTTLE_INTERVAL_MS) return;
+
+  lastProgressTimestamp = now;
+  return globalThis.postMessage({ type: 'progress', message });
 }
 
 /**
@@ -48,6 +58,8 @@ function solver(board, { findJustOne = true, useRandomSequence = true } = {}) {
 
   for (let rowId = 0; rowId < size; rowId++) {
     for (let colId = 0; colId < size; colId++) {
+      sendProgress(`Generating row ${rowId}, column ${colId}`);
+
       const value = board[rowId][colId];
       if (value === 0) continue;
 
@@ -139,7 +151,7 @@ function generateSudoku(size, holes) {
   const boxSize = Math.sqrt(size);
   if (!Number.isInteger(boxSize)) throw new Error('Size must be quadratic.');
 
-  globalThis.postMessage({ type: 'progress', message: `Generating initial full Sudoku. Size: ${size}` });
+  sendProgress(`Generating initial full Sudoku. Size: ${size}`);
   const start = performance.now();
 
   const fullBoard = getEmptySudoku(size);
@@ -156,14 +168,14 @@ function generateSudoku(size, holes) {
   const maxAttempts = size ** 2 * 3; /* eslint-disable-line @typescript-eslint/no-magic-numbers -- arbitrary */
   const maxConsecutiveAttempts = size ** 2;
 
-  globalThis.postMessage({ type: 'progress', message: `Starting to dig holes. Holes to dig: ${holes}` });
+  sendProgress(`Starting to dig holes. Holes to dig: ${holes}`);
 
   let
     removed = 0,
     attempts = 0,
     consecutiveAttempts = 0;
   for (; removed < holes && attempts < maxAttempts && consecutiveAttempts < maxConsecutiveAttempts; attempts++) {
-    globalThis.postMessage({ type: 'progress', message: `Digging. Holes: ${removed}/${holes}, Attempts: ${attempts}/${maxAttempts}, Consecutive attempts: ${consecutiveAttempts}/${maxConsecutiveAttempts}` });
+    sendProgress(`Digging. Holes: ${removed}/${holes}, Attempts: ${attempts}/${maxAttempts}, Consecutive attempts: ${consecutiveAttempts}/${maxConsecutiveAttempts}`);
 
     const success = dig(board);
     if (success) {
@@ -173,7 +185,7 @@ function generateSudoku(size, holes) {
     else if (success === false) consecutiveAttempts++;
   }
 
-  globalThis.postMessage({ type: 'progress', message: `Dug ${removed}/${holes} holes.` });
+  sendProgress(`Dug ${removed}/${holes} holes.`);
 
   return { fullBoard, board };
 }
