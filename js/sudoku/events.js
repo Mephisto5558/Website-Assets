@@ -4,20 +4,26 @@ import { checkErrors, startTimer, updateNumberOverviewSpan, updateMinMax } from 
 export default undefined; // Needed to load it in without actually importing anything
 
 sudoku.addEventListener('keypress', event => {
-  if (event.key == event.target.value) return event.preventDefault();
-  if (event.key == ' ') {
-    updateNumberOverviewSpan(Number(event.target.value), false);
+  event.preventDefault();
+
+  if (event.key === ' ') {
+    if (event.target.value) updateNumberOverviewSpan(Number(event.target.value), false);
+
     event.target.value = '';
-    checkErrors(htmlBoard);
+    return checkErrors(htmlBoard);
   }
-  if (!Number(event.key) || htmlBoard.length < Number(event.key)) return event.preventDefault();
+
+  if (!/^\d$/.test(event.key)) return;
+
+  const newNumber = Number(event.target.value + event.key);
+  if (!newNumber || newNumber > htmlBoard.length) return;
 
   if (!globalThis.timerInterval) startTimer();
 
-  event.preventDefault();
   if (event.target.value) updateNumberOverviewSpan(Number(event.target.value), false);
-  event.target.value = event.key;
-  updateNumberOverviewSpan(Number(event.target.value), true);
+
+  event.target.value = newNumber;
+  updateNumberOverviewSpan(newNumber, true);
 
   checkErrors(htmlBoard);
 });
