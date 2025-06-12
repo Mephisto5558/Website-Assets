@@ -20,7 +20,7 @@ initializeColorPicker(
 
 /* // TODO: Implement
 initializeColorPicker(
-  fgColorSwitcher, 'sudoku-fg-color-secondary',
+  fgSecondaryColorSwitcher, 'sudoku-fg-color-secondary',
   color => {
     setRootStyle('--foreground-color-secondary', color);
     setRootStyle('--foreground-color-secondary-inverted', invertHex(color));
