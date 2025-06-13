@@ -6,7 +6,15 @@ export default undefined; // Needed to load it in without actually importing any
 sudoku.addEventListener('keypress', event => {
   event.preventDefault();
 
+  const notesMode = sudoku.classList.contains('notes-mode');
   if (event.key === ' ') {
+    if (notesMode) {
+      if (event.target.tagName != 'SPAN') return;
+
+      event.target.textContent = '';
+      return event.target.classList.remove('visible');
+    }
+
     if (event.target.value) updateNumberOverviewSpan(Number(event.target.value), false);
 
     event.target.value = '';
@@ -15,10 +23,33 @@ sudoku.addEventListener('keypress', event => {
 
   if (!/^\d$/.test(event.key)) return;
 
-  const newNumber = Number(event.target.value + event.key);
-  if (!newNumber || newNumber > htmlBoard.length) return;
+  let newNumber = Number(event.target[notesMode ? 'textContent' : 'value'] + event.key);
+  if (!newNumber) return;
+  if (newNumber > htmlBoard.length) {
+    newNumber = Number(event.key);
+    if (newNumber > htmlBoard.length) return;
+  }
 
   if (!globalThis.timerInterval) startTimer();
+
+  if (notesMode) {
+    let note;
+    if (event.target.tagName == 'SPAN') note = event.target;
+    else {
+      /** @type {HTMLSpanElement} */
+      const notes = [...event.target.nextSibling.childNodes];
+      note = notes.find(e => !e.textContent);
+      if (!note) {
+        note = notes[0];
+        note.textContent = '';
+      }
+    }
+
+    note.classList.add('visible');
+    note.textContent += event.key;
+
+    return;
+  }
 
   if (event.target.value) updateNumberOverviewSpan(Number(event.target.value), false);
 
@@ -30,6 +61,12 @@ sudoku.addEventListener('keypress', event => {
 
 const eventKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'];
 sudoku.addEventListener('keydown', event => {
+  if (event.key === 'Enter' && event.target.tagName == 'SPAN') {
+    event.preventDefault();
+    return event.target.blur();
+  }
+
+  if (event.target.tagName != 'INPUT') return;
   if (event.key == 'Backspace') {
     updateNumberOverviewSpan(Number(event.target.value), false);
 
@@ -81,6 +118,11 @@ sudoku.addEventListener('keydown', event => {
   nextCell.focus();
 });
 
+// blur is like "change" but for contenteditable elements
+sudoku.addEventListener('blur', event => {
+  if (event.target.tagName == 'SPAN' && !event.target.textContent) return event.target.classList.remove('visible');
+}, true);
+
 document.querySelector('#stepper-up').addEventListener('click', () => {
   sizeOption.stepUp();
   sizeOption.dispatchEvent(new Event('change', { bubbles: true }));
@@ -98,4 +140,9 @@ cancelBtn.addEventListener('click', () => {
   globalThis.sudokuWorker.terminate();
   globalThis.sudokuWorker.dispatchEvent(new MessageEvent('message', { data: { type: 'cancel', message: 'user request' } }));
   delete globalThis.sudokuWorker;
+});
+
+document.querySelector('#toggle-notes-btn').addEventListener('click', event => {
+  if (sudoku.classList.toggle('notes-mode')) event.target.style.backgroundColor = 'green';
+  else event.target.style.removeProperty('background-color');
 });

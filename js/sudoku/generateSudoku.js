@@ -49,7 +49,19 @@ export function createHTMLBoard(size) {
         input.dataset.group = getGroupId(rowId, colId, boxSize) + 1;
         input.ariaLabel = `Row ${rowId + 1}, Column ${colId + 1}`;
 
+        const notesDiv = document.createElement('div');
+        notesDiv.classList.add('notes');
+        notesDiv.append(...Array.from({ length: 8 }, (_, i) => {
+          const noteSpan = document.createElement('span');
+          noteSpan.contentEditable = 'plaintext-only';
+
+          noteSpan.dataset.note = i + Number(i > 3) + 1; // skip no. 5 (middle one)
+
+          return noteSpan;
+        }));
+
         tCell.append(input);
+        tCell.append(notesDiv);
         tRow.append(tCell);
       }
 

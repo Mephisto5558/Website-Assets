@@ -7,7 +7,7 @@
   --foreground-color-secondary-inverted: #454545;
   --cell-size: 1.4rem;
   --sudoku-row-count: 9;
-  
+
   font-family: Arial, sans-serif;
   font-size: 250%;
 
@@ -53,20 +53,19 @@ button {
 }
 
 input:not([type='range']):hover,
-input[type='range']:hover::-webkit-slider-thumb,
-input[type='range']:hover::-moz-range-thumb,
-input[type='range']:hover::-webkit-slider-runnable-track,
-input[type='range']:hover::-moz-range-track {
+input[type='range']:hover:is(::-webkit-slider-thumb, ::-moz-range-thumb, ::-webkit-slider-runnable-track, ::-moz-range-track) {
   backdrop-filter: brightness(115%);
+}
+
+table#sudoku.notes-mode > tbody > tr > td > .notes > span:is([contenteditable="true"], [contenteditable="plaintext-only"]):hover {
+  backdrop-filter: brightness(125%);
 }
 
 button:hover,
 button:focus,
 input:not([type='range']):focus,
-input[type='range']:focus::-webkit-slider-thumb,
-input[type='range']:focus::-moz-range-thumb,
-input[type='range']:focus::-webkit-slider-runnable-track,
-input[type='range']:focus::-moz-range-track {
+input[type='range']:hover:is(::-webkit-slider-thumb, ::-moz-range-thumb, ::-webkit-slider-runnable-track, ::-moz-range-track),
+table#sudoku.notes-mode > tbody > tr > td > .notes > span:is([contenteditable="true"], [contenteditable="plaintext-only"]):focus {
   backdrop-filter: brightness(150%);
   outline: none;
 }
@@ -78,6 +77,14 @@ button:disabled {
 
 .hidden {
   display: none !important;
+}
+
+.invisible {
+  visibility: hidden !important;
+}
+
+.visible {
+  visibility: visible !important;
 }
 
 header {
@@ -188,8 +195,9 @@ table#sudoku {
   }
 
   & td {
+    position: relative;
     border: solid thin;
-    padding: 0;
+    padding: 1px;
     height: var(--cell-size);
     width: var(--cell-size);
 
@@ -214,6 +222,82 @@ table#sudoku {
         color: var(--foreground-color);
       }
     }
+
+    & > .notes {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 10%;
+
+      pointer-events: none;
+
+      & > span {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        visibility: hidden;
+        font-size: 0.25rem;
+        color: var(--foreground-color-secondary);
+
+        width: 80%;
+        height: 80%;
+
+        /* Row 1 */
+        &[data-note='1'] {
+          grid-area: 1 / 1;
+        }
+
+        &[data-note='2'] {
+          grid-area: 1 / 2;
+          justify-self: center;
+        }
+
+        &[data-note='3'] {
+          grid-area: 1 / 3;
+          justify-self: end;
+        }
+
+        /* Row 2 */
+        &[data-note='4'] {
+          grid-area: 2 / 1;
+          align-self: center;
+        }
+
+        &[data-note='6'] {
+          grid-area: 2 / 3;
+          justify-self: end;
+          align-self: center;
+        }
+
+        /* Row 3 */
+        &[data-note='7'] {
+          grid-area: 3 / 1;
+          align-self: end;
+        }
+
+        &[data-note='8'] {
+          grid-area: 3 / 2;
+          justify-self: center;
+          align-self: end;
+        }
+
+        &[data-note='9'] {
+          grid-area: 3 / 3;
+          justify-self: end;
+          align-self: end;
+        }
+      }
+    }
+  }
+
+  &.notes-mode td > .notes > span {
+    pointer-events: auto;
   }
 
   & .error td,
@@ -230,7 +314,7 @@ table#sudoku {
 }
 
 #number-overview {
-  grid-row: 2;
+  grid-row: 2 / calc(sqrt(var(--sudoku-row-count)) + 1);
   grid-column: 1;
   border-collapse: collapse;
   border: solid .04rem;
@@ -252,6 +336,13 @@ table#sudoku {
       }
     }
   }
+}
+
+#toggle-notes-btn {
+  grid-row: calc(sqrt(var(--sudoku-row-count)) + 2);
+  grid-column: 1;
+  justify-self: center;
+  width: 80%;
 }
 
 #settings-container {
@@ -361,14 +452,13 @@ table#sudoku {
 }
 
 #btn-container {
-  /*! grid-row: calc(var(--sudoku-row-count) + 3); */
+  grid-row: 4;
+  grid-column: 3;
+  gap: .5rem;
   margin: .1rem 0;
   display: flex;
   justify-content: space-between;
   justify-self: center;
-  gap: .5rem;
-  grid-row: 4;
-  grid-column: 3;
 }
 
 #message-container {
