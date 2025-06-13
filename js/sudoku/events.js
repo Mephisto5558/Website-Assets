@@ -38,7 +38,7 @@ sudoku.addEventListener('keypress', event => {
     else {
       /** @type {HTMLSpanElement} */
       const notes = [...event.target.nextSibling.childNodes];
-      note = notes.find(e => !e.textContent);
+      note = notes.find(e => !e.textContent || e.textContent === event.key);
       if (!note) {
         note = notes[0];
         note.textContent = '';
