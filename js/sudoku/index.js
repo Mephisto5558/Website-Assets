@@ -51,7 +51,8 @@ function updateBtnListeners(board, fullBoard) {
     if (solutionShown) {
       console.debug('Showing solution.');
       displayBoard(fullBoard, htmlBoard, numberOverviewSpans, true);
-      return event.target.textContent = 'Hide Solution';
+      event.target.textContent = 'Hide Solution';
+      return;
     }
 
     console.debug('Hiding solution.');
@@ -83,7 +84,8 @@ async function createSudokuWorker() {
       console.log('UI: Received result from worker.');
 
       resolveFunction?.(e.data.payload);
-      return resolveFunction = undefined;
+      resolveFunction = undefined;
+      return;
     }
 
     (console[e.data.type == 'progress' ? 'debug' : e.data.type] ?? console.log)('Worker: ' + e.data.message);
