@@ -1,6 +1,9 @@
 /** @typedef {import('.').FullBoard} FullBoard */
 /** @typedef {import('.').Board} Board */
 
+import { updateMinMax } from './utils.js';
+import { difficultySlider, sizeOption } from './constants.js';
+
 const BASE = 62n;
 const BASE_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -62,9 +65,15 @@ export function loadFromShareURL() {
     const totalCells = dimension * dimension;
     const base = BigInt(dimension + 1);
 
+    const maskString = base62ToBigInt(compressedMask).toString(2).padStart(totalCells, '0');
+
+    sizeOption.value = Math.sqrt(dimension);
+    difficultySlider.value = [...maskString].filter(e => e == 0).length;
+
+    updateMinMax();
+
     let solutionBigInt = base62ToBigInt(compressedSolution);
     const solutionNumbers = [];
-
     for (let i = 0; i < totalCells; i++) {
       const remainder = solutionBigInt % base;
       solutionNumbers.push(Number(remainder));
@@ -73,10 +82,8 @@ export function loadFromShareURL() {
 
     solutionNumbers.reverse();
 
-    const maskString = base62ToBigInt(compressedMask).toString(2).padStart(totalCells, '0');
     const board = [];
     const fullBoard = [];
-
     for (let rowId = 0; rowId < dimension; rowId++) {
       const boardRow = [];
       const fullBoardRow = [];

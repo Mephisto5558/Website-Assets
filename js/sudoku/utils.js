@@ -1,4 +1,4 @@
-import { DEFAULT_BOARD_SIZE, difficultySlider, MAX_HOLES_PERCENTAGE, MIN_HOLES_PERCENTAGE, MS_IN_SEC, numberOverviewSpans, SEC_IN_MIN, sizeOption, timer } from './constants.js';
+import { DEFAULT_BOARD_SIZE, difficultyOutput, difficultySlider, MAX_HOLES_PERCENTAGE, MIN_HOLES_PERCENTAGE, MS_IN_SEC, numberOverviewSpans, SEC_IN_MIN, sizeOption, timer } from './constants.js';
 
 /** @type {import('.')['setRootStyle']} */
 export function setRootStyle(key, value, priority) {
@@ -157,7 +157,7 @@ export function updateMinMax() {
 
   const holes = Number(difficultySlider.value) || rando(minHoles, maxHoles);
   difficultySlider.value = holes;
-  difficultySlider.parentElement.querySelector('output').textContent = holes;
+  difficultyOutput.textContent = holes;
 
   return { size, minHoles, maxHoles, holes };
 }
