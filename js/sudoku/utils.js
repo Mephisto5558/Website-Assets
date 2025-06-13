@@ -22,7 +22,7 @@ export async function saveToClipboard(value) {
   /* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions -- is `undefined` on HTTP pages */
   if (globalThis.navigator.clipboard) {
     await globalThis.navigator.clipboard.writeText(value);
-    return alert('Saved the link in your clipboard.');
+    return sendPopup('Saved the link in your clipboard.');
   }
 
   const copyArea = document.createElement('textarea');
@@ -36,11 +36,11 @@ export async function saveToClipboard(value) {
   try {
     /* eslint-disable-next-line @typescript-eslint/no-deprecated -- workaround for HTTP context*/
     if (!document.execCommand('copy')) throw new Error('Did not save');
-    alert('Saved the link in your clipboard.');
+    sendPopup('Saved the link in your clipboard.');
   }
   catch (err) {
     console.error('Could not copy to clipboard using document.execCommand:', err);
-    alert('Cold not copy the URL to your clipboard. Please copy it manually from the address bar.');
+    sendPopup('Cold not copy the URL to your clipboard. Please copy it manually from the address bar.');
   }
 
   copyArea.remove();
@@ -160,4 +160,8 @@ export function updateMinMax() {
   difficultyOutput.textContent = holes;
 
   return { size, minHoles, maxHoles, holes };
+}
+
+export function sendPopup(msg) {
+  return alert(msg);
 }

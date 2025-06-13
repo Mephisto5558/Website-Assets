@@ -7,7 +7,7 @@ import {
 } from './constants.js';
 import { createHTMLBoard, createHTMLOverviewSpans, displayBoard, getNumberAmounts } from './generateSudoku.js';
 import { generateShareURL, loadFromShareURL } from './shareSudoku.js';
-import { setRootStyle, getRootStyle, invertHex, saveToClipboard, initializeColorPicker, clearTimer, checkErrors, updateMinMax } from './utils.js';
+import { setRootStyle, getRootStyle, invertHex, saveToClipboard, initializeColorPicker, clearTimer, checkErrors, updateMinMax, sendPopup } from './utils.js';
 import __ from './events.js';
 
 document.documentElement.removeAttribute('style'); // remove temp background-color
@@ -169,7 +169,7 @@ async function regenerate(event, firstTime) {
     if (err?.type === 'cancel') return console.log('UI: Generation was successfully canceled.');
 
     console.error('An error occurred during Sudoku generation:', err);
-    alert('An unexpected error occurred during Sudoku generation. Please try again.');
+    sendPopup('An unexpected error occurred during Sudoku generation. Please try again.');
   }
   finally {
     clearTimeout(loadingTimeout);

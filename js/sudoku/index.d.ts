@@ -18,6 +18,7 @@ export function clearTimer(): void;
 export function updateNumberOverviewSpan(val: number, up?: boolean): void;
 export function checkErrors(htmlBoard: HTMLBoard): void;
 export function updateMinMax(): void;
+export function sendPopup(msg: string): void;
 
 declare global {
   /* eslint-disable vars-on-top, no-var, no-inner-declarations */
