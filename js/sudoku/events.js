@@ -27,7 +27,7 @@ sudoku.addEventListener('keypress', event => {
   if (!newNumber) return;
   if (newNumber > htmlBoard.length) {
     newNumber = Number(event.key);
-    if (newNumber > htmlBoard.length) return;
+    if (!newNumber || newNumber > htmlBoard.length) return;
   }
 
   if (!globalThis.timerInterval) startTimer();

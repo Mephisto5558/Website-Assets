@@ -3,13 +3,6 @@
 import { getGroupId } from './utils.js';
 
 /**
- * @param {Board} board
- * @returns {Map<number, number | undefined>} */
-export function getNumberAmounts(board) {
-  return board.flat().reduce((acc, e) => acc.set(e, (acc.get(e) ?? 0) + 1), new Map());
-}
-
-/**
  * @param {number} size
  * @throws {Error} on non-quadratic numbers */
 export function createHTMLBoard(size) {
@@ -124,10 +117,13 @@ export function displayBoard(board, htmlBoard, numberOverviewSpans, isSolution =
     if (!isSolution) delete cell.dataset.val;
   }
 
-  for (const [i, amt] of getNumberAmounts(board)) {
-    if (!i) continue;
+  const numberAmts = board.flat().reduce((acc, e) => {
+    acc[e - 1]++;
+    return acc;
+  }, Array.from({ length: board.length }, () => 0));
 
-    numberOverviewSpans[i - 1].textContent = amt;
-    numberOverviewSpans[i - 1].classList[globalThis.fullBoardNumberAmt.get(i) == amt ? 'add' : 'remove']('complete');
+  for (const [i, amt] of numberAmts.entries()) {
+    numberOverviewSpans[i].textContent = amt;
+    numberOverviewSpans[i].classList[amt == board.length ? 'add' : 'remove']('complete');
   }
 }

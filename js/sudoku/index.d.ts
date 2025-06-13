@@ -1,3 +1,4 @@
+/* eslint-disable-next-line @typescript-eslint/no-magic-numbers */
 type LowNum = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 export type CellInput = HTMLInputElement & { type: 'number'; dataset: { group: `${number}`; row: `${number}`; col: `${number}`; val?: `${number}` } };
@@ -26,6 +27,5 @@ declare global {
   var debugBoard: boolean;
   var timerInterval: number;
   var sudokuWorker: Worker | undefined;
-  var fullBoardNumberAmt: Map<number, number | undefined>;
   /* eslint-enable vars-on-top, no-var, no-inner-declarations */
 }

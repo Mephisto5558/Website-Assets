@@ -5,7 +5,7 @@ import {
   bgColorSwitcher, cancelBtn, DEFAULT_BOARD_SIZE, fgColorSwitcher, htmlBoard, loadingContainer,
   MS_IN_SEC, numberOverviewSpans, regenerateBtn, REPORT_PROD_WORKER_URL, shareBtn, solutionBtn
 } from './constants.js';
-import { createHTMLBoard, createHTMLOverviewSpans, displayBoard, getNumberAmounts } from './generateSudoku.js';
+import { createHTMLBoard, createHTMLOverviewSpans, displayBoard } from './generateSudoku.js';
 import { generateShareURL, loadFromShareURL } from './shareSudoku.js';
 import { setRootStyle, getRootStyle, invertHex, saveToClipboard, initializeColorPicker, clearTimer, checkErrors, updateMinMax, sendPopup } from './utils.js';
 import __ from './events.js';
@@ -144,8 +144,6 @@ async function regenerate(event, firstTime) {
       globalThis.sudokuWorker.postMessage({ size, holes, debugBoard: globalThis.debugBoard });
     });
 
-    /* eslint-disable-next-line require-atomic-updates -- globalThis won't change */
-    globalThis.fullBoardNumberAmt = getNumberAmounts(fullBoard);
     setRootStyle('--sudoku-row-count', board.length);
     document.documentElement.dataset.sudokuBoxSize = Math.sqrt(board.length);
 
