@@ -116,6 +116,6 @@ export function displayBoard(board, htmlBoard, numberOverviewSpans, isSolution =
     if (!i) continue;
 
     numberOverviewSpans[i - 1].textContent = amt;
-    if (globalThis.fullBoardNumberAmt.get(i) == amt) numberOverviewSpans[i - 1].classList.add('complete');
+    numberOverviewSpans[i - 1].classList[globalThis.fullBoardNumberAmt.get(i) == amt ? 'add' : 'remove']('complete');
   }
 }
