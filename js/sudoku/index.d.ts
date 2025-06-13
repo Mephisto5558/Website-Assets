@@ -18,3 +18,13 @@ export function clearTimer(): void;
 export function updateNumberOverviewSpan(val: number, up?: boolean): void;
 export function checkErrors(htmlBoard: HTMLBoard): void;
 export function updateMinMax(): void;
+
+declare global {
+  /* eslint-disable vars-on-top, no-var, no-inner-declarations */
+  var debug: boolean;
+  var debugBoard: boolean;
+  var timerInterval: number;
+  var sudokuWorker: Worker | undefined;
+  var fullBoardNumberAmt: Map<number, number | undefined>;
+  /* eslint-enable vars-on-top, no-var, no-inner-declarations */
+}
