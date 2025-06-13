@@ -37,6 +37,10 @@ body {
 button {
   font-size: .5rem;
   cursor: pointer;
+  background-color: rgba(0, 0, 0, .15);
+  padding: .1rem .2rem;
+  border-radius: .1rem;
+  border: none;
 }
 
 input:not([type='range']):hover,
@@ -343,13 +347,6 @@ table#sudoku {
   justify-content: space-between;
   justify-self: center;
   gap: .5rem;
-
-  & > * {
-    background-color: rgba(0, 0, 0, .15);
-    padding: .1rem .2rem;
-    border-radius: .1rem;
-    border: none;
-  }
 }
 
 #message-container {

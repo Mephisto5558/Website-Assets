@@ -1,4 +1,4 @@
-import { difficultyOutput, difficultySlider, htmlBoard, sizeOption, sudoku } from './constants.js';
+import { cancelBtn, difficultyOutput, difficultySlider, htmlBoard, sizeOption, sudoku } from './constants.js';
 import { checkErrors, startTimer, updateNumberOverviewSpan, updateMinMax } from './utils.js';
 
 export default undefined; // Needed to load it in without actually importing anything
@@ -93,3 +93,9 @@ document.querySelector('#stepper-down').addEventListener('click', () => {
 
 sizeOption.addEventListener('change', updateMinMax);
 difficultySlider.addEventListener('input', event => difficultyOutput.textContent = event.target.value);
+
+cancelBtn.addEventListener('click', () => {
+  globalThis.sudokuWorker.terminate();
+  globalThis.sudokuWorker.dispatchEvent(new MessageEvent('message', { data: { type: 'cancel', message: 'user request' } }));
+  delete globalThis.sudokuWorker;
+});

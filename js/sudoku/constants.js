@@ -1,6 +1,6 @@
 globalThis.debug = false;
 /* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, sonarjs/no-redundant-boolean, no-constant-binary-expression */
-globalThis.debugBoard = true && globalThis.debug;
+globalThis.debugBoard = false && globalThis.debug;
 
 export const DEFAULT_BOARD_SIZE = 9;
 export const MIN_HOLES_PERCENTAGE = .2;
@@ -27,4 +27,5 @@ export const
   /** @type {HTMLInputElement} */ sizeOption = document.querySelector('#size-option'),
   /** @type {HTMLInputElement} */ bgColorSwitcher = document.querySelector('#bg-color-switch'),
   /** @type {HTMLInputElement} */ fgColorSwitcher = document.querySelector('#fg-color-switch'),
-  /** @type {HTMLTimeElement} */ timer = document.querySelector('#timer');
+  /** @type {HTMLTimeElement} */ timer = document.querySelector('#timer'),
+  /** @type {HTMLButtonElement} */ cancelBtn = document.querySelector('#cancel-loading');

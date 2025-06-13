@@ -1,7 +1,10 @@
 /** @typedef {import('.').CellInput} CellInput */
 /** @typedef {import('.').CellList} CellList */
 
-import { bgColorSwitcher, DEFAULT_BOARD_SIZE, fgColorSwitcher, htmlBoard, loadingContainer, MS_IN_SEC, numberOverviewSpans, regenerateBtn, REPORT_PROD_WORKER_URL, shareBtn, solutionBtn } from './constants.js';
+import {
+  bgColorSwitcher, DEFAULT_BOARD_SIZE, fgColorSwitcher, htmlBoard, loadingContainer,
+  MS_IN_SEC, numberOverviewSpans, regenerateBtn, REPORT_PROD_WORKER_URL, shareBtn, solutionBtn
+} from './constants.js';
 import { createHTMLBoard, createHTMLOverviewSpans, displayBoard, getNumberAmounts } from './generateSudoku.js';
 import { generateShareURL, loadFromShareURL } from './shareSudoku.js';
 import { setRootStyle, getRootStyle, invertHex, saveToClipboard, initializeColorPicker, clearTimer, checkErrors, updateMinMax } from './utils.js';
@@ -60,18 +63,22 @@ function updateBtnListeners(board, fullBoard) {
   solutionBtn.addEventListener('click', solutionEventListener);
 }
 
-async function createCrossDomainWorker(url) {
+let workerBlobURL;
+async function fetchScript(url) {
   const workerScript = await fetch(url).then(res => res.text());
-  const blobUrl = URL.createObjectURL(new Blob([workerScript], { type: 'application/javascript' }));
-
-  return new Worker(blobUrl);
+  return URL.createObjectURL(new Blob([workerScript], { type: 'application/javascript' }));
 }
 
-let resolveFunction;
+let resolveFunction, rejectFunction;
 async function createSudokuWorker() {
-  const sudokuWorker = await createCrossDomainWorker(globalThis.debug ? './sudoku.worker.js' : REPORT_PROD_WORKER_URL);
+  workerBlobURL ??= await fetchScript(globalThis.debug ? './sudoku.worker.js' : REPORT_PROD_WORKER_URL);
+  const sudokuWorker = new Worker(workerBlobURL);
 
   sudokuWorker.addEventListener('message', e => {
+    if (e.data.type == 'cancel') {
+      console.log(`UI: Canceling worker generation${e.data.message ? ' due to ' + e.data.message : ''}.`);
+      return rejectFunction?.(e.data);
+    }
     if (e.data.type == 'result') {
       console.log('UI: Received result from worker.');
 
@@ -87,7 +94,6 @@ async function createSudokuWorker() {
   return sudokuWorker;
 }
 
-let sudokuWorker;
 let showedLoading = false;
 let isGenerating = false;
 
@@ -127,14 +133,15 @@ async function regenerate(event, firstTime) {
       console.log(`Size: ${size}, Holes: ${holes}/${maxHoles} (min: ${minHoles})`);
 
     /* eslint-disable-next-line require-atomic-updates -- safe due to being in a try*/
-    sudokuWorker ??= await createSudokuWorker();
+    globalThis.sudokuWorker ??= await createSudokuWorker();
 
     /** @type {{ fullBoard: import('.').FullBoard, board: import('.').Board }} */
-    const { fullBoard, board } = loadFromShareURL() ?? await new Promise(res => {
+    const { fullBoard, board } = loadFromShareURL() ?? await new Promise((res, rej) => {
       resolveFunction = res;
+      rejectFunction = rej;
 
       console.log('UI: Posting task to worker...');
-      sudokuWorker.postMessage({ size, holes, debugBoard: globalThis.debugBoard });
+      globalThis.sudokuWorker.postMessage({ size, holes, debugBoard: globalThis.debugBoard });
     });
 
     /* eslint-disable-next-line require-atomic-updates -- globalThis won't change */
@@ -158,6 +165,12 @@ async function regenerate(event, firstTime) {
 
     updateBtnListeners(board, fullBoard);
   }
+  catch (err) {
+    if (err?.type === 'cancel') return console.log('UI: Generation was successfully canceled.');
+
+    console.error('An error occurred during Sudoku generation:', err);
+    alert('An unexpected error occurred during Sudoku generation. Please try again.');
+  }
   finally {
     clearTimeout(loadingTimeout);
     if (showedLoading) {
@@ -169,6 +182,9 @@ async function regenerate(event, firstTime) {
 
   /* eslint-disable-next-line require-atomic-updates -- false positive: can never execute if the variable is already false */
   isGenerating = false;
+  resolveFunction = undefined;
+  rejectFunction = undefined;
+
   if (event) event.target.disabled = false;
 }
 
