@@ -2,7 +2,7 @@
 /** @typedef {import('.').CellList} CellList */
 
 import {
-  bgColorSwitcher, DEFAULT_BOARD_SIZE, fgColorSwitcher, htmlBoard, loadingContainer,
+  bgColorSwitcher, cancelBtn, DEFAULT_BOARD_SIZE, fgColorSwitcher, htmlBoard, loadingContainer,
   MS_IN_SEC, numberOverviewSpans, regenerateBtn, REPORT_PROD_WORKER_URL, shareBtn, solutionBtn
 } from './constants.js';
 import { createHTMLBoard, createHTMLOverviewSpans, displayBoard, getNumberAmounts } from './generateSudoku.js';
@@ -106,7 +106,8 @@ async function regenerate(event, firstTime) {
 
   if (event) event.target.disabled = true;
 
-  if (!firstTime) {
+  if (firstTime) cancelBtn.classList.add('invisible');
+  else {
     const url = new URL(globalThis.location.href);
     url.search = '';
 
@@ -184,6 +185,7 @@ async function regenerate(event, firstTime) {
     resolveFunction = undefined;
     rejectFunction = undefined;
     if (event) event.target.disabled = false;
+    if (firstTime) cancelBtn.classList.remove('invisible');
   }
 }
 
