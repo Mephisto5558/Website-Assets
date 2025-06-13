@@ -5,8 +5,8 @@
   --foreground-color-inverted: #fff;
   --foreground-color-secondary: #bababa;
   --foreground-color-secondary-inverted: #454545;
-  --cell-size: 1.4rem;
   --sudoku-row-count: 9;
+  --cell-size: min(calc(95vw / var(--sudoku-row-count)), calc(75vh / var(--sudoku-row-count)));
 
   font-family: Arial, sans-serif;
   font-size: 250%;
@@ -41,6 +41,10 @@ body {
 body {
   background-color: var(--background-color);
   color: var(--foreground-color);
+  
+  & > * {
+    box-sizing: border-box;
+  }
 }
 
 button {
@@ -92,6 +96,7 @@ header {
   padding: .1rem .2rem;
   background: rgba(0, 0, 0, .1);
   font-size: 40%;
+  width: 100vw;
 
   & > #timer {
     align-self: center;
@@ -188,6 +193,7 @@ table#sudoku {
   justify-self: center;
   margin: 0 1rem;
   height: fit-content;
+  font-size: 2.5vw;
 
   & > colgroup,
   & > tbody {
@@ -202,14 +208,19 @@ table#sudoku {
     width: var(--cell-size);
 
     & > input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+
       background-color: transparent;
       color: var(--foreground-color-inverted);
       border: none;
       appearance: textfield;
       text-align: center;
       padding: 0;
-      width: 100%;
-      height: 100%;
       font-size: inherit;
 
       &::-webkit-outer-spin-button,
@@ -354,7 +365,7 @@ table#sudoku {
   align-items: center;
   font-size: 30%;
   margin: .5rem 0;
-  grid-row: 1;
+  grid-row: 2;
   grid-column: 3;
 
   & > datalist {
@@ -487,76 +498,3 @@ table#sudoku {
 #sudoku:is(:has(tbody .error), :has(tbody > tr > td > input:is(:invalid, .solution))) ~ #message-container {
   display: none;
 }
-
-/* 
-@media (max-width: 600px) {
-  #sudoku-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1rem 0;
-  }
-
-  table#sudoku {
-    order: 1;
-  }
-
-  #timer {
-    order: 2;
-  }
-
-  #number-overview {
-    order: 3;
-  }
-
-  #difficulty-container {
-    order: 4;
-  }
-
-  #btn-container {
-    order: 5;
-  }
-
-  #message-container {
-    order: 6;
-  }
-
-  table#sudoku {
-    width: 95vw;
-    max-width: 500px;
-    /* prevents being to big on large tablets 
-    margin-bottom: 1.5rem;
-
-    & > tbody > tr > td {
-      height: auto;
-
-      & > input {
-        font-size: 5.5vw;
-      }
-    }
-  }
-
-  #timer {
-    font-size: 8vw;
-    top: .1rem;
-  }
-
-  #number-overview {
-    font-size: 4vw;
-  }
-
-  #difficulty-container {
-    width: 80%;
-  }
-
-  #btn-container {
-    width: 80%;
-    gap: 2rem;
-
-    & > button {
-      font-size: 4.5vw;
-      padding: .5rem .8rem;
-    }
-  } 
-}
-*/
