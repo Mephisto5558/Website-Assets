@@ -35,4 +35,4 @@ export declare namespace vote {
   function sendUpvote(cardId: Card['id'], voteCounter: HTMLElement): Promise<void>;
 }
 
-declare function loadLocal(elementType: 'css' | 'script', localPath: string, remotePath: string, module?: boolean): void;
+declare function loadLocal(elementType: 'css' | 'script', localPath: string, remotePath: string, args: Record<string, unknown>): void;
