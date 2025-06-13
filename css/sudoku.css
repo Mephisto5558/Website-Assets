@@ -1,6 +1,5 @@
 :root {
   font-family: Arial, sans-serif;
-  font-size: 250%;
   /* requires hex values */
   --background-color: #2f4f4f;
   --foreground-color: #000;
@@ -9,6 +8,18 @@
   --foreground-color-secondary-inverted: #454545;
   --cell-size: 1.4rem;
   --sudoku-row-count: 9;
+
+  font-size: 250%;
+
+  /* not supported in firefox yet: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_size_and_style_queries#browser_compatibility */
+  /* @container style(--sudoku-row-count) { */
+  &[data-sudoku-box-size='4'] {
+    font-size: 150%;
+  }
+
+  &[data-sudoku-box-size='5'] {
+    font-size: 125%;
+  }
 }
 
 @keyframes fadeOut {
@@ -380,20 +391,6 @@ table#sudoku {
 
 #sudoku:is(:has(tbody .error), :has(tbody > tr > td > input:is(:invalid, .solution))) ~ #message-container {
   display: none;
-}
-
-/* not supported in firefox yet: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_size_and_style_queries#browser_compatibility */
-/* @container style(--sudoku-row-count) { */
-:root[data-sudoku-box-size='2'],
-:root[data-sudoku-box-size='3'] {
-}
-
-:root[data-sudoku-box-size='4'] {
-  font-size: 150%;
-}
-
-:root[data-sudoku-box-size='5'] {
-  font-size: 125%;
 }
 
 /* 
