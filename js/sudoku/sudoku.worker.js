@@ -73,7 +73,7 @@ function solver(board, { findJustOne = true, useRandomSequence = true } = {}) {
     const [nextRowId, nextColId] = colId === size - 1 ? [rowId + 1, 0] : [rowId, colId + 1];
     if (board[rowId][colId] !== 0) return run(nextRowId, nextColId);
 
-    sendProgress(`Generating row ${rowId}/${board.length}, column ${colId}/${board.length}`);
+    sendProgress(`Generating row ${rowId.toString().padStart(board.length.toString().length, '0')}/${board.length}, column ${colId.toString().padStart(board.length.toString().length, '0')}/${board.length}`);
 
     const boxId = getGroupId(rowId, colId, boxSize);
     const valuesToTry = useRandomSequence ? randoSequence(1, size) : Array.from({ length: size }, (_, i) => i + 1);

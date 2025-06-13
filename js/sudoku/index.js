@@ -116,8 +116,7 @@ async function regenerate(event, firstTime) {
   const loadingTimeout = setTimeout(() => {
     showedLoading = true;
 
-    loadingContainer.classList.remove('hiding');
-    loadingContainer.style.removeProperty('display');
+    loadingContainer.classList.remove('hiding', 'hidden');
   }, MS_IN_SEC / 10);
 
   try {
@@ -147,6 +146,7 @@ async function regenerate(event, firstTime) {
     /* eslint-disable-next-line require-atomic-updates -- globalThis won't change */
     globalThis.fullBoardNumberAmt = getNumberAmounts(fullBoard);
     setRootStyle('--sudoku-row-count', board.length);
+    document.documentElement.dataset.sudokuBoxSize = Math.sqrt(board.length);
 
     if (fullBoard.length != htmlBoard.length) {
       createHTMLBoard(globalThis.debugBoard ? DEFAULT_BOARD_SIZE : fullBoard.length);
@@ -175,17 +175,16 @@ async function regenerate(event, firstTime) {
     clearTimeout(loadingTimeout);
     if (showedLoading) {
       loadingContainer.classList.add('hiding');
-      loadingContainer.addEventListener('animationend', () => loadingContainer.style.display = 'none', { once: true });
+      loadingContainer.addEventListener('animationend', () => loadingContainer.classList.add('hidden'), { once: true });
     }
-    else loadingContainer.style.display = 'none';
+    else loadingContainer.classList.add('hidden');
+
+    /* eslint-disable-next-line require-atomic-updates -- false positive: can never execute if the variable is already false */
+    isGenerating = false;
+    resolveFunction = undefined;
+    rejectFunction = undefined;
+    if (event) event.target.disabled = false;
   }
-
-  /* eslint-disable-next-line require-atomic-updates -- false positive: can never execute if the variable is already false */
-  isGenerating = false;
-  resolveFunction = undefined;
-  rejectFunction = undefined;
-
-  if (event) event.target.disabled = false;
 }
 
 regenerateBtn.addEventListener('click', regenerate);

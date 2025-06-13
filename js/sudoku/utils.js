@@ -27,7 +27,7 @@ export async function saveToClipboard(value) {
 
   const copyArea = document.createElement('textarea');
   copyArea.value = value;
-  copyArea.style.display = 'none';
+  copyArea.classList.add('hidden');
 
   document.body.append(copyArea);
   copyArea.focus({ preventScroll: true });

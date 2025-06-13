@@ -9,8 +9,6 @@
   --foreground-color-secondary-inverted: #454545;
   --cell-size: 1.4rem;
   --sudoku-row-count: 9;
-  --row-count: var(--sudoku-row-count) + 1
-    /* adds caption */
 }
 
 @keyframes fadeOut {
@@ -60,6 +58,15 @@ input[type='range']:focus::-webkit-slider-runnable-track,
 input[type='range']:focus::-moz-range-track {
   backdrop-filter: brightness(150%);
   outline: none;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  backdrop-filter: none;
+}
+
+.hidden {
+  display: none !important;
 }
 
 header {
@@ -143,7 +150,7 @@ header {
 }
 
 #sudoku-container {
-  padding-top: .5rem;
+  padding: .5rem .2rem 0;
   gap: .1rem;
   justify-content: center;
   display: grid;
@@ -153,15 +160,11 @@ header {
 
 table#sudoku {
   border-collapse: collapse;
-  grid-column: span 1;
-  grid-row: 1 / var(--row-count);
+  grid-column: 2;
+  grid-row: 1 / var(--sudoku-row-count);
   justify-self: center;
   margin: 0 1rem;
   height: fit-content;
-
-  & > caption {
-    height: var(--cell-size);
-  }
 
   & > colgroup,
   & > tbody {
@@ -212,7 +215,7 @@ table#sudoku {
 
 #number-overview {
   grid-row: 2;
-  grid-column: 2;
+  grid-column: 1;
   border-collapse: collapse;
   border: solid .04rem;
   justify-self: left;
@@ -236,7 +239,6 @@ table#sudoku {
 }
 
 #settings-container {
-  grid-row: calc(var(--row-count)) / calc(var(--row-count) + 2);
   justify-self: center;
   width: 75%;
   max-width: 95%;
@@ -245,6 +247,8 @@ table#sudoku {
   align-items: center;
   font-size: 30%;
   margin: .5rem 0;
+  grid-row: 1;
+  grid-column: 3;
 
   & > datalist {
     width: 100%;
@@ -341,19 +345,21 @@ table#sudoku {
 }
 
 #btn-container {
-  grid-row: calc(var(--row-count) + 3);
+  /*! grid-row: calc(var(--sudoku-row-count) + 3); */
   margin: .1rem 0;
   display: flex;
   justify-content: space-between;
   justify-self: center;
   gap: .5rem;
+  grid-row: 4;
+  grid-column: 3;
 }
 
 #message-container {
-  grid-column: span 2;
-  grid-row: calc(var(--row-count) + 3);
-  width: max-content;
+  grid-column: 2;
+  grid-row: calc(var(--sudoku-row-count) + 1);
   height: max-content;
+  text-align: center;
 
   & > #error-info {
     color: red;
@@ -372,6 +378,25 @@ table#sudoku {
   display: none;
 }
 
+#sudoku:is(:has(tbody .error), :has(tbody > tr > td > input:is(:invalid, .solution))) ~ #message-container {
+  display: none;
+}
+
+/* not supported in firefox yet: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_size_and_style_queries#browser_compatibility */
+/* @container style(--sudoku-row-count) { */
+:root[data-sudoku-box-size='2'],
+:root[data-sudoku-box-size='3'] {
+}
+
+:root[data-sudoku-box-size='4'] {
+  font-size: 150%;
+}
+
+:root[data-sudoku-box-size='5'] {
+  font-size: 125%;
+}
+
+/* 
 @media (max-width: 600px) {
   #sudoku-container {
     display: flex;
@@ -407,7 +432,7 @@ table#sudoku {
   table#sudoku {
     width: 95vw;
     max-width: 500px;
-    /* prevents being to big on large tablets */
+    /* prevents being to big on large tablets 
     margin-bottom: 1.5rem;
 
     & > tbody > tr > td {
@@ -440,5 +465,6 @@ table#sudoku {
       font-size: 4.5vw;
       padding: .5rem .8rem;
     }
-  }
+  } 
 }
+*/
