@@ -2,7 +2,7 @@
 /** @typedef {import('.').CellList} CellList */
 
 import { bgColorSwitcher, DEFAULT_BOARD_SIZE, fgColorSwitcher, htmlBoard, loadingContainer, MS_IN_SEC, numberOverviewSpans, regenerateBtn, REPORT_PROD_WORKER_URL, shareBtn, solutionBtn } from './constants.js';
-import { createHTMLBoard, displayBoard, getNumberAmounts } from './generateSudoku.js';
+import { createHTMLBoard, createHTMLOverviewSpans, displayBoard, getNumberAmounts } from './generateSudoku.js';
 import { generateShareURL, loadFromShareURL } from './shareSudoku.js';
 import { setRootStyle, getRootStyle, invertHex, saveToClipboard, initializeColorPicker, clearTimer, checkErrors, updateMinMax } from './utils.js';
 import __ from './events.js';
@@ -145,6 +145,10 @@ async function regenerate(event, firstTime) {
       createHTMLBoard(globalThis.debugBoard ? DEFAULT_BOARD_SIZE : fullBoard.length);
       htmlBoard.length = 0;
       htmlBoard.push(...[...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild)));
+
+      createHTMLOverviewSpans(globalThis.debugBoard ? DEFAULT_BOARD_SIZE : fullBoard.length);
+      numberOverviewSpans.length = 0;
+      numberOverviewSpans.push(...document.querySelectorAll('#number-overview > tbody > tr > td > span'));
     }
 
     displayBoard(board, htmlBoard, numberOverviewSpans);

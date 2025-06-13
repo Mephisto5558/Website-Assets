@@ -36,7 +36,7 @@ export function createHTMLBoard(size) {
       const tRow = document.createElement('tr');
       const rowId = bodyI * boxSize + rowI;
 
-      for (let k = 0; k < size; k++) {
+      for (let colId = 0; colId < size; colId++) {
         const tCell = document.createElement('td');
         const input = document.createElement('input');
         input.type = 'number';
@@ -44,7 +44,6 @@ export function createHTMLBoard(size) {
         input.required = true;
         input.autocomplete = 'off';
 
-        const colId = k;
         input.dataset.row = rowId + 1;
         input.dataset.col = colId + 1;
         input.dataset.group = getGroupId(rowId, colId, boxSize) + 1;
@@ -59,6 +58,39 @@ export function createHTMLBoard(size) {
 
     sudokuTable.append(tBody);
   }
+}
+
+/**
+ * @param {number} size
+ * @throws {Error} on non-quadratic numbers */
+export function createHTMLOverviewSpans(size) {
+  const boxSize = Math.sqrt(size);
+  if (!Number.isInteger(boxSize)) throw new Error('Size must be quadratic.');
+
+  console.debug(`Creating HTML overview span of size ${size}`);
+  const numberOverviewTable = document.querySelector('#number-overview');
+  numberOverviewTable.innerHTML = '';
+
+  const tBody = document.createElement('tbody');
+  for (let rowId = 0; rowId < boxSize; rowId++) {
+    const tRow = document.createElement('tr');
+
+    for (let colId = 0; colId < boxSize; colId++) {
+      const tCell = document.createElement('td');
+      const span = document.createElement('span');
+
+      span.textContent = '0';
+      tCell.textContent = `${boxSize * rowId + colId + 1}: `;
+
+      tCell.append(span);
+      tRow.append(tCell);
+    }
+
+    tBody.append(tRow);
+  }
+
+  numberOverviewTable.append(tBody);
+  return numberOverviewTable;
 }
 
 /**
@@ -81,7 +113,7 @@ export function displayBoard(board, htmlBoard, numberOverviewSpans, isSolution =
   }
 
   for (const [i, amt] of getNumberAmounts(board)) {
-    if (!i || !numberOverviewSpans[i - 1]) continue; // TODO: Implement dynamic overview generation
+    if (!i) continue;
 
     numberOverviewSpans[i - 1].textContent = amt;
     if (globalThis.fullBoardNumberAmt.get(i) == amt) numberOverviewSpans[i - 1].classList.add('complete');

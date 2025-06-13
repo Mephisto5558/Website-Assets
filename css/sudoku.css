@@ -216,12 +216,13 @@ table#sudoku {
 
   & > tbody > tr > td {
     border: solid .01rem;
-    width: 1.4rem;
+    min-width: 1rem;
+    width: min-content;
     padding: .3rem;
 
     & > span {
       color: var(--foreground-color-secondary);
-      /* todo: --foreground-color*/
+      float: right;
 
       &.complete {
         color: #19be14;
