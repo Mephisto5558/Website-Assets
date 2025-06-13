@@ -89,8 +89,15 @@ export function clearTimer() {
 export function updateNumberOverviewSpan(val, up = true) {
   const span = numberOverviewSpans[val - 1];
   span.textContent = Number(span.textContent) + (up ? 1 : -1);
-  if (globalThis.fullBoardNumberAmt.get(val) == span.textContent)
+  if (globalThis.fullBoardNumberAmt.get(val) == span.textContent) {
     span.classList.add('complete');
+    for (const noteSpan of document.querySelectorAll('#sudoku td > .notes > span')) {
+      if (noteSpan.textContent != val) continue;
+
+      noteSpan.textContent = '';
+      noteSpan.classList.remove('visible');
+    }
+  }
   else span.classList.remove('complete');
 
   if (!numberOverviewSpans.some(e => !e.classList.contains('complete')))
