@@ -78,6 +78,8 @@ async function createSudokuWorker() {
   sudokuWorker.addEventListener('message', e => {
     if (e.data.type == 'cancel') {
       console.log(`UI: Canceling worker generation${e.data.message ? ' due to ' + e.data.message : ''}.`);
+      sendPopup('Canceled');
+
       return rejectFunction?.(e.data);
     }
     if (e.data.type == 'result') {
@@ -170,7 +172,7 @@ async function regenerate(event, firstTime) {
     if (err?.type === 'cancel') return console.log('UI: Generation was successfully canceled.');
 
     console.error('An error occurred during Sudoku generation:', err);
-    sendPopup('An unexpected error occurred during Sudoku generation. Please try again.');
+    sendPopup('Error', 'An unexpected error occurred during Sudoku generation. Please try again.');
   }
   finally {
     clearTimeout(loadingTimeout);

@@ -1,5 +1,8 @@
 import { DEFAULT_BOARD_SIZE, difficultyOutput, difficultySlider, MAX_HOLES_PERCENTAGE, MIN_HOLES_PERCENTAGE, MS_IN_SEC, numberOverviewSpans, SEC_IN_MIN, sizeOption, timer } from './constants.js';
 
+const popupTileElement = document.querySelector('#popup-container > h3')
+const popupPElement = document.querySelector('#popup-container > p')
+
 /** @type {import('.')['setRootStyle']} */
 export function setRootStyle(key, value, priority) {
   return document.documentElement.style.setProperty(key, value, priority);
@@ -40,7 +43,7 @@ export async function saveToClipboard(value) {
   }
   catch (err) {
     console.error('Could not copy to clipboard using document.execCommand:', err);
-    sendPopup('Cold not copy the URL to your clipboard. Please copy it manually from the address bar.');
+    sendPopup('Error', 'Cold not copy the URL to your clipboard. Please copy it manually from the address bar.');
   }
 
   copyArea.remove();
@@ -169,6 +172,11 @@ export function updateMinMax() {
   return { size, minHoles, maxHoles, holes };
 }
 
-export function sendPopup(msg) {
-  return alert(msg);
+/** @type {import('.')['sendPopup']} */
+export function sendPopup(title, text = title) {
+  if (title !== text) popupTileElement.textContent = title;
+  popupPElement.textContent = text;
+
+  popupTileElement.parentElement.classList.add('visible');
+  setTimeout(() => popupTileElement.parentElement.classList.remove('visible'), MS_IN_SEC * 3);
 }
