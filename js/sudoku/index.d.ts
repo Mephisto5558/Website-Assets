@@ -2,8 +2,11 @@
 type LowNum = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 export type CellInput = HTMLInputElement & { type: 'number'; dataset: { group: `${number}`; row: `${number}`; col: `${number}`; val?: `${number}` } };
-export type Cell = HTMLTableCaptionElement & { firstChild: CellInput };
+export type Cell = HTMLTableCaptionElement & { firstChild: CellInput; childNodes: [CellInput, NoteDiv]; children: [CellInput, NoteDiv] };
 export type HTMLBoard = CellInput[][];
+
+export type NoteDiv = HTMLDivElement & { childNodes: NodeListOf<NoteElement> };
+export type NoteElement = HTMLSpanElement & { dataset: { note: `${number}` } };
 
 export type Board = LowNum[][];
 export type FullBoard = Exclude<LowNum, 0>[][];

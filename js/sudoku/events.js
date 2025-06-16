@@ -1,81 +1,88 @@
 import { cancelBtn, difficultyOutput, difficultySlider, htmlBoard, sizeOption, sudoku } from './constants.js';
-import { checkErrors, startTimer, updateNumberOverviewSpan, updateMinMax } from './utils.js';
+import { checkErrors, startTimer, updateNumberOverviewSpan, updateMinMax, sendPopup } from './utils.js';
 
 export default undefined; // Needed to load it in without actually importing anything
+
+/**
+ * @param {HTMLInputElement} target
+ * @param {string} key */
+function handleNormalInput(target, key) {
+  let newNumber = Number(target.value + key);
+  if (newNumber > htmlBoard.length) newNumber = Number(key);
+
+  if (target.value) updateNumberOverviewSpan(Number(target.value), false);
+
+  target.value = newNumber;
+  updateNumberOverviewSpan(newNumber, true);
+  checkErrors(htmlBoard);
+}
+
+/**
+ * @param {HTMLInputElement | HTMLSpanElement} target
+ * @param {string} key */
+function handleNotesInput(target, key) {
+  /** @type {import('.').NoteElement | undefined} */
+  let noteSpan;
+
+  if (target.tagName == 'SPAN') noteSpan = target;
+  else if (target.tagName == 'INPUT') {
+    /** @type {import('.').NoteElement[]} */
+    const notes = [...target.parentElement.querySelector('.notes').children];
+    noteSpan = notes.find(span => !span.textContent || span.textContent === key);
+  }
+
+  if (!noteSpan) return sendPopup('Notes full', `Your notes in row ${target.parentElement.firstChild.dataset.row}, column ${target.parentElement.firstChild.dataset.row} are full!\nYou can edit one by clicking on it.`);
+
+  let newNumber = Number(noteSpan.textContent + key);
+  if (newNumber > htmlBoard.length) newNumber = Number(key);
+
+  noteSpan.textContent = newNumber;
+  noteSpan.classList.add('visible');
+}
+
+/** @param {HTMLSpanElement} target */
+function clearNote(target) {
+  target.textContent = '';
+  target.classList.remove('visible');
+}
+
+/** @param {HTMLInputElement} target */
+function clearInput(target) {
+  updateNumberOverviewSpan(Number(target.value), false);
+
+  target.value = '';
+  checkErrors(htmlBoard);
+}
 
 sudoku.addEventListener('keypress', event => {
   event.preventDefault();
 
   const notesMode = sudoku.classList.contains('notes-mode');
+
   if (event.key === ' ') {
-    if (notesMode) {
-      if (event.target.tagName != 'SPAN') return;
+    if (notesMode && event.target.matches('.notes > span'))
+      return clearNote(event.target);
 
-      event.target.textContent = '';
-      return event.target.classList.remove('visible');
-    }
-
-    if (event.target.value) updateNumberOverviewSpan(Number(event.target.value), false);
-
-    event.target.value = '';
-    return checkErrors(htmlBoard);
+    if (!notesMode && event.target.matches('input') && event.target.value)
+      return clearInput(event.target);
   }
 
-  if (!/^\d$/.test(event.key)) return;
-
-  let newNumber = Number(event.target[notesMode ? 'textContent' : 'value'] + event.key);
-  if (!newNumber) return;
-  if (newNumber > htmlBoard.length) {
-    newNumber = Number(event.key);
-    if (!newNumber || newNumber > htmlBoard.length) return;
-  }
+  if (!/^[1-9]\d*$/.test(event.key)) return;
 
   if (!globalThis.timerInterval) startTimer();
 
-  if (notesMode) {
-    let note;
-    if (event.target.tagName == 'SPAN') note = event.target;
-    else {
-      /** @type {HTMLSpanElement} */
-      const notes = [...event.target.nextSibling.childNodes];
-      note = notes.find(e => !e.textContent || e.textContent === event.key);
-      if (!note) {
-        note = notes[0];
-        note.textContent = '';
-      }
-    }
-
-    note.classList.add('visible');
-    note.textContent = newNumber;
-
-    return;
-  }
-
-  if (event.target.value) updateNumberOverviewSpan(Number(event.target.value), false);
-
-  event.target.value = newNumber;
-  updateNumberOverviewSpan(newNumber, true);
-
-  checkErrors(htmlBoard);
+  if (notesMode) return handleNotesInput(event.target, event.key);
+  if (event.target.matches('input')) return handleNormalInput(event.target, event.key);
 });
 
-const eventKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'];
+const eventKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End', 'Backspace'];
 sudoku.addEventListener('keydown', event => {
-  if (event.key === 'Enter' && event.target.tagName == 'SPAN') {
-    event.preventDefault();
-    return event.target.blur();
-  }
+  if (eventKeys.includes(event.key) && event.target.tagName != 'INPUT') event.preventDefault();
 
-  if (event.target.tagName != 'INPUT') return;
-  if (event.key == 'Backspace') {
-    updateNumberOverviewSpan(Number(event.target.value), false);
+  if (event.key === 'Enter' && event.target.tagName == 'SPAN') return event.target.blur();
+  if (event.target.tagName != 'INPUT' || !eventKeys.includes(event.key)) return;
+  if (event.key == eventKeys[7]) return clearInput(event.target);
 
-    event.target.value = '';
-    checkErrors(htmlBoard);
-    return event.preventDefault();
-  }
-
-  if (!eventKeys.includes(event.key)) return;
   event.preventDefault();
 
   const boardMax = htmlBoard.length - 1;
