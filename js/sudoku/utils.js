@@ -1,7 +1,7 @@
 import { DEFAULT_BOARD_SIZE, difficultyOutput, difficultySlider, MAX_HOLES_PERCENTAGE, MIN_HOLES_PERCENTAGE, MS_IN_SEC, numberOverviewSpans, SEC_IN_MIN, sizeOption, timer } from './constants.js';
 
-const popupTileElement = document.querySelector('#popup-container > h3')
-const popupPElement = document.querySelector('#popup-container > p')
+const popupTileElement = document.querySelector('#popup-container > h3');
+const popupPElement = document.querySelector('#popup-container > p');
 
 /** @type {import('.')['setRootStyle']} */
 export function setRootStyle(key, value, priority) {
