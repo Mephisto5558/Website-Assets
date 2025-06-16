@@ -1,32 +1,6 @@
 globalThis.window = globalThis; // polyfill for rando
 globalThis.importScripts('https://cdn.jsdelivr.net/gh/nastyox/Rando.js@master/code/plain-javascript/2.0.0/rando-min.js');
 
-const DEBUG_BOARDS = {
-  board: [
-    /* eslint-disable @typescript-eslint/no-magic-numbers */
-    [6, 5, 8, 4, 2, 0, 0, 0, 0],
-    [0, 2, 3, 7, 0, 0, 4, 0, 0],
-    [4, 1, 7, 6, 0, 9, 0, 0, 5],
-    [0, 0, 6, 8, 0, 5, 7, 4, 2],
-    [0, 9, 2, 3, 0, 7, 5, 6, 1],
-    [7, 4, 5, 1, 6, 2, 9, 0, 8],
-    [0, 0, 1, 5, 0, 4, 2, 8, 0],
-    [0, 7, 0, 9, 8, 0, 0, 5, 0],
-    [5, 0, 9, 2, 0, 3, 6, 0, 4]
-  ],
-  fullBoard: [
-    [6, 5, 8, 4, 2, 1, 3, 9, 7],
-    [9, 2, 3, 7, 5, 8, 4, 1, 6],
-    [4, 1, 7, 6, 3, 9, 8, 2, 5],
-    [1, 3, 6, 8, 9, 5, 7, 4, 2],
-    [8, 9, 2, 3, 4, 7, 5, 6, 1],
-    [7, 4, 5, 1, 6, 2, 9, 3, 8],
-    [3, 6, 1, 5, 7, 4, 2, 8, 9],
-    [2, 7, 4, 9, 8, 6, 1, 5, 3],
-    [5, 8, 9, 2, 1, 3, 6, 7, 4]
-    /* eslint-enable @typescript-eslint/no-magic-numbers */
-  ]
-};
 const THROTTLE_INTERVAL_MS = 500;
 
 /** @type {import('.')['getGroupId']} */
@@ -146,8 +120,6 @@ function getEmptySudoku(size, filler = 0) {
  * @param {number} holes
  * @throws {Error} on non-quadratic numbers */
 function generateSudoku(size, holes) {
-  if (globalThis.debugBoard) return DEBUG_BOARDS;
-
   const boxSize = Math.sqrt(size);
   if (!Number.isInteger(boxSize)) throw new Error('Size must be quadratic.');
 

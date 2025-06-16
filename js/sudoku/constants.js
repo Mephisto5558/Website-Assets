@@ -1,6 +1,14 @@
 globalThis.debug = false;
 /* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, sonarjs/no-redundant-boolean, no-constant-binary-expression */
-globalThis.debugBoard = false && globalThis.debug;
+globalThis.debugBoard = true && globalThis.debug;
+
+export const DEBUG_BOARDS = new Map([
+  /* eslint-disable @typescript-eslint/no-magic-numbers */
+  [4, '?s=2kCWOHm&m=e7W&d=4'],
+  [9, '?s=1rNvQlP59hY1UJMFE5DX3hwk1qIBLnXS6ilfDGy4IGdhsC&m=bIF2NvxgrvtuEt&d=9'],
+  [16, '?s=hpbjaN1Y0HMLqNcMAz1H6NmKmOMSDZBpjCBHl8dhKhATBXumBoANHGsbnmOEzTkz6ySCcfcC4LMrWKjtcnj7WF611o0NmqeiqasiTMDrNBWf7kUCpC1Yb6ExeVjZ4TopShgiCbnIhyYaAhkHaUko7rwbO5VpQjDjH8lgDvr8EmRs3VS0&m=UqAbrOMIk6BBuY6VoSasyyUP7hzZqaraIZQyp6q0d2J&d=g']
+  /* eslint-enable @typescript-eslint/no-magic-numbers */
+]);
 
 export const DEFAULT_BOARD_SIZE = 9;
 export const MIN_HOLES_PERCENTAGE = .2;

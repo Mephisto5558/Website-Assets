@@ -2,7 +2,7 @@
 /** @typedef {import('.').CellList} CellList */
 
 import {
-  bgColorSwitcher, cancelBtn, DEFAULT_BOARD_SIZE, fgColorSwitcher, htmlBoard, loadingContainer,
+  bgColorSwitcher, cancelBtn, DEBUG_BOARDS, fgColorSwitcher, htmlBoard, loadingContainer,
   MS_IN_SEC, numberOverviewSpans, regenerateBtn, REPORT_PROD_WORKER_URL, shareBtn, solutionBtn
 } from './constants.js';
 import { createHTMLBoard, createHTMLOverviewSpans, displayBoard } from './generateSudoku.js';
@@ -136,30 +136,29 @@ async function regenerate(event, firstTime) {
     else
       console.log(`Size: ${size}, Holes: ${holes}/${maxHoles} (min: ${minHoles})`);
 
+    if (size != htmlBoard.length) {
+      createHTMLBoard(size);
+      htmlBoard.length = 0;
+      htmlBoard.push(...[...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild)));
+
+      createHTMLOverviewSpans(size);
+      numberOverviewSpans.length = 0;
+      numberOverviewSpans.push(...document.querySelectorAll('#number-overview > tbody > tr > td > span'));
+    }
+    setRootStyle('--sudoku-row-count', size);
+    document.documentElement.dataset.sudokuBoxSize = Math.sqrt(size);
+
     /* eslint-disable-next-line require-atomic-updates -- safe due to being in a try*/
     globalThis.sudokuWorker ??= await createSudokuWorker();
 
     /** @type {{ fullBoard: import('.').FullBoard, board: import('.').Board }} */
-    const { fullBoard, board } = loadFromShareURL() ?? await new Promise((res, rej) => {
+    const { fullBoard, board } = loadFromShareURL(globalThis.debugBoard ? DEBUG_BOARDS.get(size) : undefined) ?? await new Promise((res, rej) => {
       resolveFunction = res;
       rejectFunction = rej;
 
       console.log('UI: Posting task to worker...');
       globalThis.sudokuWorker.postMessage({ size, holes, debugBoard: globalThis.debugBoard });
     });
-
-    setRootStyle('--sudoku-row-count', board.length);
-    document.documentElement.dataset.sudokuBoxSize = Math.sqrt(board.length);
-
-    if (fullBoard.length != htmlBoard.length) {
-      createHTMLBoard(globalThis.debugBoard ? DEFAULT_BOARD_SIZE : fullBoard.length);
-      htmlBoard.length = 0;
-      htmlBoard.push(...[...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild)));
-
-      createHTMLOverviewSpans(globalThis.debugBoard ? DEFAULT_BOARD_SIZE : fullBoard.length);
-      numberOverviewSpans.length = 0;
-      numberOverviewSpans.push(...document.querySelectorAll('#number-overview > tbody > tr > td > span'));
-    }
 
     displayBoard(board, htmlBoard, numberOverviewSpans);
     checkErrors(htmlBoard);

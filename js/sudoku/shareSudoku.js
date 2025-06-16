@@ -51,9 +51,11 @@ export function generateShareURL(board, fullBoard) {
   return url.toString();
 }
 
-/** @returns {{ fullBoard: FullBoard, board: Board } | undefined} */
-export function loadFromShareURL() {
-  const params = new URLSearchParams(globalThis.location.search);
+/**
+ * @param {string | URL | undefined} url
+ * @returns {{ fullBoard: FullBoard, board: Board } | undefined} */
+export function loadFromShareURL(url) {
+  const params = new URLSearchParams(url ?? globalThis.location.search);
   const compressedDimension = params.get('d');
   const compressedSolution = params.get('s');
   const compressedMask = params.get('m');
