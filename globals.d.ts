@@ -5,6 +5,6 @@ declare global {
   const Swal = Sweetalert2;
 
   function rando(min: number, max?: number): number;
-  function randoSequence<arr>(...arr: arr[]): arr;
-  function randoSequence(min: number, max: number): number;
+  function randoSequence<val>(arr: val[]): { index: number; value: val }[];
+  function randoSequence(min: number, max?: number): number[];
 }
