@@ -151,7 +151,7 @@ async function regenerate(event, firstTime) {
 
     let result = loadFromShareURL(globalThis.debugBoard ? DEBUG_BOARDS.get(size) : undefined);
     if (!result) {
-      const timeoutDuration = MS_IN_SEC + (size ** 4);
+      const timeoutDuration = MS_IN_SEC * 5 + (size ** 4);
       for (let attempt = 1; attempt <= MAX_GENERATION_ATTEMPTS; attempt++) {
         console.log(`UI: Starting generation attempt ${attempt}/${MAX_GENERATION_ATTEMPTS}...`);
 
@@ -175,6 +175,8 @@ async function regenerate(event, firstTime) {
         }
         catch (err) {
           console.warn(`UI: Attempt ${attempt} failed. Reason: ${err.message}`);
+          loadingContainer.children.namedItem('loading-status').textContent = `Attempt ${attempt}/${MAX_GENERATION_ATTEMPTS} failed. Retrying.`;
+
           globalThis.sudokuWorker.terminate();
           delete globalThis.sudokuWorker;
 
