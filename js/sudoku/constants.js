@@ -1,6 +1,7 @@
 globalThis.debug = false;
 /* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, sonarjs/no-redundant-boolean, no-constant-binary-expression */
 globalThis.debugBoard = true && globalThis.debug;
+globalThis.runBench = false;
 
 export const DEBUG_BOARDS = new Map([
   /* eslint-disable @typescript-eslint/no-magic-numbers */
@@ -14,6 +15,7 @@ export const DEBUG_BOARDS = new Map([
 export const DEFAULT_BOARD_SIZE = 9;
 export const MIN_HOLES_PERCENTAGE = .2;
 export const MAX_HOLES_PERCENTAGE = .75;
+export const MAX_GENERATION_ATTEMPTS = 5;
 
 export const MS_IN_SEC = 1000;
 export const SEC_IN_MIN = 60;

@@ -3,7 +3,8 @@
 
 import {
   bgColorSwitcher, cancelBtn, DEBUG_BOARDS, fgColorSwitcher, htmlBoard, loadingContainer,
-  MS_IN_SEC, numberOverviewSpans, regenerateBtn, REPORT_PROD_WORKER_URL, shareBtn, solutionBtn
+  MS_IN_SEC, numberOverviewSpans, regenerateBtn, REPORT_PROD_WORKER_URL, shareBtn, solutionBtn,
+  MAX_GENERATION_ATTEMPTS
 } from './constants.js';
 import { createHTMLBoard, createHTMLOverviewSpans, displayBoard } from './generateSudoku.js';
 import { generateShareURL, loadFromShareURL } from './shareSudoku.js';
@@ -131,11 +132,6 @@ async function regenerate(event, firstTime) {
 
     const { size, minHoles, maxHoles, holes } = updateMinMax();
 
-    if (globalThis.debugBoard)
-      console.debug('Using debug board.');
-    else
-      console.log(`Size: ${size}, Holes: ${holes}/${maxHoles} (min: ${minHoles})`);
-
     if (size != htmlBoard.length) {
       createHTMLBoard(size);
       htmlBoard.length = 0;
@@ -148,18 +144,47 @@ async function regenerate(event, firstTime) {
     setRootStyle('--sudoku-row-count', size);
     document.documentElement.dataset.sudokuBoxSize = Math.sqrt(size);
 
-    /* eslint-disable-next-line require-atomic-updates -- safe due to being in a try*/
-    globalThis.sudokuWorker ??= await createSudokuWorker();
+    if (globalThis.debugBoard)
+      console.debug('Using debug board.');
+    else
+      console.log(`Size: ${size}, Holes: ${holes}/${maxHoles} (min: ${minHoles})`);
 
-    /** @type {{ fullBoard: import('.').FullBoard, board: import('.').Board }} */
-    const { fullBoard, board } = loadFromShareURL(globalThis.debugBoard ? DEBUG_BOARDS.get(size) : undefined) ?? await new Promise((res, rej) => {
-      resolveFunction = res;
-      rejectFunction = rej;
+    let result = loadFromShareURL(globalThis.debugBoard ? DEBUG_BOARDS.get(size) : undefined);
+    if (!result) {
+      const timeoutDuration = MS_IN_SEC + (size ** 4);
+      for (let attempt = 1; attempt <= MAX_GENERATION_ATTEMPTS; attempt++) {
+        console.log(`UI: Starting generation attempt ${attempt}/${MAX_GENERATION_ATTEMPTS}...`);
 
-      console.log('UI: Posting task to worker...');
-      globalThis.sudokuWorker.postMessage({ size, holes, debugBoard: globalThis.debugBoard });
-    });
+        /* eslint-disable-next-line require-atomic-updates -- globalThis won't change */
+        globalThis.sudokuWorker ??= await createSudokuWorker();
 
+        try {
+          result = await Promise.race([
+            /* eslint-disable-next-line @typescript-eslint/no-loop-func -- resolveFunction and rejectFunction are reassigned in each loop iteration */
+            new Promise((res, rej) => {
+              resolveFunction = res;
+              rejectFunction = rej;
+
+              console.log('UI: Posting task to worker...');
+              globalThis.sudokuWorker.postMessage({ size, holes, debugBoard: globalThis.debugBoard });
+            }),
+            new Promise((_, rej) => setTimeout(() => rej(new Error(`Timeout after ${timeoutDuration}ms`)), timeoutDuration))
+          ]);
+
+          break; // exit if the promise didn't throw
+        }
+        catch (err) {
+          console.warn(`UI: Attempt ${attempt} failed. Reason: ${err.message}`);
+          globalThis.sudokuWorker.terminate();
+          delete globalThis.sudokuWorker;
+
+          if (attempt >= MAX_GENERATION_ATTEMPTS)
+            throw new Error('Failed to generate Sudoku after all attempts.');
+        }
+      }
+    }
+
+    const { fullBoard, board } = result;
     displayBoard(board, htmlBoard, numberOverviewSpans);
     checkErrors(htmlBoard);
 
