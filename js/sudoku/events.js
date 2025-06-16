@@ -143,6 +143,5 @@ cancelBtn.addEventListener('click', () => {
 });
 
 document.querySelector('#toggle-notes-btn').addEventListener('click', event => {
-  if (sudoku.classList.toggle('notes-mode')) event.target.style.backgroundColor = 'green';
-  else event.target.style.removeProperty('background-color');
+  event.target.textContent = `${sudoku.classList.toggle('notes-mode') ? 'Disable' : 'Enable'} Notes Mode`;
 });
