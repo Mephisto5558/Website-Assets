@@ -166,11 +166,13 @@ header {
   & > h3 {
     font-size: 60%;
     margin: 0 .1rem;
+    text-align: center;
   }
 
   & > p {
     font-size: 40%;
     margin: .2rem .1rem;
+    white-space: pre-line;
   }
 }
 
