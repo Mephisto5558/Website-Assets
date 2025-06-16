@@ -201,6 +201,7 @@ header {
 
   & > p {
     font-size: 2vh;
+    font-family: monospace;
     color: var(--foreground-color-secondary);
     margin-top: auto;
   }
