@@ -46,7 +46,7 @@ sudoku.addEventListener('keypress', event => {
     }
 
     note.classList.add('visible');
-    note.textContent += event.key;
+    note.textContent = newNumber;
 
     return;
   }
