@@ -413,7 +413,6 @@ table#sudoku {
   & > input[type=range] {
     background-color: transparent;
     cursor: pointer;
-    appearance: none;
     width: 100%;
 
     &::-webkit-slider-runnable-track,
