@@ -132,18 +132,6 @@ async function regenerate(event, firstTime) {
 
     const { size, minHoles, maxHoles, holes } = updateMinMax();
 
-    if (size != htmlBoard.length) {
-      createHTMLBoard(size);
-      htmlBoard.length = 0;
-      htmlBoard.push(...[...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild)));
-
-      createHTMLOverviewSpans(size);
-      numberOverviewSpans.length = 0;
-      numberOverviewSpans.push(...document.querySelectorAll('#number-overview > tbody > tr > td > span'));
-    }
-    setRootStyle('--sudoku-row-count', size);
-    document.documentElement.dataset.sudokuBoxSize = Math.sqrt(size);
-
     if (globalThis.debugBoard)
       console.debug('Using debug board.');
     else
@@ -187,6 +175,19 @@ async function regenerate(event, firstTime) {
     }
 
     const { fullBoard, board } = result;
+
+    if (fullBoard.length != htmlBoard.length) {
+      createHTMLBoard(fullBoard.length);
+      htmlBoard.length = 0;
+      htmlBoard.push(...[...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild)));
+
+      createHTMLOverviewSpans(fullBoard.length);
+      numberOverviewSpans.length = 0;
+      numberOverviewSpans.push(...document.querySelectorAll('#number-overview > tbody > tr > td > span'));
+    }
+    setRootStyle('--sudoku-row-count', fullBoard.length);
+    document.documentElement.dataset.sudokuBoxSize = Math.sqrt(fullBoard.length);
+
     displayBoard(board, htmlBoard, numberOverviewSpans);
     checkErrors(htmlBoard);
 
