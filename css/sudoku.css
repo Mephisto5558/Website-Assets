@@ -54,6 +54,7 @@ button {
   border: none;
   border-radius: .1rem;
   font-size: .5rem;
+  height: fit-content;
 }
 
 input:not([type='range']):hover,
