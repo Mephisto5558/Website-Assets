@@ -342,6 +342,20 @@
     return cards;
   }
 
+  async function findAndScrollToCard(cardId) {
+    if (!cardsCache.has(cardId)) return;
+
+    /* eslint-disable-next-line unicorn/prefer-query-selector */
+    while (!document.getElementById(cardId) && cardsCache.size > cardsOffset) {
+      displayCards();
+      /* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- short timeout to prevent browser lag */
+      await new Promise(res => setTimeout(res, 50));
+    }
+
+    /* eslint-disable-next-line unicorn/prefer-query-selector */
+    return document.getElementById(cardId)?.scrollIntoView({ behavior: 'smooth' });
+  }
+
   /** @type {import('.').vote.createCardElement} */
   function createCardElement(card) {
     const cardElement = createElement('div', { className: 'card', id: card.id });
@@ -515,6 +529,9 @@
     };
 
     displayCards();
+
+    setTimeout(() => findAndScrollToCard(globalThis.location.hash.slice(1)), msInSecond / 10);
+
     if (user.dev) {
       if (cardsContainerPending.childElementCount) {
         document.body.insertBefore(createElement('h2', { id: 'new-requests', textContent: 'New Requests' }), cardsContainerPending);
