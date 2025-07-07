@@ -26,7 +26,7 @@ export declare namespace vote {
 
   /**
    * @param amount More like a max amount; will load more if the screen is not filled yet.
-   * @returns all fetched cards, including not displayed ones*/
+   * @returns all fetched cards, including not displayed ones */
   function displayCards(query?: string, amount?: number): Card[];
   function createCardElement(card: Card): void;
   function setColorScheme(scheme?: 'dark' | 'light'): void;

@@ -37,7 +37,7 @@ export async function saveToClipboard(value) {
   copyArea.select();
 
   try {
-    /* eslint-disable-next-line @typescript-eslint/no-deprecated -- workaround for HTTP context*/
+    /* eslint-disable-next-line @typescript-eslint/no-deprecated -- workaround for HTTP context */
     if (!document.execCommand('copy')) throw new Error('Did not save');
     sendPopup('Saved the link in your clipboard.');
   }

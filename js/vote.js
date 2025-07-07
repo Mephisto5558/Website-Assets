@@ -1,8 +1,8 @@
 (() => {
   let
-    /** @type {import('.').vote.User?} */user,
-    /** @type {import('.').vote.CardsCache} */cardsCache,
-    /** @type {HTMLButtonElement | undefined} */saveButtonElement,
+    /** @type {import('.').vote.User?} */ user,
+    /** @type {import('.').vote.CardsCache} */ cardsCache,
+    /** @type {HTMLButtonElement | undefined} */ saveButtonElement,
     currentTheme,
     pageIsLoaded = false,
     cardsInRows = false,
@@ -183,8 +183,8 @@
         ?.sort(
 
           /**
-           * @param {import('.').vote.Card}a
-           * @param {import('.').vote.Card}b */
+           * @param {import('.').vote.Card} a
+           * @param {import('.').vote.Card} b */
           (a, b) => {
             if (!a.pending && b.pending) return 1;
             if (a.pending && !b.pending) return -1;
