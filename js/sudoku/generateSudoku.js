@@ -111,7 +111,7 @@ export function displayBoard(board, htmlBoard, numberOverviewSpans, isSolution =
       cell.classList.add('solution');
     }
 
-    cell.value = board[Number(cell.dataset.row) - 1][Number(cell.dataset.col) - 1] || Number(cell.dataset.val) || undefined;
+    cell.value = (board[Number(cell.dataset.row) - 1][Number(cell.dataset.col) - 1] ?? 0) || Number(cell.dataset.val) || undefined;
     cell.disabled = isSolution || !!cell.value && !cell.dataset.val;
 
     if (!isSolution) delete cell.dataset.val;

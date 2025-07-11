@@ -1,4 +1,3 @@
-/* eslint-disable-next-line @typescript-eslint/no-magic-numbers */
 type LowNum = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 export type CellInput = HTMLInputElement & { type: 'number'; dataset: { group: `${number}`; row: `${number}`; col: `${number}`; val?: `${number}` } };
