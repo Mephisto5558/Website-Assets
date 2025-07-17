@@ -89,6 +89,11 @@
 
       cardsCache.set(res.id, res);
 
+      if (res.approved) {
+        cardsOffset = 0;
+        displayCards();
+      }
+
       hideFeatureReqElement();
       target.reset(); // resets the form's values
     }, msInSecond),
@@ -120,6 +125,9 @@
       });
 
       voteCounter.textContent = Number.parseInt(voteCounter.textContent) + 1;
+
+      cardsOffset = 0;
+      displayCards();
     }, msInSecond),
 
     /** Updates the cards */
