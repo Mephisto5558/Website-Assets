@@ -415,7 +415,12 @@
 
     if (user.dev) {
       titleElement.addEventListener('keydown', event => {
-        if (!event.target.parentElement.hasAttribute('modified')) event.target.parentElement.setAttribute('modified', '');
+        if (event.target.parentElement.hasAttribute('modified')) {
+          if (event.target.textContent == card.title)
+            event.target.parentElement.removeAttribute('modified');
+        }
+        else if (event.target.textContent != card.title)
+          event.target.parentElement.setAttribute('modified', '');
 
         if (event.key !== 'Enter') return;
         event.preventDefault();
@@ -423,7 +428,12 @@
         element.firstChild.focus();
       });
       descriptionElement?.addEventListener('input', ({ target }) => {
-        if (!target.parentElement.hasAttribute('modified')) target.parentElement.setAttribute('modified', '');
+        if (target.parentElement.hasAttribute('modified')) {
+          if (target.textContent == card.body)
+            target.parentElement.removeAttribute('modified');
+        }
+        else if (target.textContent != card.body)
+          target.parentElement.setAttribute('modified', '');
       });
     }
     if (user.dev || user.id == card.id.split('_')[0]) {
