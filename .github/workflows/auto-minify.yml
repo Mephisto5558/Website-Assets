@@ -1,71 +1,17 @@
-name: AutoMinify
-
-on: [push]
+name: Minify on Push
+on: push
 
 permissions:
   contents: write
 
 jobs:
-  minify-css:
-    runs-on: ubuntu-latest
-    steps:
-      - name: check out the repository
-        uses: actions/checkout@v4
+  call-minify-workflow:
+    uses: Mephisto5558/Mephisto5558/workflows/auto-minify.yml@main
+    secrets:
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
-      - name: fetch last commit before push
-        run: |
-          if [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
-            git fetch origin "${{ github.event.before }}"
-          fi
-
-      - name: check if the action needs to run
-        id: check-files
-        continue-on-error: true
-        run: |
-          if [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
-            DIFF_FILES=$(git diff ${{ github.event.before }} ${{ github.event.after }} --name-only -- '*.js' '*.css')
-          else
-            DIFF_FILES=$(git diff HEAD~1 HEAD --name-only -- '*.js' '*.css')
-          fi
-          if [ "$DIFF_FILES" != "" ]; then
-            echo "found files"
-          else
-            echo "no relevant files changed"
-            exit 1
-          fi
-
-      - name: Import GPG key
-        id: import-gpg
-        if: steps.check-files.outcome == 'success'
-        uses: crazy-max/ghaction-import-gpg@v6
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          git_user_signingkey: true
-          git_commit_gpgsign: true
-
-      - name: auto minify css
-        if: steps.check-files.outcome == 'success'
-        uses: nizarmah/auto-minify@v3
-        with:
-          overwrite: true # if false, filenames would be {name}.min.css
-          directory: 'css/*'
-          output: 'min/css/'
-
-      - name: auto minify js
-        if: steps.check-files.outcome == 'success'
-        uses: nizarmah/auto-minify@v3
-        with:
-          overwrite: true # if false, filenames would be {name}.min.js
-          js_engine: 'uglify-js' # babel does not accept any config and errors due to the source type being "module"
-          directory: 'js/*'
-          output: 'min/js/'
-
-      - name: Commit and push changes
-        if: steps.check-files.outcome == 'success'
-        uses: stefanzweifel/git-auto-commit-action@v5
-        id: auto-commit-action # mandatory for the output to show up in ${{ steps }}
-        with:
-          commit_message: "Workflow: Minify CSS and JS"
-          commit_author: "${{ steps.import-gpg.outputs.name }} <${{ steps.import-gpg.outputs.email }}>"
-          commit_user_name: ${{ steps.import-gpg.outputs.name }}
-          commit_user_email: ${{ steps.import-gpg.outputs.email }}
+    with:
+      css_input_dir: 'css/*'
+      css_output_dir: 'min/css/'
+      js_input_dir: 'js/*'
+      js_output_dir: 'min/js/'
