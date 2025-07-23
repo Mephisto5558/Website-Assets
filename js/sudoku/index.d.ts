@@ -24,10 +24,10 @@ export function updateMinMax(): void;
 export function sendPopup(title: string, msg?: string): void;
 
 declare global {
-  /* eslint-disable vars-on-top, no-var, no-inner-declarations */
+  /* eslint-disable vars-on-top, no-inner-declarations */
   var debug: boolean;
   var debugBoard: boolean;
   var timerInterval: number;
   var sudokuWorker: Worker | undefined;
-  /* eslint-enable vars-on-top, no-var, no-inner-declarations */
+  /* eslint-enable vars-on-top, no-inner-declarations */
 }
