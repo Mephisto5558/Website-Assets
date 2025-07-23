@@ -1,0 +1,1 @@
+function createElement(e,t,n,r){var c=document.createElement(e);if(Object.keys(t??{}).length)for(var[a,l]of Object.entries(t))null!=l&&("object"==typeof l?Object.assign(c[a],l):c[a]=l);return n&&(r?n.replaceChildren(c):n.append(c)),c}export{createElement};
