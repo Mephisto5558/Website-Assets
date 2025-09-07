@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@mephisto5558/eslint-config": "latest",
+    "better-typescript-lib": "^2.11.0",
     "eslint": "^9.27.0",
     "globals": "^16.2.0",
     "sweetalert2": "^11.22.0"
