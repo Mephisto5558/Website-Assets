@@ -6,7 +6,7 @@ permissions:
 
 jobs:
   call-minify-workflow:
-    uses: Mephisto5558/Mephisto5558/workflows/auto-minify.yml@main
+    uses: Mephisto5558/Mephisto5558/.github/workflows/auto-minify.yml@main
     secrets:
       GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
