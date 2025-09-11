@@ -7,7 +7,7 @@ export default undefined; // Needed to load it in without actually importing any
 searchBoxElement.addEventListener('input', debounce(({ target }) => {
   if (target.value.length > target.maxLength) target.value = target.value.slice(0, target.maxLength);
 
-  state.setCardsOffset(0);
+  state.cardsOffset = 0;
 
   const cards = displayCards(target.value);
   document.querySelector('#feature-request-count > span').textContent = cards.length;

@@ -50,7 +50,7 @@ export const
 
     voteCounter.textContent = Number.parseInt(voteCounter.textContent) + 1;
 
-    state.setCardsOffset(0);
+    state.cardsOffset = 0;
     displayCards();
   }, msInSecond);
 
@@ -114,7 +114,7 @@ export function displayCards(query = searchBoxElement.value, amount = 26) {
 
   for (const card of cards.slice(state.cardsOffset, amount + state.cardsOffset)) createCardElement(card);
 
-  state.incrementCardsOffset(amount);
+  state.cardsOffset += amount;
   if (state.cardsCache.size > state.cardsOffset) {
     if (cardsContainer.childElementCount + cardsContainerPending.childElementCount < amount) displayCards(query, amount);
     else if (cardsContainer.clientHeight < window.innerHeight) { // Prevent having to add a "load more" button for big screens/large zoomout

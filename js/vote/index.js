@@ -56,7 +56,7 @@ const
     state.cardsCache.set(res.id, res);
 
     if (res.approved) {
-      state.setCardsOffset(0);
+      state.cardsOffset = 0;
       displayCards();
     }
 
@@ -90,7 +90,7 @@ const
 
     void Swal.fire({ icon: 'success', title: 'Success', text: 'The cards have been updated.' });
 
-    state.setCardsOffset(0);
+    state.cardsOffset = 0;
     await fetchCards();
     displayCards();
   }, msInSecond);
@@ -102,7 +102,7 @@ async function createProfileElement() {
   const fragment = document.createDocumentFragment();
   const profileContainer = createElement('div', { id: 'profile-container' });
 
-  state.setUser(await fetchAPI('user').then(e => e.json()).catch(() => { /* empty */ }));
+  state.user = await fetchAPI('user').then(e => e.json()).catch(() => { /* empty */ });
   if (!state.user || state.user.errorCode) {
     if (state.user?.errorCode == HTTP_STATUS_FORBIDDEN) return createElement('h2', { textContent: state.user.error }, document.body, true);
 
@@ -211,7 +211,7 @@ async function findAndScrollToCard(cardId) {
 document.addEventListener('DOMContentLoaded', async () => {
   setColorScheme(localStorage.getItem('theme') ?? (globalThis.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
 
-  state.setSmallScreen(globalThis.matchMedia('(max-width: 768px)').matches);
+  state.smallScreen = globalThis.matchMedia('(max-width: 768px)').matches;
   const cardsInRows = state.smallScreen && localStorage.getItem('displayMode') === 'cardsInRows';
 
   await createProfileElement();
@@ -250,5 +250,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.body.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`;
   document.documentElement.style.scrollPaddingTop = `${headerContainer.clientHeight + 20}px`;
 
-  state.setPageIsLoaded(true);
+  state.pageIsLoaded = true;
 });
