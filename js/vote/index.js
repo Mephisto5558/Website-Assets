@@ -109,7 +109,7 @@ async function createProfileElement() {
     fragment.append(searchBoxElement);
     createElement('button', { id: 'feature-request-button', textContent: state.smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover' }, fragment);
     createElement('button', { id: 'login-button', textContent: state.smallScreen ? 'Login' : 'Login with Discord', className: 'blue-button' }, profileContainer)
-      .addEventListener('click', () => globalThis.location.href = `/auth/discord?redirectURL=${globalThis.location.href}`);
+      .addEventListener('click', () => globalThis.location.href = `/auth/discord?redirectUrl=${globalThis.location.href}`);
     fragment.append(profileContainer);
 
     return headerContainer.append(fragment);
