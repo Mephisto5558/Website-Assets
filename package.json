@@ -19,5 +19,13 @@
     "eslint": "^9.27.0",
     "globals": "^16.2.0",
     "sweetalert2": "^11.22.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mephisto5558/Website-Assets.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Mephisto5558//Website-Assets/issues"
+  },
+  "homepage": "https://github.com/Mephisto5558//Website-Assets#readme"
 }
