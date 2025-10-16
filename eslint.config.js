@@ -1,8 +1,12 @@
-import config, { plugins } from '@mephisto5558/eslint-config';
+/* eslint-disable @typescript-eslint/no-magic-numbers */
+
+/** @import { Linter } from 'eslint' */
+
+import config from '@mephisto5558/eslint-config';
 import globals from 'globals';
 
 /**
- * @type { import('eslint').Linter.Config[] }
+ * @type {Linter.Config[]}
  * This config lists all rules from every plugin it uses. */
 export default [
   ...config,
@@ -11,7 +15,7 @@ export default [
   },
   {
     name: 'overwrite',
-    files: ['**/*.js', '**/*.ts'],
+    files: ['**/*.{js,ts}'],
     languageOptions: {
       globals: {
         ...globals.es2024,
@@ -21,7 +25,6 @@ export default [
         randoSequence: 'readonly'
       }
     },
-    plugins,
     rules: {
       'max-lines': 'off',
       'max-nested-callbacks': [
@@ -40,10 +43,7 @@ export default [
       '@stylistic/max-len': 'off',
       'sonarjs/no-nested-functions': [
         'error',
-        {
-          // Default + 1 for IIFE
-          threshold: (config.find(e => e.rules?.['sonarjs/no-nested-functions'])?.rules['sonarjs/no-nested-functions'][1].threshold || 3) + 1
-        },
+        { threshold: 4 } // 3, + 1 for IIFE
       ]
     }
   }

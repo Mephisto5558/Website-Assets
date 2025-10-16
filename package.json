@@ -2,30 +2,39 @@
   "name": "website-assets",
   "version": "1.0.0",
   "description": "Assets for my website",
-  "main": "index.js",
-  "types": "globals.d.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "Mephisto5558",
-  "license": "MIT",
-  "engines": {
-    "node": ">=20.11.0"
-  },
-  "devDependencies": {
-    "@mephisto5558/eslint-config": "latest",
-    "better-typescript-lib": "^2.11.0",
-    "eslint": "^9.27.0",
-    "globals": "^16.2.0",
-    "sweetalert2": "^11.22.0"
+  "keywords": [
+    "js",
+    "css"
+  ],
+  "homepage": "https://github.com/Mephisto5558//Website-Assets#readme",
+  "bugs": {
+    "url": "https://github.com/Mephisto5558//Website-Assets/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Mephisto5558/Website-Assets.git"
   },
-  "bugs": {
-    "url": "https://github.com/Mephisto5558//Website-Assets/issues"
+  "license": "MIT",
+  "author": "Mephisto5558",
+  "type": "module",
+  "main": "index.js",
+  "types": "globals.d.ts",
+  "scripts": {
+    "build": "npm-run-all --parallel build:**",
+    "build:css": "esbuild css/**/*.css --bundle --minify --outdir=min/css",
+    "build:js": "esbuild ts/**/*.ts --bundle --minify --sourcemap --sources-content=false --outdir=min/js",
+    "watch": "npm-run-all --parallel watch:**",
+    "watch:css": "npm run build:css -- --watch",
+    "watch:js": "npm run build:js -- --watch"
   },
-  "homepage": "https://github.com/Mephisto5558//Website-Assets#readme"
+  "devDependencies": {
+    "@mephisto5558/eslint-config": "github:Mephisto5558/eslint-config",
+    "esbuild": "^0.25.11",
+    "globals": "^16.4.0",
+    "npm-run-all2": "^8.0.4",
+    "sweetalert2": "^11.26.2"
+  },
+  "engines": {
+    "node": ">=20.11.0"
+  }
 }

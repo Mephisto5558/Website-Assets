@@ -21,12 +21,12 @@ function handleNormalInput(target, key) {
  * @param {HTMLInputElement | HTMLSpanElement} target
  * @param {string} key */
 function handleNotesInput(target, key) {
-  /** @type {import('.').NoteElement | undefined} */
+  /** @type {import('./index.js').NoteElement | undefined} */
   let noteSpan;
 
   if (target.tagName == 'SPAN') noteSpan = target;
   else if (target.tagName == 'INPUT') {
-    /** @type {import('.').NoteElement[]} */
+    /** @type {import('./index.js').NoteElement[]} */
     const notes = [...target.parentElement.querySelector('.notes').children];
     noteSpan = notes.find(span => !span.textContent || span.textContent === key);
   }

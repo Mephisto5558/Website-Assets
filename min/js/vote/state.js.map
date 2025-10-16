@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": ["../../../ts/vote/state.ts"],
+  "mappings": "mBAAA,IAAqBA,EAArB,KAA2B,CACzB,OAAgB,WAAyB,IAAI,IAE7C,OAAO,KACP,OAAO,YAAc,EACrB,OAAO,aAAe,GACtB,OAAO,YAAc,EACvB",
+  "names": ["state"]
+}

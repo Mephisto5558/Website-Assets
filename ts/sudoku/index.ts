@@ -1,5 +1,5 @@
-/** @typedef {import('.').CellInput} CellInput */
-/** @typedef {import('.').CellList} CellList */
+/** @typedef {import('./index.js').CellInput} CellInput */
+/** @typedef {import('./index.js').CellList} CellList */
 
 import {
   bgColorSwitcher, cancelBtn, DEBUG_BOARDS, fgColorSwitcher, htmlBoard, loadingContainer,

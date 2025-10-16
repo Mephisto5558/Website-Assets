@@ -3,24 +3,24 @@ import { DEFAULT_BOARD_SIZE, difficultyOutput, difficultySlider, MAX_HOLES_PERCE
 const popupTileElement = document.querySelector('#popup-container > h3');
 const popupPElement = document.querySelector('#popup-container > p');
 
-/** @type {import('.')['setRootStyle']} */
+/** @type {import('./index.js')['setRootStyle']} */
 export function setRootStyle(key, value, priority) {
   return document.documentElement.style.setProperty(key, value, priority);
 }
 
-/** @type {import('.')['getRootStyle']} */
+/** @type {import('./index.js')['getRootStyle']} */
 export function getRootStyle(key) {
   return globalThis.getComputedStyle(document.documentElement).getPropertyValue(key);
 }
 
-/** @type {import('.')['invertHex']} */
+/** @type {import('./index.js')['invertHex']} */
 export function invertHex(hex) {
   hex = hex.replace('#', '');
   /* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- hex math */
   return '#' + (hex.length == 3 ? [...hex] : hex.match(/\w{2}/g)).map(e => (255 - Number.parseInt(e, 16)).toString(16).padStart(2, '0')).join('');
 }
 
-/** @type {import('.')['saveToClipboard']} */
+/** @type {import('./index.js')['saveToClipboard']} */
 export async function saveToClipboard(value) {
   /* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, @typescript-eslint/strict-boolean-expressions -- is `undefined` on HTTP pages */
   if (globalThis.navigator.clipboard) {
@@ -49,7 +49,7 @@ export async function saveToClipboard(value) {
   copyArea.remove();
 }
 
-/** @type {import('.')['initializeColorPicker']} */
+/** @type {import('./index.js')['initializeColorPicker']} */
 export function initializeColorPicker(picker, storageKey, onColorChange) {
   const savedColor = localStorage.getItem(storageKey);
   picker.value = savedColor ?? getRootStyle(picker.dataset.cssProperty).trim();
@@ -62,12 +62,12 @@ export function initializeColorPicker(picker, storageKey, onColorChange) {
   });
 }
 
-/** @type {import('.')['getGroupId']} */
+/** @type {import('./index.js')['getGroupId']} */
 export function getGroupId(rowId, colId, boxSize) {
   return Math.floor(rowId / boxSize) * boxSize + Math.floor(colId / boxSize);
 }
 
-/** @type {import('.')['startTimer']} */
+/** @type {import('./index.js')['startTimer']} */
 export function startTimer() {
   const start = performance.now();
 
@@ -81,14 +81,14 @@ export function startTimer() {
   }, MS_IN_SEC);
 }
 
-/** @type {import('.')['clearTimer']} */
+/** @type {import('./index.js')['clearTimer']} */
 export function clearTimer() {
   globalThis.timerInterval = clearInterval(globalThis.timerInterval);
   timer.textContent = '00:00';
   timer.setAttribute('datetime', 'PT0S');
 }
 
-/** @type {import('.')['updateNumberOverviewSpan']} */
+/** @type {import('./index.js')['updateNumberOverviewSpan']} */
 export function updateNumberOverviewSpan(val, up = true) {
   const span = numberOverviewSpans[val - 1];
   span.textContent = Number(span.textContent) + (up ? 1 : -1);
@@ -107,15 +107,15 @@ export function updateNumberOverviewSpan(val, up = true) {
     globalThis.timerInterval = clearInterval(globalThis.timerInterval);
 }
 
-/** @type {import('.')['checkErrors']} */
+/** @type {import('./index.js')['checkErrors']} */
 export function checkErrors(htmlBoard) {
   /* eslint-disable-next-line jsdoc/valid-types */
   /** @type {Set<`${number}-${number}`>} */
   const errorCells = new Set();
 
-  /** @param {import('.').CellInput[]} cells */
+  /** @param {import('./index.js').CellInput[]} cells */
   const findDuplicates = cells => {
-    /** @type {Map<number, import('.').CellInput[]>} */
+    /** @type {Map<number, import('./index.js').CellInput[]>} */
     const seen = new Map();
     for (const cell of cells) {
       const value = Number(cell.value);
@@ -155,7 +155,7 @@ export function checkErrors(htmlBoard) {
     cell.parentElement.classList[errorCells.has(`${cell.dataset.row}-${cell.dataset.col}`) ? 'add' : 'remove']('error');
 }
 
-/** @type {import('.')['updateMinMax']} */
+/** @type {import('./index.js')['updateMinMax']} */
 export function updateMinMax() {
   const size = Number(sizeOption.value) ** 2 || DEFAULT_BOARD_SIZE;
   sizeOption.value = Math.sqrt(size);
@@ -172,7 +172,7 @@ export function updateMinMax() {
   return { size, minHoles, maxHoles, holes };
 }
 
-/** @type {import('.')['sendPopup']} */
+/** @type {import('./index.js')['sendPopup']} */
 export function sendPopup(title, text = title) {
   if (title !== text) popupTileElement.textContent = title;
   popupPElement.textContent = text;

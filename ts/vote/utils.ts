@@ -1,29 +1,23 @@
-import { searchBoxElement, cardsContainer, cardsContainerPending, msInSecond, headerContainer, ADDITIONAL_HEADER_MARGIN, cardModes, COLOR_TRANSITION_TIME } from './constants.js';
-import { createElement } from './createElement.js';
-import state from './state.js';
+import { searchBoxElement, cardsContainer, cardsContainerPending, msInSecond, headerContainer, ADDITIONAL_HEADER_MARGIN, cardModes, COLOR_TRANSITION_TIME } from './constants';
+import createElement from './createElement';
+import state from './state';
 
-export { createElement } from './createElement.js';
+export { createElement }
 
-/** @type {import('.')['debounce']} */
-export function debounce(callback, delay) {
-  let timer;
-
-  /** @type {import('.')['debounceTimeoutCB']} */
-  const timeoutCallback = (res, rej, ...args) => {
-    try { res(callback(...args)); }
-    catch (err) { rej(err instanceof Error ? err : new Error(err)); }
-  };
+export function debounce<CB extends (...args: any) => any>(callback: CB, delay: number): (...args: Parameters<CB>) => Promise<ReturnType<CB>> {
+  let timer: ReturnType<typeof setTimeout>;
 
   return (...args) => new Promise((res, rej) => {
     clearTimeout(timer);
-    timer = setTimeout(timeoutCallback.bind(undefined, res, rej, ...args), delay);
+    timer = setTimeout(() => {
+      try { res(callback(...args)); }
+      catch (err) { rej(err instanceof Error ? err : new Error(err)); }
+    }, delay);
   });
 }
 
 export const
-
-  /** @type {import('.')['sendUpvote']} */
-  sendUpvote = debounce(async (cardId, voteCounter) => {
+  sendUpvote = debounce(async (cardId: Card['id'], voteCounter: HTMLElement): Promise<void> => {
     if (!state.user?.id) {
       return void Swal.fire({
         icon: 'error',
@@ -54,8 +48,7 @@ export const
     displayCards();
   }, msInSecond);
 
-/** @type {import('.')['fetchAPI']} */
-export async function fetchAPI(url, options = {}, timeout = 5000) {
+export async function fetchAPI(url: string, options: RequestInit | undefined = {}, timeout: number | undefined = 5000): Promise<Response | Error> {
   if (options.body != undefined && !options.headers) options.headers = { 'Content-Type': 'application/json' };
   options.signal ??= new AbortController().signal;
 
@@ -66,29 +59,22 @@ export async function fetchAPI(url, options = {}, timeout = 5000) {
   return res;
 }
 
-/** @type {import('.')['fetchCards']} */
-export async function fetchCards() {
+export async function fetchCards(): Promise<void> {
   const fetchedCards = new Map(
-    (await fetchAPI(`vote/list?includePending=${!!state.user?.dev}`).then(e => e.json()))?.cards
-      ?.sort(
-
-        /**
-         * @param {import('.').Card} a
-         * @param {import('.').Card} b */
-        (a, b) => {
-          if (!a.pending && b.pending) return 1;
-          if (a.pending && !b.pending) return -1;
-          return (b.votes ?? 0) - (a.votes ?? 0) || a.title.localeCompare(b.title);
-        }
-      ).map(e => [e.id, e])
+    ((await fetchAPI(`vote/list?includePending=${!!state.user?.dev}`).then(e => e.json()))?.cards as Card[])
+      ?.sort((a, b) => {
+        if (!a.pending && b.pending) return 1;
+        if (a.pending && !b.pending) return -1;
+        return (b.votes ?? 0) - (a.votes ?? 0) || a.title.localeCompare(b.title);
+      })
+      .map(e => [e.id, e])
   );
 
   state.cardsCache.clear();
   for (const [k, v] of fetchedCards) state.cardsCache.set(k, v);
 }
 
-/** @type {import('.')['updateParams']} */
-export function updateParams(key, value) {
+export function updateParams(key: string, value?: string): void {
   const
     url = new URL(globalThis.location.href),
     params = new URLSearchParams(globalThis.location.search);
@@ -96,15 +82,17 @@ export function updateParams(key, value) {
   value ? params.set(key, value) : params.delete(key);
   url.search = params.toString();
 
-  globalThis.history.pushState(undefined, undefined, url.toString());
+  globalThis.history.pushState(undefined, '', url.toString());
 }
 
-/** @type {import('.')['displayCards']} */
-export function displayCards(query = searchBoxElement.value, amount = 26) {
+/**
+ * @param amount More like a max amount; will load more if the screen is not filled yet.
+ * @returns all fetched cards, including not displayed ones */
+export function displayCards(query: string | undefined = searchBoxElement.value, amount: number | undefined = 26): Card[] | undefined {
   query = query.toLowerCase();
   updateParams('q', query);
 
-  const cards = query ? [...state.cardsCache.values()].filter(e => e.title.toLowerCase().includes(query) || e.body.toLowerCase().includes(query) || e.id.toLowerCase().includes(query)) : [...state.cardsCache.values()];
+  const cards = query ? [...state.cardsCache.values()].filter(e => e.title.toLowerCase().includes(query) || e.body?.toLowerCase().includes(query) || e.id.toLowerCase().includes(query)) : [...state.cardsCache.values()];
   if (!cards.length && !cardsContainer.childElementCount && !cardsContainerPending.childElementCount) return void createElement('h2', { textContent: `There are currently no feature requests${query ? ' matching your search query' : ''} :(` }, cardsContainer, true);
 
   if (!state.cardsOffset) {
@@ -126,27 +114,23 @@ export function displayCards(query = searchBoxElement.value, amount = 26) {
   return cards;
 }
 
-/** @type {import('.')['createCardElement']} */
-export function createCardElement(card) {
+export function createCardElement(card: Card): void {
   const isDev = !!state.user?.dev;
 
   const cardElement = createElement('div', { className: 'card', id: card.id });
 
   const titleElement = createElement('h2', { id: 'title', textContent: card.title, contentEditable: isDev ? 'plaintext-only' : 'false' }, cardElement);
-  const descriptionElement = card.body || isDev ? createElement('p', { id: 'description', textContent: card.body, contentEditable: isDev ? 'plaintext-only' : 'false' }, cardElement) : undefined;
+  const descriptionElement = card.body || isDev ? createElement('p', { id: 'description', textContent: card.body ?? '', contentEditable: isDev ? 'plaintext-only' : 'false' }, cardElement) : undefined;
 
   const voteButtonsElement = createElement('div', { className: 'vote-buttons' }, cardElement);
-  const upvoteCounterElement = createElement('span', { className: 'vote-counter', textContent: card.pending ? '' : card.votes ?? 0 });
+  const upvoteCounterElement = createElement('span', { className: 'vote-counter', textContent: card.pending ? '' : (card.votes ?? 0).toString() });
 
   if (card.pending && isDev) {
     createElement('button', { textContent: 'Approve', className: 'vote-button blue-button' }, voteButtonsElement).addEventListener('click', async () => {
       let res = await fetchAPI('vote/approve', {
         method: 'POST',
         body: JSON.stringify({ featureId: card.id })
-      });
-
-      try { res = await res.json(); }
-      catch { /* empty */ }
+      }).then(res => res.json()).catch(err => err);
 
       if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
 
@@ -157,7 +141,7 @@ export function createCardElement(card) {
         document.body.querySelector('#new-requests')?.remove();
         document.body.querySelector('#old-requests')?.remove();
 
-        document.body.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`;
+        document.body.querySelector<HTMLElement>('#feature-request-overlay + *')!.style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`;
       }
     });
   }
@@ -177,6 +161,8 @@ export function createCardElement(card) {
 
   if (isDev) {
     titleElement.addEventListener('keydown', event => {
+      if (!(event.target instanceof HTMLElement) || !(event.target?.parentElement instanceof HTMLElement)) return; // typeguard
+
       if (event.target.parentElement.hasAttribute('modified')) {
         if (event.target.textContent == card.title)
           event.target.parentElement.removeAttribute('modified');
@@ -186,8 +172,7 @@ export function createCardElement(card) {
 
       if (event.key !== 'Enter') return;
       event.preventDefault();
-      const element = event.target.nextElementSibling;
-      element.firstChild.focus();
+      event.target.nextElementSibling!.firstChild!.focus();
     });
     descriptionElement?.addEventListener('input', ({ target }) => {
       if (target.parentElement.hasAttribute('modified')) {
@@ -240,10 +225,8 @@ export function toggleCardDisplayMode() {
   cardsContainerPending.classList.toggle(cardModes.rowMode);
 }
 
-let currentTheme;
-
-/** @type {import('.')['setColorScheme']} */
-export function setColorScheme(scheme = currentTheme === 'dark' ? 'light' : 'dark') {
+let currentTheme: 'dark' | 'light';
+export function setColorScheme(scheme: 'dark' | 'light' | undefined = currentTheme === 'dark' ? 'light' : 'dark') {
   if (currentTheme === scheme) return;
   currentTheme = scheme;
   localStorage.setItem('theme', currentTheme);

@@ -1,24 +1,23 @@
 {
+  "exclude": [
+    "node_modules"
+  ],
   "compilerOptions": {
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "target": "ESNext",
+    "module": "esnext",
+    "target": "esnext",
     "lib": [
-      "ESNext",
-      "DOM"
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
     ],
-    "libReplacement": true,
+    "allowJs": false,
     "exactOptionalPropertyTypes": true,
+    "libReplacement": true,
+    "noEmit": true,
     "noImplicitOverride": true,
     "noUncheckedIndexedAccess": true,
     "noUncheckedSideEffectImports": true,
+    "skipLibCheck": true,
     "strict": true,
-    "resolveJsonModule": true,
-    "noEmit": true,
-    "allowJs": true,
-    "skipLibCheck": true
-  },
-  "exclude": [
-    "node_modules"
-  ]
+  }
 }

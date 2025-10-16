@@ -1,8 +1,8 @@
-/** @typedef {import('.').FullBoard} FullBoard */
-/** @typedef {import('.').Board} Board */
+/** @typedef {import('./index.js').FullBoard} FullBoard */
+/** @typedef {import('./index.js').Board} Board */
 
-import { updateMinMax } from './utils.js';
-import { difficultySlider, sizeOption } from './constants.js';
+import { updateMinMax } from './utils';
+import { difficultySlider, sizeOption } from './constants';
 
 const BASE = 62n;
 const BASE_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

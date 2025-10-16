@@ -22,7 +22,7 @@ export const SEC_IN_MIN = 60;
 
 export const REPORT_PROD_WORKER_URL = 'https://mephisto5558.github.io/Website-Assets/min/js/sudoku/sudoku.worker.js';
 
-/** @type {import('.').HTMLBoard} */
+/** @type {import('./index.js').HTMLBoard} */
 export const htmlBoard = [];
 
 export const

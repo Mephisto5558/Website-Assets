@@ -11,13 +11,13 @@ function sendProgress(message) {
   globalThis.postMessage({ type: 'progress', message });
 }
 
-/** @type {import('.')['getGroupId']} */
+/** @type {import('./index.js')['getGroupId']} */
 function getGroupId(rowId, colId, boxSize) {
   return Math.floor(rowId / boxSize) * boxSize + Math.floor(colId / boxSize);
 }
 
 /**
- * @param {import('.').Board} board
+ * @param {import('./index.js').Board} board
  * @param {object} options
  * @returns {number} */
 function backtrackSolver(board, options = {}) {
@@ -88,7 +88,7 @@ function backtrackSolver(board, options = {}) {
 }
 
 /**
- * @param {import('.').Board} board
+ * @param {import('./index.js').Board} board
  * @returns {boolean | undefined}  */
 function dig(board) {
   const size = board.length;

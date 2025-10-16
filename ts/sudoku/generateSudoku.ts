@@ -1,4 +1,4 @@
-/** @typedef {import('.').Board} Board */
+/** @typedef {import('./index.js').Board} Board */
 
 import { getGroupId } from './utils.js';
 
@@ -100,7 +100,7 @@ export function createHTMLOverviewSpans(size) {
 
 /**
  * @param {Board} board
- * @param {import('.').HTMLBoard} htmlBoard
+ * @param {import('./index.js').HTMLBoard} htmlBoard
  * @param {HTMLSpanElement[]} numberOverviewSpans
  * @param {boolean} isSolution */
 export function displayBoard(board, htmlBoard, numberOverviewSpans, isSolution = false) {

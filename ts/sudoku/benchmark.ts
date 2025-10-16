@@ -1,4 +1,4 @@
-import { REPORT_PROD_WORKER_URL } from './constants.js';
+import { REPORT_PROD_WORKER_URL } from './constants';
 
 let workerBlobURL;
 async function fetchScript(url) {

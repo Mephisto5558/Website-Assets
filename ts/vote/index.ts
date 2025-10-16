@@ -1,20 +1,26 @@
 import {
   featureRequestOverlay, headerContainer, cardsContainer, cardsContainerPending, msInSecond, searchBoxElement, cardModes,
   HTTP_STATUS_FORBIDDEN, PROFILE_IMG_SIZE, MAX_TITLE_LENGTH, MAX_BODY_LENGTH, ADDITIONAL_HEADER_MARGIN
-} from './constants.js';
-import { debounce, fetchAPI, fetchCards, createElement, displayCards, setColorScheme } from './utils.js';
-import state from './state.js';
+} from './constants';
+import { debounce, fetchAPI, fetchCards, createElement, displayCards, setColorScheme } from './utils';
+import state from './state';
 
-import __ from './events.js';
+import __ from './events';
 
-/** @type {HTMLButtonElement | undefined} */
-let saveButtonElement;
+declare global {
+export type Card = { id: string; title: string; body?: string; pending?: boolean; votes?: number; approved?: boolean };
+export type CardsCache = Map<string, Card>;
 
-const
+export type UserData = { id: string; username: string; locale: string; avatar: string; banner: string | null; dev: boolean; displayName: string };
+export type UserError = { errorCode: number; error: string };
+export type User<canBeError extends boolean = true> = UserData & (canBeError extends true ? UserError : never);
+}
 
-  /** @type {import('.')['hideFeatureReqElement']} */
-  hideFeatureReqElement = (event = {}) => {
-    if (event.key && event.key !== 'Escape' || featureRequestOverlay.style.display === 'none') return;
+let saveButtonElement: HTMLButtonElement | undefined;
+
+export const
+  hideFeatureReqElement = (event?: KeyboardEvent | PointerEvent): void => {
+    if (!event || event instanceof KeyboardEvent && event.key !== 'Escape' || featureRequestOverlay.style.display === 'none') return;
 
     headerContainer.removeAttribute('inert');
     cardsContainer.removeAttribute('inert');
@@ -26,26 +32,24 @@ const
   },
 
   // Debounced Handlers
-  /** @type {import('.')['sendFeatureRequest']} */
-  sendFeatureRequest = debounce(async event => {
+  sendFeatureRequest = debounce(async (event: PointerEvent): Promise<void> => {
     event.preventDefault();
 
-    const target = event.target.parentElement;
-    if (!target.title || !target.description) return;
+    const target = (event.target as HTMLButtonElement).parentElement as HTMLFormElement | null;
+    if (!target || !target.title || !target.description) return;
 
-    /** @type {import('.').Card | Awaited<ReturnType<import('.')['fetchAPI']>> | undefined} */
     let apiRes = await fetchAPI('vote/new', {
       method: 'POST',
       body: JSON.stringify({
         title: target.title.value.trim(),
         description: target.description.value.trim()
       })
-    }).catch(err => apiRes = err);
+    }).catch(err => err as Error);
 
-    /** @type {import('.').Card | Error | undefined} */
-    let res = await apiRes.json?.().catch(err => res = err);
+    let res = await (apiRes instanceof Response ? apiRes.json().catch(err => err) : undefined) as Card | Error | UserError | undefined;
 
-    if (!apiRes.ok || apiRes.error || res instanceof Error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: apiRes.error ?? apiRes.statusText ?? res?.message });
+    if (!res || res instanceof Error || apiRes instanceof Error || !apiRes.ok || 'error' in apiRes || 'error' in res)
+      return void Swal.fire({ icon: 'error', title: 'Oops...', text: apiRes.error ?? apiRes.statusText ?? res?.message });
 
     await Swal.fire({
       icon: 'success',
@@ -66,11 +70,11 @@ const
 
   /** Updates the cards */
   updateCards = debounce(async () => {
-    const updateList = [...document.body.querySelectorAll('.card[modified]')].reduce((acc, card) => {
+    const updateList = [...document.body.querySelectorAll('.card[modified]')].reduce((acc: Card[], card: Element) => {
       card.removeAttribute('modified');
 
       const originalData = state.cardsCache.get(card.id);
-      if (originalData?.title && card.children.title.textContent.trim() !== originalData.title || originalData.body && card.children.description?.textContent.trim() !== originalData.body)
+      if (originalData?.title && card.children.title.textContent.trim() !== originalData.title || originalData?.body && card.children.description?.textContent.trim() !== originalData.body)
         acc.push({ id: card.id, title: card.children.title.textContent.trim(), body: card.children.description.textContent.trim() });
       return acc;
     }, []);
@@ -81,10 +85,7 @@ const
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updateList)
-    });
-
-    try { res = await res.json(); }
-    catch { /* empty */ }
+    }).then(res => res.json?.()).catch(() => { /* empty */ });
 
     if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
 
@@ -97,8 +98,7 @@ const
 
 // Elements
 
-/** @type {import('.')['createProfileElement']} */
-async function createProfileElement() {
+async function createProfileElement(): Promise<HTMLElement | undefined> {
   const fragment = document.createDocumentFragment();
   const profileContainer = createElement('div', { id: 'profile-container' });
 
@@ -112,11 +112,11 @@ async function createProfileElement() {
       .addEventListener('click', () => globalThis.location.href = `/auth/discord?redirectUrl=${globalThis.location.href}`);
     fragment.append(profileContainer);
 
-    return headerContainer.append(fragment);
+    return void headerContainer.append(fragment);
   }
 
   const profileContainerWrapper = createElement('div', { id: 'profile-container-wrapper' }, profileContainer);
-  profileContainer.addEventListener('click', event => {
+  profileContainer.addEventListener('click', (event: PointerEvent) => {
     if (!profileContainerWrapper.contains(event.target)) profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'flex' ? 'none' : 'flex';
   });
 
@@ -149,12 +149,11 @@ async function createProfileElement() {
   headerContainer.append(fragment);
 }
 
-/** @type {import('.')['createFeatureReqElement']} */
-function createFeatureReqElement() {
-  const featureRequestModal = featureRequestOverlay.querySelector('#feature-request-modal');
+function createFeatureReqElement(): void {
+  const featureRequestModal = featureRequestOverlay.querySelector<HTMLDivElement>('#feature-request-modal')!;
 
-  featureRequestModal.querySelector('#feature-request-submit-button').addEventListener('click', sendFeatureRequest);
-  headerContainer.querySelector('#feature-request-button').addEventListener('click', () => {
+  featureRequestModal.querySelector<HTMLButtonElement>('#feature-request-submit-button')!.addEventListener('click', sendFeatureRequest);
+  headerContainer.querySelector<HTMLButtonElement>('#feature-request-button')!.addEventListener('click', () => {
     if (!state.user?.id) {
       return Swal.fire({
         icon: 'error',
@@ -172,27 +171,28 @@ function createFeatureReqElement() {
     if (state.smallScreen) cardsContainer.style.display = 'none';
   });
 
-  featureRequestModal.querySelector('#feature-request-reset-btn').addEventListener('click', hideFeatureReqElement);
+  featureRequestModal.querySelector<HTMLButtonElement>('#feature-request-reset-btn')!.addEventListener('click', hideFeatureReqElement);
   document.addEventListener('keydown', hideFeatureReqElement);
 
-  if (state.user?.dev) featureRequestModal.querySelector('#feature-request-description').removeAttribute('required');
+  const descriptionElement = featureRequestModal.querySelector<HTMLTextAreaElement>('#feature-request-description')!;
+  if (state.user?.dev) descriptionElement.removeAttribute('required');
 
-  const titleCounter = featureRequestModal.querySelector('#title-counter');
-  const descriptionCounter = featureRequestModal.querySelector('#description-counter');
+  const titleCounter = featureRequestModal.querySelector<HTMLSpanElement>('#title-counter')!;
+  const descriptionCounter = featureRequestModal.querySelector<HTMLSpanElement>('#description-counter')!;
 
-  featureRequestModal.querySelector('#feature-request-title').addEventListener('input', event => {
-    titleCounter.textContent = `${event.target.value.length}/${MAX_TITLE_LENGTH}`;
-    if (event.target.value.length >= MAX_TITLE_LENGTH) titleCounter.classList.add('limit-reached');
+  featureRequestModal.querySelector<HTMLInputElement>('#feature-request-title')!.addEventListener('input', event => {
+    titleCounter.textContent = `${(event.target as HTMLInputElement).value.length}/${MAX_TITLE_LENGTH}`;
+    if ((event.target as HTMLInputElement).value.length >= MAX_TITLE_LENGTH) titleCounter.classList.add('limit-reached');
     else titleCounter.classList.remove('limit-reached');
   });
-  featureRequestModal.querySelector('#feature-request-description').addEventListener('input', event => {
-    descriptionCounter.textContent = `${event.target.value.length}/${MAX_BODY_LENGTH}`;
-    if (event.target.value.length >= MAX_BODY_LENGTH) descriptionCounter.classList.add('limit-reached');
+  descriptionElement.addEventListener('input', event => {
+    descriptionCounter.textContent = `${(event.target as HTMLTextAreaElement).value.length}/${MAX_BODY_LENGTH}`;
+    if ((event.target as HTMLTextAreaElement).value.length >= MAX_BODY_LENGTH) descriptionCounter.classList.add('limit-reached');
     else descriptionCounter.classList.remove('limit-reached');
   });
 }
 
-async function findAndScrollToCard(cardId) {
+async function findAndScrollToCard(cardId: Card['id']) {
   if (!state.cardsCache.has(cardId)) return;
 
   /* eslint-disable-next-line unicorn/prefer-query-selector */
@@ -209,7 +209,7 @@ async function findAndScrollToCard(cardId) {
 // Listener
 
 document.addEventListener('DOMContentLoaded', async () => {
-  setColorScheme(localStorage.getItem('theme') ?? (globalThis.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+  setColorScheme(localStorage.getItem('theme') as 'dark' | 'light' | undefined ?? (globalThis.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
 
   state.smallScreen = globalThis.matchMedia('(max-width: 768px)').matches;
   const cardsInRows = state.smallScreen && localStorage.getItem('displayMode') === 'cardsInRows';
@@ -222,11 +222,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   cardsContainer.classList.add(cardsInRows ? cardModes.rowMode : cardModes.columnMode);
   cardsContainerPending.classList.add(cardsInRows ? cardModes.rowMode : cardModes.columnMode);
 
-  document.querySelector('#feature-request-count > span').textContent = state.cardsCache.size;
+  document.querySelector<HTMLSpanElement>('#feature-request-count > span')!.textContent = state.cardsCache.size.toLocaleString();
 
-  if (globalThis.location.hash == '#new') headerContainer.querySelector('#feature-request-button').click();
+  if (globalThis.location.hash == '#new') headerContainer.querySelector<HTMLButtonElement>('#feature-request-button')!.click();
 
-  // navigator.clipboard is not available with HTTP
+  // @ts-expect-error -- navigator.clipboard is not available with HTTP, meaning it is not readonly with HTTP
   navigator.clipboard ??= {
     writeText: data => Swal.fire({ icon: 'error', title: 'Copying is not available due to this page being served over HTTP.', text: `This was what you tried to copy: ${data}` })
   };
@@ -241,13 +241,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.body.insertBefore(createElement('h2', { id: 'old-requests', textContent: 'Approved Requests' }), cardsContainer);
     }
 
-    saveButtonElement = createElement('button', { id: 'save-button', title: 'Save', classList: 'blue-button' }, document.body);
-    createElement('i', { classList: 'fas fa-save fa-xl' }, saveButtonElement);
+    saveButtonElement = createElement('button', { id: 'save-button', title: 'Save', className: 'blue-button' }, document.body);
+    createElement('i', { className: 'fas fa-save fa-xl' }, saveButtonElement);
 
     saveButtonElement.addEventListener('click', updateCards);
   }
 
-  document.body.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`;
+  document.body.querySelector<HTMLElement>('#feature-request-overlay + *')!.style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`;
   document.documentElement.style.scrollPaddingTop = `${headerContainer.clientHeight + 20}px`;
 
   state.pageIsLoaded = true;

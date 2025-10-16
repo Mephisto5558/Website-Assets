@@ -1,1 +1,2 @@
-function createElement(e,t,n,r){var c=document.createElement(e);if(Object.keys(t??{}).length)for(var[a,l]of Object.entries(t))null!=l&&("object"==typeof l?Object.assign(c[a],l):c[a]=l);return n&&(r?n.replaceChildren(c):n.append(c)),c}export{createElement};
+"use strict";(()=>{function d(f,E,o,a=!1){let e=document.createElement(f);if(E)for(let t of Object.keys(E)){let n=E[t];n!==void 0&&(typeof n=="object"&&n!=null&&!Array.isArray(n)&&t in e?Object.assign(e[t],n):e[t]=n)}return o&&(a?o.replaceChildren(e):o.append(e)),e}})();
+//# sourceMappingURL=createElement.js.map
