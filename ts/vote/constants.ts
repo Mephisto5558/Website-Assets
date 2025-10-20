@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 import createElement from './createElement';
 
 export const
@@ -11,12 +13,10 @@ export const
   COLOR_TRANSITION_TIME = 300,
   msInSecond = 1000,
   cardModes = { columnMode: 'cards-column-mode', rowMode: 'cards-row-mode' },
-  headerContainer  = document.body.querySelector<HTMLElement>('#header-container')!,
+  headerContainer = document.body.querySelector<HTMLElement>('#header-container')!,
   cardsContainer = document.body.querySelector<HTMLElement>('#cards-container')!,
   cardsContainerPending = document.body.querySelector<HTMLElement>('#cards-container-pending')!,
   featureRequestOverlay = document.body.querySelector<HTMLElement>('#feature-request-overlay')!,
-
-  /** @type {HTMLInputElement} */
-  searchBoxElement: HTMLInputElement = createElement('input', {
+  searchBoxElement = createElement('input', {
     type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(globalThis.location.search).get('q') ?? '', className: 'grey-hover', maxLength: MAX_SEARCHBOX_LENGTH
   });
