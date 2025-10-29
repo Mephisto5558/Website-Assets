@@ -57,9 +57,11 @@ export const
 /** @type {import('.')['fetchAPI']} */
 export async function fetchAPI(url, options = {}, timeout = 5000) {
   if (options.body != undefined && !options.headers) options.headers = { 'Content-Type': 'application/json' };
-  options.signal ??= new AbortController().signal;
 
-  const timeoutId = setTimeout(() => options.signal.abort('Request timed out'), timeout);
+  const controller = new AbortController();
+  options.signal = controller.signal;
+
+  const timeoutId = setTimeout(() => controller.abort('Request timed out'), timeout);
   const res = await fetch(url ? `/api/v1/internal/${url}` : undefined, options);
   clearTimeout(timeoutId);
 
