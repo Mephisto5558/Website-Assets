@@ -50,11 +50,13 @@ export const
 
 export async function fetchAPI(url: string, options: RequestInit | undefined = {}, timeout: number | undefined = 5000): Promise<Response | Error> {
   if (options.body != undefined && !options.headers) options.headers = { 'Content-Type': 'application/json' };
-  options.signal ??= new AbortController().signal;
 
-  const timeoutId = setTimeout(() => options.signal.abort('Request timed out'), timeout);
-  const res = await fetch(url ? `/api/v1/internal/${url}` : undefined, options);
-  clearTimeout(timeoutId);
+  const controller = new AbortController();
+  options.signal = controller.signal;
+
+  const
+    timeoutId = setTimeout(() => controller.abort('Request timed out'), timeout),
+    res = await fetch(`/api/v1/internal/${url}`, options).finally(() => clearTimeout(timeoutId));
 
   return res;
 }
