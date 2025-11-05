@@ -15,7 +15,7 @@ export function debounce<CB extends (...args: any) => any>(callback: CB, delay: 
     timer = setTimeout(() => {
       /* eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- false positive */
       try { res(callback(...args)); }
-      catch (err) { rej(err instanceof Error ? err : new Error(err)); }
+      catch (err) { rej(err instanceof Error ? err : new Error(String(err))); }
     }, delay);
   });
 }

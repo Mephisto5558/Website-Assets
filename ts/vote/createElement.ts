@@ -8,14 +8,14 @@ export default function createElement<
   const element = document.createElement(tagName);
 
   if (data) {
-    /* eslint-disable @typescript-eslint/no-unsafe-type-assertion -- TODO */
+    /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
     for (const key of Object.keys(data) as (keyof typeof data)[]) {
       const value = data[key];
       if (value === undefined) continue;
       if (typeof value === 'object' && value != undefined && !Array.isArray(value) && key in element) Object.assign((element as Record<keyof ELEM, object>)[key], value);
       else (element as Record<keyof ELEM, unknown>)[key] = value;
-      /* eslint-enable @typescript-eslint/no-unsafe-type-assertion */
     }
+    /* eslint-enable @typescript-eslint/no-unsafe-type-assertion */
   }
   if (parent) replace ? parent.replaceChildren(element) : parent.append(element);
 
