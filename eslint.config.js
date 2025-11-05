@@ -27,10 +27,6 @@ export default [
     },
     rules: {
       'max-lines': 'off',
-      'max-nested-callbacks': [
-        'warn',
-        5
-      ],
       'no-return-assign': 'off',
       'jsdoc/no-undefined-types': [
         'error',
