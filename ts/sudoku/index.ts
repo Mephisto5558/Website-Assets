@@ -1,22 +1,42 @@
-/** @typedef {import('./index.js').CellInput} CellInput */
-/** @typedef {import('./index.js').CellList} CellList */
-
 import {
-  bgColorSwitcher, cancelBtn, DEBUG_BOARDS, fgColorSwitcher, htmlBoard, loadingContainer,
-  MS_IN_SEC, numberOverviewSpans, regenerateBtn, REPORT_PROD_WORKER_URL, shareBtn, solutionBtn,
-  MAX_GENERATION_ATTEMPTS
+  DEBUG_BOARDS, MAX_GENERATION_ATTEMPTS, MS_IN_SEC, REPORT_PROD_WORKER_URL,
+  bgColorSwitcher, cancelBtn, fgColorSwitcher, htmlBoard, loadingContainer, numberOverviewSpans, regenerateBtn, shareBtn, solutionBtn
 } from './constants.js';
+import __ from './events.js';
 import { createHTMLBoard, createHTMLOverviewSpans, displayBoard } from './generateSudoku.js';
 import { generateShareURL, loadFromShareURL } from './shareSudoku.js';
-import { setRootStyle, getRootStyle, invertHex, saveToClipboard, initializeColorPicker, clearTimer, checkErrors, updateMinMax, sendPopup } from './utils.js';
-import __ from './events.js';
+import { checkErrors, clearTimer, getRootStyle, initializeColorPicker, invertHex, saveToClipboard, sendPopup, setRootStyle, updateMinMax } from './utils.js';
+
+type LowNum = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+
+declare global {
+  /* eslint-disable vars-on-top, no-inner-declarations */
+  var
+    debug: boolean,
+    debugBoard: boolean,
+    timerInterval: number | undefined,
+    sudokuWorker: Worker | undefined,
+    runBench: boolean;
+  /* eslint-enable vars-on-top, no-inner-declarations */
+
+  export type NoteDiv = HTMLDivElement & { childNodes: NodeListOf<NoteElement> };
+  export type NoteElement = HTMLSpanElement & { dataset: { note: `${number}` } };
+
+  export type CellInput = HTMLInputElement & { type: 'number'; dataset: { group: `${number}`; row: `${number}`; col: `${number}`; val?: `${number}` } };
+  export type CellList = HTMLTableCaptionElement & { firstChild: CellInput; childNodes: [CellInput, NoteDiv]; children: [CellInput, NoteDiv] };
+  export type HTMLBoard = CellInput[][];
+
+  export type Board = LowNum[][];
+  export type FullBoard = Exclude<LowNum, 0>[][];
+}
+
 
 document.documentElement.removeAttribute('style'); // remove temp background-color
 
 initializeColorPicker(bgColorSwitcher, 'sudoku-bg-color', color => setRootStyle('--background-color', color));
 initializeColorPicker(
   fgColorSwitcher, 'sudoku-fg-color',
-  color => {
+  (color: string) => {
     setRootStyle('--foreground-color', color);
     setRootStyle('--foreground-color-inverted', invertHex(color));
   }
@@ -67,7 +87,7 @@ function updateBtnListeners(board, fullBoard) {
 
 let workerBlobURL;
 async function fetchScript(url) {
-  const workerScript = await fetch(url).then(res => res.text());
+  const workerScript = await fetch(url).then(async res => res.text());
   return URL.createObjectURL(new Blob([workerScript], { type: 'application/javascript' }));
 }
 
@@ -99,12 +119,12 @@ async function createSudokuWorker() {
   return sudokuWorker;
 }
 
-let showedLoading = false;
-let isGenerating = false;
+let showedLoading = false,
+  isGenerating = false;
 
 /**
- * @param {Event | undefined} event
- * @param {boolean | undefined} firstTime */
+ * @param event
+ * @param firstTime */
 async function regenerate(event, firstTime) {
   if (isGenerating) return;
   isGenerating = true;
@@ -128,9 +148,9 @@ async function regenerate(event, firstTime) {
   try {
     clearTimer();
 
-    const start = performance.now();
+    const start = performance.now(),
 
-    const { size, minHoles, maxHoles, holes } = updateMinMax();
+      { size, minHoles, maxHoles, holes } = updateMinMax();
 
     if (globalThis.debugBoard)
       console.debug('Using debug board.');

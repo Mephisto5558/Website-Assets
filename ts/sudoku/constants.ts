@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 globalThis.debug = false;
 /* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, sonarjs/no-redundant-boolean, no-constant-binary-expression */
 globalThis.debugBoard = true && globalThis.debug;
@@ -22,21 +24,20 @@ export const SEC_IN_MIN = 60;
 
 export const REPORT_PROD_WORKER_URL = 'https://mephisto5558.github.io/Website-Assets/min/js/sudoku/sudoku.worker.js';
 
-/** @type {import('./index.js').HTMLBoard} */
-export const htmlBoard = [];
+export const htmlBoard: HTMLBoard = [];
 
 export const
-  /** @type {HTMLTableElement} */ sudoku = document.querySelector('#sudoku'),
-  /** @type {HTMLOutputElement} */ difficultyOutput = document.querySelector('#difficulty-slider + output'),
-  /** @type {HTMLDivElement} */ loadingContainer = document.querySelector('#loading-container'),
-  /** @type {Element[]} */ loadingContainerSiblings = [...loadingContainer.parentElement.children].filter(e => e != loadingContainer),
-  /** @type {HTMLSpanElement[]} */ numberOverviewSpans = [...document.querySelectorAll('#number-overview > tbody > tr > td > span')],
-  /** @type {HTMLButtonElement} */ solutionBtn = document.querySelector('#solution-btn'),
-  /** @type {HTMLButtonElement} */ regenerateBtn = document.querySelector('#regenerate-btn'),
-  /** @type {HTMLButtonElement} */ shareBtn = document.querySelector('#share-btn'),
-  /** @type {HTMLInputElement} */ difficultySlider = document.querySelector('#difficulty-slider'),
-  /** @type {HTMLInputElement} */ sizeOption = document.querySelector('#size-option'),
-  /** @type {HTMLInputElement} */ bgColorSwitcher = document.querySelector('#bg-color-switch'),
-  /** @type {HTMLInputElement} */ fgColorSwitcher = document.querySelector('#fg-color-switch'),
-  /** @type {HTMLTimeElement} */ timer = document.querySelector('#timer'),
-  /** @type {HTMLButtonElement} */ cancelBtn = document.querySelector('#cancel-loading');
+  sudoku = document.querySelector<HTMLTableElement>('#sudoku')!,
+  difficultyOutput = document.querySelector<HTMLOutputElement>('#difficulty-slider + output')!,
+  loadingContainer = document.querySelector<HTMLDivElement>('#loading-container')!,
+  loadingContainerSiblings = [...loadingContainer.parentElement!.children].filter(e => e != loadingContainer),
+  numberOverviewSpans = [...document.querySelectorAll<HTMLSpanElement>('#number-overview > tbody > tr > td > span')],
+  solutionBtn = document.querySelector<HTMLButtonElement>('#solution-btn')!,
+  regenerateBtn = document.querySelector<HTMLButtonElement>('#regenerate-btn')!,
+  shareBtn = document.querySelector<HTMLButtonElement>('#share-btn')!,
+  difficultySlider = document.querySelector<HTMLInputElement>('#difficulty-slider')!,
+  sizeOption = document.querySelector<HTMLInputElement>('#size-option')!,
+  bgColorSwitcher = document.querySelector<HTMLInputElement>('#bg-color-switch')!,
+  fgColorSwitcher = document.querySelector<HTMLInputElement>('#fg-color-switch')!,
+  timer = document.querySelector<HTMLTimeElement>('#timer')!,
+  cancelBtn = document.querySelector<HTMLButtonElement>('#cancel-loading')!;

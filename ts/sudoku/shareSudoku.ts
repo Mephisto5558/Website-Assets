@@ -1,76 +1,74 @@
-/** @typedef {import('./index.js').FullBoard} FullBoard */
-/** @typedef {import('./index.js').Board} Board */
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { updateMinMax } from './utils';
 import { difficultySlider, sizeOption } from './constants';
+import { updateMinMax } from './utils';
 
-const BASE = 62n;
-const BASE_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const
+  BASE = 62n,
+  BASE_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-/**
- * Converts a BigInt to a Base62 string.
- * @param {bigint} num */
-function bigIntToBase62(num) {
+/** Converts a BigInt to a Base62 string. */
+function bigIntToBase62(num: bigint): string {
   if (num === 0n) return '0';
 
   let str = '';
-  for (;num > 0n; num /= BASE) str = BASE_ALPHABET[Number(num % BASE)] + str;
+  for (;num > 0n; num /= BASE) str = BASE_ALPHABET[Number(num % BASE)]! + str;
 
   return str;
 }
 
-/**
- * Converts a Base62 string back to a BigInt.
- * @param {string} base62 */
-function base62ToBigInt(base62) {
+/** Converts a Base62 string back to a BigInt. */
+function base62ToBigInt(base62: typeof BASE_ALPHABET): bigint {
+  /* eslint-disable-next-line @typescript-eslint/no-misused-spread */
   return [...base62].reduce((acc, e) => acc * BASE + BigInt(BASE_ALPHABET.indexOf(e)), 0n);
 }
 
-/**
- * @param {Board} board
- * @param {FullBoard} fullBoard */
-export function generateShareURL(board, fullBoard) {
-  const dimension = BigInt(board.length);
-  const base = dimension + 1n;
+export function generateShareURL(board: Board, fullBoard: FullBoard): string {
+  const
+    dimension = BigInt(board.length),
+    base = dimension + 1n;
 
   let solutionBigInt = 0n;
   for (const num of fullBoard.flat())
     solutionBigInt = solutionBigInt * base + BigInt(num);
 
-  const data = {
-    /* eslint-disable id-length */
-    s: solutionBigInt,
-    m: BigInt('0b' + board.flat().map(cell => cell ? '1' : '0').join('')),
-    d: dimension
-    /* eslint-enable id-length */
-  };
+  const
+    data = {
+      /* eslint-disable id-length */
+      s: solutionBigInt,
+      m: BigInt('0b' + board.flat().map(cell => (cell ? '1' : '0')).join('')),
+      d: dimension
+      /* eslint-enable id-length */
+    },
+    url = new URL(globalThis.location.href);
 
-  const url = new URL(globalThis.location.href);
-  for (const [k, v] of Object.entries(data)) url.searchParams.set(k, bigIntToBase62(v));
+  for (const [k, v] of Object.entries(data) as [string, bigint][]) url.searchParams.set(k, bigIntToBase62(v));
 
   return url.toString();
 }
 
-/**
- * @param {string | URL | undefined} url
- * @returns {{ fullBoard: FullBoard, board: Board } | undefined} */
-export function loadFromShareURL(url) {
-  const params = new URLSearchParams(url ?? globalThis.location.search);
-  const compressedDimension = params.get('d');
-  const compressedSolution = params.get('s');
-  const compressedMask = params.get('m');
+export function loadFromShareURL(url: string | URL | undefined): { fullBoard: FullBoard; board: Board } | undefined {
+  const
+    params = new URLSearchParams(url?.toString() ?? globalThis.location.search),
+    compressedDimension = params.get('d') as typeof BASE_ALPHABET | null,
+    compressedSolution = params.get('s') as typeof BASE_ALPHABET | null,
+    compressedMask = params.get('m') as typeof BASE_ALPHABET | null;
 
   if (!compressedSolution || !compressedMask || !compressedDimension) return;
 
   try {
-    const dimension = Number(base62ToBigInt(compressedDimension));
-    const totalCells = dimension * dimension;
-    const base = BigInt(dimension + 1);
+    const
+      dimension = Number(base62ToBigInt(compressedDimension)),
+      totalCells = dimension * dimension,
+      base = BigInt(dimension + 1),
 
-    const maskString = base62ToBigInt(compressedMask).toString(2).padStart(totalCells, '0');
+      maskString = base62ToBigInt(compressedMask).toString(2).padStart(totalCells, '0');
 
-    sizeOption.value = Math.sqrt(dimension);
-    difficultySlider.value = [...maskString].filter(e => e == 0).length;
+    sizeOption.value = Math.sqrt(dimension).toString();
+
+    /* eslint-disable-next-line @typescript-eslint/no-misused-spread */
+    difficultySlider.value = [...maskString].filter(e => Number(e) == 0).length.toString();
 
     updateMinMax();
 
@@ -84,15 +82,18 @@ export function loadFromShareURL(url) {
 
     solutionNumbers.reverse();
 
-    const board = [];
-    const fullBoard = [];
+    const
+      board: Board = [],
+      fullBoard: FullBoard = [];
     for (let rowId = 0; rowId < dimension; rowId++) {
-      const boardRow = [];
-      const fullBoardRow = [];
+      const
+        boardRow = [],
+        fullBoardRow = [];
 
       for (let colId = 0; colId < dimension; colId++) {
-        const i = rowId * dimension + colId;
-        const solutionDigit = solutionNumbers[i];
+        const
+          i = rowId * dimension + colId,
+          solutionDigit = solutionNumbers[i]!;
 
         fullBoardRow.push(solutionDigit);
         boardRow.push(maskString[i] === '1' ? solutionDigit : 0);

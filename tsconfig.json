@@ -9,7 +9,9 @@
     "lib": [
       "DOM",
       "DOM.Iterable",
-      "ESNext"
+      "ESNext",
+      "WebWorker",
+      "Webworker.Iterable"
     ],
     "allowJs": false,
     "exactOptionalPropertyTypes": true,
@@ -19,6 +21,6 @@
     "noUncheckedIndexedAccess": true,
     "noUncheckedSideEffectImports": true,
     "skipLibCheck": true,
-    "strict": true,
+    "strict": true
   }
 }
