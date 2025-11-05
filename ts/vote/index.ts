@@ -1,19 +1,24 @@
-import {
-  featureRequestOverlay, headerContainer, cardsContainer, cardsContainerPending, msInSecond, searchBoxElement, cardModes,
-  HTTP_STATUS_FORBIDDEN, PROFILE_IMG_SIZE, MAX_TITLE_LENGTH, MAX_BODY_LENGTH, ADDITIONAL_HEADER_MARGIN
-} from './constants';
-import { debounce, fetchAPI, fetchCards, createElement, displayCards, setColorScheme } from './utils';
-import state from './state';
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 
+import {
+  ADDITIONAL_HEADER_MARGIN, HTTP_STATUS_FORBIDDEN, MAX_BODY_LENGTH, MAX_TITLE_LENGTH, PROFILE_IMG_SIZE,
+  cardModes, cardsContainer, cardsContainerPending, featureRequestOverlay, headerContainer, msInSecond, searchBoxElement
+} from './constants';
 import __ from './events';
+import state from './state';
+import { createElement, debounce, displayCards, fetchAPI, fetchCards, getFormElement, setColorScheme } from './utils';
 
 declare global {
-export type Card = { id: string; title: string; body?: string; pending?: boolean; votes?: number; approved?: boolean };
-export type CardsCache = Map<string, Card>;
+  export type Card = { id: string; title: string; body?: string; pending?: boolean; votes?: number; approved?: boolean };
+  export type CardsCache = Map<string, Card>;
+  export type HTMLCardElement = HTMLDivElement & {
+    children: { title: HTMLHeadingElement; description?: HTMLParagraphElement };
+  };
 
-export type UserData = { id: string; username: string; locale: string; avatar: string; banner: string | null; dev: boolean; displayName: string };
-export type UserError = { errorCode: number; error: string };
-export type User<canBeError extends boolean = true> = UserData & (canBeError extends true ? UserError : never);
+  export type UserData = { id: string; username: string; locale: string; avatar: string; banner: string | null; dev: boolean; displayName: string };
+  export type UserError = { errorCode: number; error: string };
+  export type User<canBeError extends boolean = true> = UserData & (canBeError extends true ? UserError : never);
 }
 
 let saveButtonElement: HTMLButtonElement | undefined;
@@ -36,20 +41,20 @@ export const
     event.preventDefault();
 
     const target = (event.target as HTMLButtonElement).parentElement as HTMLFormElement | null;
-    if (!target || !target.title || !target.description) return;
+    if (!target?.title || !target.description) return;
 
-    let apiRes = await fetchAPI('vote/new', {
-      method: 'POST',
-      body: JSON.stringify({
-        title: target.title.value.trim(),
-        description: target.description.value.trim()
-      })
-    }).catch(err => err as Error);
+    const
+      apiRes = await fetchAPI('vote/new', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: getFormElement<HTMLInputElement>(target, 'title').value.trim(),
+          description: getFormElement<HTMLTextAreaElement>(target, 'description').value.trim()
+        })
+      }).catch(err => err as Error),
+      res = await (apiRes instanceof Response ? (apiRes.json() as Promise<Card | UserError>).catch(err => err as UserError) : apiRes);
 
-    let res = await (apiRes instanceof Response ? apiRes.json().catch(err => err) : undefined) as Card | Error | UserError | undefined;
-
-    if (!res || res instanceof Error || apiRes instanceof Error || !apiRes.ok || 'error' in apiRes || 'error' in res)
-      return void Swal.fire({ icon: 'error', title: 'Oops...', text: apiRes.error ?? apiRes.statusText ?? res?.message });
+    if (res instanceof Error || 'error' in res)
+      return void Swal.fire({ icon: 'error', title: 'Oops...', text: 'error' in res ? res.error : res.message });
 
     await Swal.fire({
       icon: 'success',
@@ -70,24 +75,26 @@ export const
 
   /** Updates the cards */
   updateCards = debounce(async () => {
-    const updateList = [...document.body.querySelectorAll('.card[modified]')].reduce((acc: Card[], card: Element) => {
+    const updateList = [...document.body.querySelectorAll<HTMLCardElement>('.card[modified]')].reduce((acc: Card[], card) => {
       card.removeAttribute('modified');
 
       const originalData = state.cardsCache.get(card.id);
       if (originalData?.title && card.children.title.textContent.trim() !== originalData.title || originalData?.body && card.children.description?.textContent.trim() !== originalData.body)
-        acc.push({ id: card.id, title: card.children.title.textContent.trim(), body: card.children.description.textContent.trim() });
+        acc.push({ id: card.id, title: card.children.title.textContent.trim(), body: card.children.description?.textContent.trim() ?? '' });
       return acc;
     }, []);
 
     if (!updateList.length) return void Swal.fire({ icon: 'error', title: 'Oops...', text: 'No cards have been modified.' });
 
-    let res = await fetchAPI('vote/update', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updateList)
-    }).then(res => res.json?.()).catch(() => { /* empty */ });
+    const
+      apiRes = await fetchAPI('vote/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateList)
+      }).catch(err => err as Error),
+      res = await (apiRes instanceof Response ? (apiRes.json() as Promise<UserError | { success: true }>).catch(err => err as UserError) : apiRes);
 
-    if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
+    if (res instanceof Error || 'error' in res) return void Swal.fire({ icon: 'error', title: 'Oops...', text: 'error' in res ? res.error : res.message });
 
     void Swal.fire({ icon: 'success', title: 'Success', text: 'The cards have been updated.' });
 
@@ -99,10 +106,11 @@ export const
 // Elements
 
 async function createProfileElement(): Promise<HTMLElement | undefined> {
-  const fragment = document.createDocumentFragment();
-  const profileContainer = createElement('div', { id: 'profile-container' });
+  const
+    fragment = document.createDocumentFragment(),
+    profileContainer = createElement('div', { id: 'profile-container' });
 
-  state.user = await fetchAPI('user').then(e => e.json()).catch(() => { /* empty */ });
+  state.user = await fetchAPI('user').then(async e => ('json' in e ? e.json() as Promise<User> : undefined)).catch(() => { /* empty */ }) as User | undefined;
   if (!state.user || state.user.errorCode) {
     if (state.user?.errorCode == HTTP_STATUS_FORBIDDEN) return createElement('h2', { textContent: state.user.error }, document.body, true);
 
@@ -112,20 +120,21 @@ async function createProfileElement(): Promise<HTMLElement | undefined> {
       .addEventListener('click', () => globalThis.location.href = `/auth/discord?redirectUrl=${globalThis.location.href}`);
     fragment.append(profileContainer);
 
-    return void headerContainer.append(fragment);
+    headerContainer.append(fragment);
+    return;
   }
 
   const profileContainerWrapper = createElement('div', { id: 'profile-container-wrapper' }, profileContainer);
   profileContainer.addEventListener('click', (event: PointerEvent) => {
-    if (!profileContainerWrapper.contains(event.target)) profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'flex' ? 'none' : 'flex';
+    if (!profileContainerWrapper.contains(event.target as Node)) profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'flex' ? 'none' : 'flex';
   });
 
   const img = new Image(PROFILE_IMG_SIZE, PROFILE_IMG_SIZE);
-  img.onload = () => profileContainer.append(img);
+  img.addEventListener('load', () => profileContainer.append(img));
   img.alt = 'Profile';
   img.src = `https://cdn.discordapp.com/avatars/${state.user.id}/${state.user.avatar}.webp?size=64`;
 
-  createElement('div', { id: 'username', textContent: state.user.displayName ?? state.user.username }, profileContainerWrapper);
+  createElement('div', { id: 'username', textContent: state.user.displayName }, profileContainerWrapper);
   createElement('button', { id: 'logout-button', textContent: 'Logout', className: 'blue-button' }, profileContainerWrapper).addEventListener('click', async () => {
     const res = await fetch('/auth/logout');
 
@@ -153,7 +162,7 @@ function createFeatureReqElement(): void {
   const featureRequestModal = featureRequestOverlay.querySelector<HTMLDivElement>('#feature-request-modal')!;
 
   featureRequestModal.querySelector<HTMLButtonElement>('#feature-request-submit-button')!.addEventListener('click', sendFeatureRequest);
-  headerContainer.querySelector<HTMLButtonElement>('#feature-request-button')!.addEventListener('click', () => {
+  headerContainer.querySelector<HTMLButtonElement>('#feature-request-button')!.addEventListener('click', async () => {
     if (!state.user?.id) {
       return Swal.fire({
         icon: 'error',
@@ -177,29 +186,28 @@ function createFeatureReqElement(): void {
   const descriptionElement = featureRequestModal.querySelector<HTMLTextAreaElement>('#feature-request-description')!;
   if (state.user?.dev) descriptionElement.removeAttribute('required');
 
-  const titleCounter = featureRequestModal.querySelector<HTMLSpanElement>('#title-counter')!;
-  const descriptionCounter = featureRequestModal.querySelector<HTMLSpanElement>('#description-counter')!;
+  const
+    titleCounter = featureRequestModal.querySelector<HTMLSpanElement>('#title-counter')!,
+    descriptionCounter = featureRequestModal.querySelector<HTMLSpanElement>('#description-counter')!;
 
   featureRequestModal.querySelector<HTMLInputElement>('#feature-request-title')!.addEventListener('input', event => {
     titleCounter.textContent = `${(event.target as HTMLInputElement).value.length}/${MAX_TITLE_LENGTH}`;
-    if ((event.target as HTMLInputElement).value.length >= MAX_TITLE_LENGTH) titleCounter.classList.add('limit-reached');
-    else titleCounter.classList.remove('limit-reached');
+    titleCounter.classList.toggle('limit-reached', (event.target as HTMLInputElement).value.length >= MAX_TITLE_LENGTH);
   });
   descriptionElement.addEventListener('input', event => {
     descriptionCounter.textContent = `${(event.target as HTMLTextAreaElement).value.length}/${MAX_BODY_LENGTH}`;
-    if ((event.target as HTMLTextAreaElement).value.length >= MAX_BODY_LENGTH) descriptionCounter.classList.add('limit-reached');
-    else descriptionCounter.classList.remove('limit-reached');
+    descriptionCounter.classList.toggle('limit-reached', (event.target as HTMLTextAreaElement).value.length >= MAX_BODY_LENGTH);
   });
 }
 
-async function findAndScrollToCard(cardId: Card['id']) {
+async function findAndScrollToCard(cardId: Card['id']): Promise<void> {
   if (!state.cardsCache.has(cardId)) return;
 
   /* eslint-disable-next-line unicorn/prefer-query-selector */
   while (!document.getElementById(cardId) && state.cardsCache.size > state.cardsOffset) {
     displayCards();
     /* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- short timeout to prevent browser lag */
-    await new Promise(res => setTimeout(res, 50));
+    await new Promise(res => void setTimeout(res, 50));
   }
 
   /* eslint-disable-next-line unicorn/prefer-query-selector */
@@ -228,12 +236,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // @ts-expect-error -- navigator.clipboard is not available with HTTP, meaning it is not readonly with HTTP
   navigator.clipboard ??= {
-    writeText: data => Swal.fire({ icon: 'error', title: 'Copying is not available due to this page being served over HTTP.', text: `This was what you tried to copy: ${data}` })
+    writeText: (data: string): void => void Swal.fire({ icon: 'error', title: 'Copying is not available due to this page being served over HTTP.', text: `This was what you tried to copy: ${data}` })
   };
 
   displayCards();
 
-  setTimeout(() => findAndScrollToCard(globalThis.location.hash.slice(1)), msInSecond / 10);
+  setTimeout(async () => findAndScrollToCard(globalThis.location.hash.slice(1)), msInSecond / 10);
 
   if (state.user?.dev) {
     if (cardsContainerPending.childElementCount) {
@@ -248,6 +256,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   document.body.querySelector<HTMLElement>('#feature-request-overlay + *')!.style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`;
+
+  /* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- no idea, it just works */
   document.documentElement.style.scrollPaddingTop = `${headerContainer.clientHeight + 20}px`;
 
   state.pageIsLoaded = true;

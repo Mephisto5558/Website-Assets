@@ -1,52 +1,57 @@
-import { searchBoxElement, cardsContainer, cardsContainerPending, msInSecond, headerContainer, ADDITIONAL_HEADER_MARGIN, cardModes, COLOR_TRANSITION_TIME } from './constants';
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
+import { ADDITIONAL_HEADER_MARGIN, COLOR_TRANSITION_TIME, cardModes, cardsContainer, cardsContainerPending, headerContainer, msInSecond, searchBoxElement } from './constants';
 import createElement from './createElement';
 import state from './state';
 
-export { createElement }
+export { createElement };
 
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 export function debounce<CB extends (...args: any) => any>(callback: CB, delay: number): (...args: Parameters<CB>) => Promise<ReturnType<CB>> {
   let timer: ReturnType<typeof setTimeout>;
 
-  return (...args) => new Promise((res, rej) => {
+  return async (...args) => new Promise((res, rej) => {
     clearTimeout(timer);
     timer = setTimeout(() => {
+      /* eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- false positive */
       try { res(callback(...args)); }
       catch (err) { rej(err instanceof Error ? err : new Error(err)); }
     }, delay);
   });
 }
 
-export const
-  sendUpvote = debounce(async (cardId: Card['id'], voteCounter: HTMLElement): Promise<void> => {
-    if (!state.user?.id) {
-      return void Swal.fire({
-        icon: 'error',
-        title: 'Who are you?',
-        text: 'You must be logged in to be able to vote!'
-      });
-    }
-
-    let res = await fetchAPI('vote/addvote', {
-      method: 'POST',
-      body: JSON.stringify({ featureId: cardId })
+export const sendUpvote = debounce(async (cardId: Card['id'], voteCounter: HTMLSpanElement): Promise<void> => {
+  if (!state.user?.id) {
+    return void Swal.fire({
+      icon: 'error',
+      title: 'Who are you?',
+      text: 'You must be logged in to be able to vote!'
     });
+  }
 
-    try { res = await res.json(); }
-    catch { /* empty */ }
+  let res = await fetchAPI('vote/addvote', {
+    method: 'POST',
+    body: JSON.stringify({ featureId: cardId })
+  });
 
-    if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
+  try { res = await res.json(); }
+  catch { /* empty */ }
 
-    void Swal.fire({
-      icon: 'success',
-      title: 'Success',
-      text: 'Your vote has been successfully recorded.'
-    });
+  if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
 
-    voteCounter.textContent = Number.parseInt(voteCounter.textContent) + 1;
+  void Swal.fire({
+    icon: 'success',
+    title: 'Success',
+    text: 'Your vote has been successfully recorded.'
+  });
 
-    state.cardsOffset = 0;
-    displayCards();
-  }, msInSecond);
+  const card = state.cardsCache.get(cardId)!;
+  card.votes = (card.votes ?? 0) + 1;
+  voteCounter.textContent = card.votes.toLocaleString();
+
+  state.cardsOffset = 0;
+  displayCards();
+}, msInSecond);
 
 export async function fetchAPI(url: string, options: RequestInit | undefined = {}, timeout: number | undefined = 5000): Promise<Response | Error> {
   if (options.body != undefined && !options.headers) options.headers = { 'Content-Type': 'application/json' };
@@ -63,8 +68,8 @@ export async function fetchAPI(url: string, options: RequestInit | undefined = {
 
 export async function fetchCards(): Promise<void> {
   const fetchedCards = new Map(
-    ((await fetchAPI(`vote/list?includePending=${!!state.user?.dev}`).then(e => e.json()))?.cards as Card[])
-      ?.sort((a, b) => {
+    ((await fetchAPI(`vote/list?includePending=${!!state.user?.dev}`).then(e => e.json()))?.cards as Card[] | undefined)
+      ?.toSorted((a, b) => {
         if (!a.pending && b.pending) return 1;
         if (a.pending && !b.pending) return -1;
         return (b.votes ?? 0) - (a.votes ?? 0) || a.title.localeCompare(b.title);
@@ -94,6 +99,7 @@ export function displayCards(query: string | undefined = searchBoxElement.value,
   query = query.toLowerCase();
   updateParams('q', query);
 
+  /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- boolean check */
   const cards = query ? [...state.cardsCache.values()].filter(e => e.title.toLowerCase().includes(query) || e.body?.toLowerCase().includes(query) || e.id.toLowerCase().includes(query)) : [...state.cardsCache.values()];
   if (!cards.length && !cardsContainer.childElementCount && !cardsContainerPending.childElementCount) return void createElement('h2', { textContent: `There are currently no feature requests${query ? ' matching your search query' : ''} :(` }, cardsContainer, true);
 
@@ -117,15 +123,16 @@ export function displayCards(query: string | undefined = searchBoxElement.value,
 }
 
 export function createCardElement(card: Card): void {
-  const isDev = !!state.user?.dev;
+  const
+    isDev = !!state.user?.dev,
 
-  const cardElement = createElement('div', { className: 'card', id: card.id });
+    cardElement = createElement('div', { className: 'card', id: card.id }),
 
-  const titleElement = createElement('h2', { id: 'title', textContent: card.title, contentEditable: isDev ? 'plaintext-only' : 'false' }, cardElement);
-  const descriptionElement = card.body || isDev ? createElement('p', { id: 'description', textContent: card.body ?? '', contentEditable: isDev ? 'plaintext-only' : 'false' }, cardElement) : undefined;
+    titleElement = createElement('h2', { id: 'title', textContent: card.title, contentEditable: isDev ? 'plaintext-only' : 'false' }, cardElement),
+    descriptionElement = card.body || isDev ? createElement('p', { id: 'description', textContent: card.body ?? '', contentEditable: isDev ? 'plaintext-only' : 'false' }, cardElement) : undefined,
 
-  const voteButtonsElement = createElement('div', { className: 'vote-buttons' }, cardElement);
-  const upvoteCounterElement = createElement('span', { className: 'vote-counter', textContent: card.pending ? '' : (card.votes ?? 0).toString() });
+    voteButtonsElement = createElement('div', { className: 'vote-buttons' }, cardElement),
+    upvoteCounterElement = createElement('span', { className: 'vote-counter', textContent: card.pending ? '' : (card.votes ?? 0).toString() });
 
   if (card.pending && isDev) {
     createElement('button', { textContent: 'Approve', className: 'vote-button blue-button' }, voteButtonsElement).addEventListener('click', async () => {
@@ -147,12 +154,16 @@ export function createCardElement(card: Card): void {
       }
     });
   }
-  else if (!card.pending) createElement('button', { className: 'vote-button blue-button', textContent: 'Upvote' }, voteButtonsElement).addEventListener('click', () => sendUpvote(card.id, upvoteCounterElement));
+  else if (!card.pending) {
+    createElement('button', { className: 'vote-button blue-button', textContent: 'Upvote' }, voteButtonsElement)
+      .addEventListener('click', async () => sendUpvote(card.id, upvoteCounterElement));
+  }
 
   voteButtonsElement.append(upvoteCounterElement);
 
-  const copyButtonElement = createElement('button', { title: 'Copy card Id', className: 'manage-button grey-hover' }, voteButtonsElement);
-  const copyButtonIcon = createElement('i', { className: 'far fa-copy fa-xl' }, copyButtonElement);
+  const
+    copyButtonElement = createElement('button', { title: 'Copy card Id', className: 'manage-button grey-hover' }, voteButtonsElement),
+    copyButtonIcon = createElement('i', { className: 'far fa-copy fa-xl' }, copyButtonElement);
 
   copyButtonElement.addEventListener('click', () => {
     void navigator.clipboard.writeText(card.id);
@@ -163,7 +174,7 @@ export function createCardElement(card: Card): void {
 
   if (isDev) {
     titleElement.addEventListener('keydown', event => {
-      if (!(event.target instanceof HTMLElement) || !(event.target?.parentElement instanceof HTMLElement)) return; // typeguard
+      if (!(event.target instanceof HTMLElement) || !(event.target.parentElement instanceof HTMLElement)) return; // typeguard
 
       if (event.target.parentElement.hasAttribute('modified')) {
         if (event.target.textContent == card.title)
@@ -174,21 +185,24 @@ export function createCardElement(card: Card): void {
 
       if (event.key !== 'Enter') return;
       event.preventDefault();
-      event.target.nextElementSibling!.firstChild!.focus();
+      /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+      (event.target.nextElementSibling!.firstElementChild! as HTMLElement).focus();
     });
-    descriptionElement?.addEventListener('input', ({ target }) => {
-      if (target.parentElement.hasAttribute('modified')) {
-        if (target.textContent == card.body)
-          target.parentElement.removeAttribute('modified');
+    descriptionElement?.addEventListener('input', event => {
+      if (!(event.target instanceof HTMLElement) || !(event.target.parentElement instanceof HTMLElement)) return; // typeguard
+
+      if (event.target.parentElement.hasAttribute('modified')) {
+        if (event.target.textContent == card.body)
+          event.target.parentElement.removeAttribute('modified');
       }
-      else if (target.textContent != card.body)
-        target.parentElement.setAttribute('modified', '');
+      else if (event.target.textContent != card.body)
+        event.target.parentElement.setAttribute('modified', '');
     });
   }
 
   if (isDev || state.user?.id == card.id.split('_')[0]) {
     const deleteButtonElement = createElement('button', { title: 'Delete card', className: 'manage-button grey-hover' }, voteButtonsElement);
-    deleteButtonElement.addEventListener('click', () => Swal.fire({
+    deleteButtonElement.addEventListener('click', async () => Swal.fire({
       icon: 'warning',
       title: 'Are you sure?',
       text: 'Are you sure you want to delete that card? This action cannot be undone!',
@@ -203,7 +217,7 @@ export function createCardElement(card: Card): void {
         if (!cardsContainerPending.childElementCount) {
           document.body.querySelector('#new-requests')?.remove();
           document.body.querySelector('#old-requests')?.remove();
-          document.body.querySelector('#feature-request-overlay + *').style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`; // Element after `#feature-request-overlay`
+          document.body.querySelector<HTMLElement>('#feature-request-overlay + *')!.style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`; // Element after `#feature-request-overlay`
         }
       }
     }));
@@ -211,14 +225,17 @@ export function createCardElement(card: Card): void {
     createElement('i', { className: 'far fa-trash-can fa-xl' }, deleteButtonElement);
   }
 
-  if (isDev) createElement('p', { id: 'userId', title: 'Click to copy', textContent: card.id.split('_')[0] }, voteButtonsElement).addEventListener('click', () => navigator.clipboard.writeText(card.id.split('_')[0]));
+  if (isDev) {
+    createElement('p', { id: 'userId', title: 'Click to copy', textContent: card.id.split('_')[0]! }, voteButtonsElement)
+      .addEventListener('click', async () => navigator.clipboard.writeText(card.id.split('_')[0]!));
+  }
 
   (card.pending ? cardsContainerPending : cardsContainer).append(cardElement);
-  if (descriptionElement?.value) descriptionElement.style.height = `${descriptionElement.scrollHeight}px`;
+  if (descriptionElement?.textContent) descriptionElement.style.height = `${descriptionElement.scrollHeight}px`;
 }
 
 /** Toggles the display mode */
-export function toggleCardDisplayMode() {
+export function toggleCardDisplayMode(): void {
   localStorage.setItem('displayMode', cardsContainer.classList.contains(cardModes.columnMode) ? 'cardsInRows' : 'cardsInColumns');
 
   cardsContainer.classList.toggle(cardModes.columnMode);
@@ -228,7 +245,7 @@ export function toggleCardDisplayMode() {
 }
 
 let currentTheme: 'dark' | 'light';
-export function setColorScheme(scheme: 'dark' | 'light' | undefined = currentTheme === 'dark' ? 'light' : 'dark') {
+export function setColorScheme(scheme: 'dark' | 'light' | undefined = currentTheme === 'dark' ? 'light' : 'dark'): void {
   if (currentTheme === scheme) return;
   currentTheme = scheme;
   localStorage.setItem('theme', currentTheme);
@@ -239,6 +256,14 @@ export function setColorScheme(scheme: 'dark' | 'light' | undefined = currentThe
     const elements = document.querySelectorAll('body, #header-container button, #header-container>#search-box, .card');
     for (const e of elements) e.classList.add('color-transition');
 
-    setTimeout(() => { for (const e of elements) e.classList.remove('color-transition'); }, COLOR_TRANSITION_TIME);
+    setTimeout(() => {
+      for (const e of elements) e.classList.remove('color-transition');
+    }, COLOR_TRANSITION_TIME);
   }
+}
+
+/* eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-unnecessary-type-parameters */
+export function getFormElement<ElementType extends HTMLElement | null = HTMLInputElement | null>(form: HTMLFormElement, itemName: string) {
+  /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+  return form.elements.namedItem(itemName) as ElementType | RadioNodeList;
 }

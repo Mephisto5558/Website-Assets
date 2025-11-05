@@ -1,8 +1,9 @@
-export default class state {
-  static readonly cardsCache: CardsCache = new Map();
+const state = {
+  cardsCache: new Map() as CardsCache,
+  user: undefined as User | undefined,
+  cardsOffset: 0,
+  pageIsLoaded: false,
+  smallScreen: false
+};
 
-  static user: User | undefined;
-  static cardsOffset = 0;
-  static pageIsLoaded = false;
-  static smallScreen = false;
-}
+export default state;

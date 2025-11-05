@@ -1,2 +1,2 @@
-"use strict";(()=>{var a=class{static cardsCache=new Map;static user;static cardsOffset=0;static pageIsLoaded=!1;static smallScreen=!1};})();
+"use strict";(()=>{var e={cardsCache:new Map,user:void 0,cardsOffset:0,pageIsLoaded:!1,smallScreen:!1},a=e;})();
 //# sourceMappingURL=state.js.map

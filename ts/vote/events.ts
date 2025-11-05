@@ -1,6 +1,8 @@
-import { searchBoxElement, msInSecond, headerContainer, WINDOW_WIDTH_RELOAD_TRESHOLD, ADDITIONAL_HEADER_MARGIN } from './constants';
-import { debounce, displayCards, toggleCardDisplayMode, setColorScheme } from './utils';
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
+import { ADDITIONAL_HEADER_MARGIN, WINDOW_WIDTH_RELOAD_TRESHOLD, headerContainer, msInSecond, searchBoxElement } from './constants';
 import state from './state';
+import { debounce, displayCards, setColorScheme, toggleCardDisplayMode } from './utils';
 
 export default undefined; // Needed to load it in without actually importing anything
 
@@ -12,7 +14,7 @@ searchBoxElement.addEventListener('input', debounce((event: Event) => {
   state.cardsOffset = 0;
 
   const cards = displayCards(event.target.value);
-  document.querySelector<HTMLSpanElement>('#feature-request-count > span')!.textContent = cards.length.toLocaleString();
+  document.querySelector<HTMLSpanElement>('#feature-request-count > span')!.textContent = (cards?.length ?? 0).toLocaleString();
 }, msInSecond / 2));
 
 
