@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 import {
   DEBUG_BOARDS, MAX_GENERATION_ATTEMPTS, MS_IN_SEC, REPORT_PROD_WORKER_URL,
   bgColorSwitcher, cancelBtn, fgColorSwitcher, htmlBoard, loadingContainer, numberOverviewSpans, regenerateBtn, shareBtn, solutionBtn
@@ -6,8 +8,6 @@ import __ from './events.js';
 import { createHTMLBoard, createHTMLOverviewSpans, displayBoard } from './generateSudoku.js';
 import { generateShareURL, loadFromShareURL } from './shareSudoku.js';
 import { checkErrors, clearTimer, getRootStyle, initializeColorPicker, invertHex, saveToClipboard, sendPopup, setRootStyle, updateMinMax } from './utils.js';
-
-type LowNum = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 declare global {
   /* eslint-disable vars-on-top, no-inner-declarations */
@@ -26,8 +26,8 @@ declare global {
   export type CellList = HTMLTableCaptionElement & { firstChild: CellInput; childNodes: [CellInput, NoteDiv]; children: [CellInput, NoteDiv] };
   export type HTMLBoard = CellInput[][];
 
-  export type Board = LowNum[][];
-  export type FullBoard = Exclude<LowNum, 0>[][];
+  export type Board = number[][];
+  export type FullBoard = number[][];
 }
 
 
@@ -53,50 +53,55 @@ initializeColorPicker(
 */
 setRootStyle('--foreground-color-secondary-inverted', invertHex(getRootStyle('--foreground-color-secondary')));
 
-let shareEventListener, solutionEventListener;
+let
+  shareEventListener: ((event: PointerEvent) => unknown) | undefined,
+  solutionEventListener: ((event: PointerEvent) => unknown) | undefined;
 
-function updateBtnListeners(board, fullBoard) {
+function updateBtnListeners(board: Board, fullBoard: FullBoard): void {
   let solutionShown = false;
 
-  shareBtn.removeEventListener('click', shareEventListener);
-  solutionBtn.removeEventListener('click', solutionEventListener);
+  if (shareEventListener) shareBtn.removeEventListener('click', shareEventListener);
+  if (solutionEventListener) solutionBtn.removeEventListener('click', solutionEventListener);
 
-  shareEventListener = async () => {
+  shareEventListener = async (): Promise<void> => {
     const url = globalThis.location.search ? globalThis.location.href : generateShareURL(board, fullBoard);
     if (url != globalThis.location.href) globalThis.history.pushState({}, '', url);
 
     await saveToClipboard(url);
   };
-  solutionEventListener = event => {
+  solutionEventListener = (event: PointerEvent): void => {
     solutionShown = !solutionShown;
     if (solutionShown) {
       console.debug('Showing solution.');
       displayBoard(fullBoard, htmlBoard, numberOverviewSpans, true);
-      event.target.textContent = 'Hide Solution';
+      event.target!.textContent = 'Hide Solution';
       return;
     }
 
     console.debug('Hiding solution.');
     displayBoard(board, htmlBoard, numberOverviewSpans, false);
-    event.target.textContent = 'Show Solution';
+    event.target!.textContent = 'Show Solution';
   };
 
   shareBtn.addEventListener('click', shareEventListener);
   solutionBtn.addEventListener('click', solutionEventListener);
 }
 
-let workerBlobURL;
-async function fetchScript(url) {
+let workerBlobURL: string | undefined;
+async function fetchScript(url: string): Promise<string> {
   const workerScript = await fetch(url).then(async res => res.text());
   return URL.createObjectURL(new Blob([workerScript], { type: 'application/javascript' }));
 }
 
-let resolveFunction, rejectFunction;
-async function createSudokuWorker() {
+let
+  resolveFunction: ((...args: unknown[]) => unknown) | undefined,
+  rejectFunction: ((...args: unknown[]) => unknown) | undefined;
+
+async function createSudokuWorker(): Promise<Worker> {
   workerBlobURL ??= await fetchScript(globalThis.debug ? './sudoku.worker.js' : REPORT_PROD_WORKER_URL);
   const sudokuWorker = new Worker(workerBlobURL);
 
-  sudokuWorker.addEventListener('message', e => {
+  sudokuWorker.addEventListener('message', (e: MessageEvent<{ type: string; message?: string; payload: string }>) => {
     if (e.data.type == 'cancel') {
       console.log(`UI: Canceling worker generation${e.data.message ? ' due to ' + e.data.message : ''}.`);
       sendPopup('Canceled');
@@ -111,8 +116,8 @@ async function createSudokuWorker() {
       return;
     }
 
-    (console[e.data.type == 'progress' ? 'debug' : e.data.type] ?? console.log)('Worker: ' + e.data.message);
-    if (e.data.type == 'progress') loadingContainer.children.namedItem('loading-status').textContent = e.data.message;
+    (console[e.data.type == 'progress' ? 'debug' : e.data.type] ?? console.log)!('Worker: ' + e.data.message);
+    if (e.data.type == 'progress') loadingContainer.children.namedItem('loading-status')!.textContent = e.data.message;
   });
   sudokuWorker.addEventListener('error', e => console.error('Worker:', e));
 
@@ -122,14 +127,11 @@ async function createSudokuWorker() {
 let showedLoading = false,
   isGenerating = false;
 
-/**
- * @param event
- * @param firstTime */
-async function regenerate(event, firstTime) {
+async function regenerate(event?: PointerEvent, firstTime = false): Promise<void> {
   if (isGenerating) return;
   isGenerating = true;
 
-  if (event) event.target.disabled = true;
+  if (event) event.target!.disabled = true;
 
   if (firstTime) cancelBtn.classList.add('invisible');
   else {
@@ -174,16 +176,16 @@ async function regenerate(event, firstTime) {
               rejectFunction = rej;
 
               console.log('UI: Posting task to worker...');
-              globalThis.sudokuWorker.postMessage({ size, holes, debugBoard: globalThis.debugBoard });
+              globalThis.sudokuWorker!.postMessage({ size, holes, debugBoard: globalThis.debugBoard });
             }),
-            new Promise((_, rej) => setTimeout(() => rej(new Error(`Timeout after ${timeoutDuration}ms`)), timeoutDuration))
+            new Promise((_, rej) => void setTimeout(() => rej(new Error(`Timeout after ${timeoutDuration}ms`)), timeoutDuration))
           ]);
 
           break; // exit if the promise didn't throw
         }
         catch (err) {
           console.warn(`UI: Attempt ${attempt} failed. Reason: ${err.message}`);
-          loadingContainer.children.namedItem('loading-status').textContent = `Attempt ${attempt}/${MAX_GENERATION_ATTEMPTS} failed. Retrying.`;
+          loadingContainer.children.namedItem('loading-status')!.textContent = `Attempt ${attempt}/${MAX_GENERATION_ATTEMPTS} failed. Retrying.`;
 
           globalThis.sudokuWorker.terminate();
           delete globalThis.sudokuWorker;

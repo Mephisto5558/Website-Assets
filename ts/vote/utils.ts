@@ -53,7 +53,7 @@ export const sendUpvote = debounce(async (cardId: Card['id'], voteCounter: HTMLS
   displayCards();
 }, msInSecond);
 
-export async function fetchAPI(url: string, options: RequestInit | undefined = {}, timeout: number | undefined = 5000): Promise<Response | Error> {
+export async function fetchAPI(url: string, options: RequestInit | undefined = {}, timeout: number | undefined = 5000): Promise<Response> {
   if (options.body != undefined && !options.headers) options.headers = { 'Content-Type': 'application/json' };
 
   const controller = new AbortController();
