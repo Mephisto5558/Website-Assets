@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-
 import { difficultySlider, sizeOption } from './constants';
 import { updateMinMax } from './utils';
 
@@ -13,14 +10,15 @@ function bigIntToBase62(num: bigint): string {
   if (num === 0n) return '0';
 
   let str = '';
+  /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- calculating index based on `BASE` */
   for (;num > 0n; num /= BASE) str = BASE_ALPHABET[Number(num % BASE)]! + str;
 
   return str;
 }
 
 /** Converts a Base62 string back to a BigInt. */
-function base62ToBigInt(base62: typeof BASE_ALPHABET): bigint {
-  /* eslint-disable-next-line @typescript-eslint/no-misused-spread */
+function base62ToBigInt(base62: string): bigint {
+  /* eslint-disable-next-line @typescript-eslint/no-misused-spread -- safe for base62 */
   return [...base62].reduce((acc, e) => acc * BASE + BigInt(BASE_ALPHABET.indexOf(e)), 0n);
 }
 
@@ -43,6 +41,7 @@ export function generateShareURL(board: Board, fullBoard: FullBoard): string {
     },
     url = new URL(globalThis.location.href);
 
+  /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- better-typescript-lib bug */
   for (const [k, v] of Object.entries(data) as [string, bigint][]) url.searchParams.set(k, bigIntToBase62(v));
 
   return url.toString();
@@ -51,9 +50,9 @@ export function generateShareURL(board: Board, fullBoard: FullBoard): string {
 export function loadFromShareURL(url: string | URL | undefined): { fullBoard: FullBoard; board: Board } | undefined {
   const
     params = new URLSearchParams(url?.toString() ?? globalThis.location.search),
-    compressedDimension = params.get('d') as typeof BASE_ALPHABET | null,
-    compressedSolution = params.get('s') as typeof BASE_ALPHABET | null,
-    compressedMask = params.get('m') as typeof BASE_ALPHABET | null;
+    compressedDimension = params.get('d'),
+    compressedSolution = params.get('s'),
+    compressedMask = params.get('m');
 
   if (!compressedSolution || !compressedMask || !compressedDimension) return;
 
@@ -67,7 +66,7 @@ export function loadFromShareURL(url: string | URL | undefined): { fullBoard: Fu
 
     sizeOption.value = Math.sqrt(dimension).toString();
 
-    /* eslint-disable-next-line @typescript-eslint/no-misused-spread */
+    /* eslint-disable-next-line @typescript-eslint/no-misused-spread -- safe for base62 */
     difficultySlider.value = [...maskString].filter(e => Number(e) == 0).length.toString();
 
     updateMinMax();
@@ -93,6 +92,7 @@ export function loadFromShareURL(url: string | URL | undefined): { fullBoard: Fu
       for (let colId = 0; colId < dimension; colId++) {
         const
           i = rowId * dimension + colId,
+          /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- `i` is calculated to always be within `solutionNumbers`. */
           solutionDigit = solutionNumbers[i]!;
 
         fullBoardRow.push(solutionDigit);

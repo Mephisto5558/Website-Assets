@@ -48,13 +48,14 @@ export async function saveToClipboard(value: string): Promise<void> {
   copyArea.remove();
 }
 
-export function initializeColorPicker(picker: HTMLInputElement, storageKey: string, onColorChange: (color: string) => void): void {
+export function initializeColorPicker(picker: HTMLInputElement & { dataset: { cssProperty: string } }, storageKey: string, onColorChange: (color: string) => void): void {
   const savedColor = localStorage.getItem(storageKey);
   picker.value = savedColor ?? getRootStyle(picker.dataset.cssProperty).trim();
 
   if (savedColor) onColorChange(savedColor);
   picker.addEventListener('change', event => {
-    const newColor = event.target.value;
+    /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+    const newColor = (event.target as HTMLInputElement).value;
     localStorage.setItem(storageKey, newColor);
     onColorChange(newColor);
   });
