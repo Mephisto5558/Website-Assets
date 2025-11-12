@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-/* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+/* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */// @ts-expect-error -- this is a worker script
 globalThis.window = globalThis as WorkerGlobalScope; // polyfill for rando
 globalThis.importScripts('https://cdn.jsdelivr.net/gh/nastyox/Rando.js@master/code/plain-javascript/2.0.0/rando-min.js');
 
