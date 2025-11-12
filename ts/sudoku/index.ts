@@ -3,11 +3,11 @@
 import {
   DEBUG_BOARDS, MAX_GENERATION_ATTEMPTS, MS_IN_SEC, REPORT_PROD_WORKER_URL,
   bgColorSwitcher, cancelBtn, fgColorSwitcher, htmlBoard, loadingContainer, numberOverviewSpans, regenerateBtn, shareBtn, solutionBtn
-} from './constants.js';
-import __ from './events.js';
-import { createHTMLBoard, createHTMLOverviewSpans, displayBoard } from './generateSudoku.js';
-import { generateShareURL, loadFromShareURL } from './shareSudoku.js';
-import { checkErrors, clearTimer, getRootStyle, initializeColorPicker, invertHex, saveToClipboard, sendPopup, setRootStyle, updateMinMax } from './utils.js';
+} from './constants';
+import __ from './events';
+import { createHTMLBoard, createHTMLOverviewSpans, displayBoard } from './generateSudoku';
+import { generateShareURL, loadFromShareURL } from './shareSudoku';
+import { checkErrors, clearTimer, getRootStyle, initializeColorPicker, invertHex, saveToClipboard, sendPopup, setRootStyle, updateMinMax } from './utils';
 
 declare global {
   /* eslint-disable vars-on-top, no-inner-declarations */

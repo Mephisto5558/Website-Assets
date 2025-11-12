@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { cancelBtn, difficultyOutput, difficultySlider, htmlBoard, sizeOption, sudoku } from './constants.js';
-import { checkErrors, sendPopup, startTimer, updateMinMax, updateNumberOverviewSpan } from './utils.js';
+import { cancelBtn, difficultyOutput, difficultySlider, htmlBoard, sizeOption, sudoku } from './constants';
+import { checkErrors, sendPopup, startTimer, updateMinMax, updateNumberOverviewSpan } from './utils';
 
 export default undefined; // Needed to load it in without actually importing anything
 

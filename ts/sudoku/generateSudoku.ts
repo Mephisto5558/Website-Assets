@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { getGroupId } from './utils.js';
+import { getGroupId } from './utils';
 
 export function createHTMLBoard(size: number): void {
   const boxSize = Math.sqrt(size);

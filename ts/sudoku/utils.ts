@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { DEFAULT_BOARD_SIZE, MAX_HOLES_PERCENTAGE, MIN_HOLES_PERCENTAGE, MS_IN_SEC, SEC_IN_MIN, difficultyOutput, difficultySlider, numberOverviewSpans, sizeOption, timer } from './constants.js';
+import { DEFAULT_BOARD_SIZE, MAX_HOLES_PERCENTAGE, MIN_HOLES_PERCENTAGE, MS_IN_SEC, SEC_IN_MIN, difficultyOutput, difficultySlider, numberOverviewSpans, sizeOption, timer } from './constants';
 
 const
   popupTileElement = document.querySelector<HTMLHeadElement>('#popup-container > h3')!,
