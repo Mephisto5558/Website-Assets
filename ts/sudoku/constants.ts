@@ -42,3 +42,28 @@ export const
   fgColorSwitcher = document.querySelector<HTMLInputElement>('#fg-color-switch')!,
   timer = document.querySelector<HTMLTimeElement>('#timer')!,
   cancelBtn = document.querySelector<HTMLButtonElement>('#cancel-loading')!;
+
+export const enum Key {
+  Enter = 'Enter',
+
+  /** The Horizontal Tab key, Tab. */
+  Tab = 'Tab',
+
+  /** The down arrow key. */
+  ArrowDown = 'ArrowDown',
+
+  /** The left arrow key. */
+  ArrowLeft = 'ArrowLeft',
+
+  /** The right arrow key. */
+  ArrowRight = 'ArrowRight',
+
+  /** The up arrow key. */
+  ArrowUp = 'ArrowUp',
+
+  /** The End key. Moves to the end of content. */
+  End = 'End',
+
+  /** The Home key. Moves to the start of content. */
+  Home = 'Home'
+}

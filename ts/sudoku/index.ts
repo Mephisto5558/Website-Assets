@@ -19,10 +19,10 @@ declare global {
     runBench: boolean;
   /* eslint-enable vars-on-top, no-inner-declarations */
 
-  export type NoteDiv = HTMLDivElement & { childNodes: NodeListOf<NoteElement> };
-  export type NoteElement = HTMLSpanElement & { dataset: { note: `${number}` } };
+  export type NoteDiv = HTMLDivElement & { firstChild: NoteElement; childNodes: NodeListOf<NoteElement>; children: NoteElement[] };
+  export type NoteElement = HTMLSpanElement & { dataset: { note: `${number}` }; parentElement: NoteDiv };
 
-  export type CellInput = HTMLInputElement & { type: 'number'; dataset: { group: `${number}`; row: `${number}`; col: `${number}`; val?: `${number}` } };
+  export type CellInput = HTMLInputElement & { type: 'number'; dataset: { group: `${number}`; row: `${number}`; col: `${number}`; val?: `${number}` }; parentElement: CellList };
   export type CellList = HTMLTableCaptionElement & { firstChild: CellInput; childNodes: [CellInput, NoteDiv]; children: [CellInput, NoteDiv] };
   export type HTMLBoard = CellInput[][];
 
