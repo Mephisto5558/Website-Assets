@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-
+import { numberOverviewTable, sudoku } from './constants';
 import { getGroupId } from './utils';
 
 export function createHTMLBoard(size: number): void {
@@ -7,8 +6,7 @@ export function createHTMLBoard(size: number): void {
   if (!Number.isInteger(boxSize)) throw new Error('Size must be quadratic.');
 
   console.debug(`Creating HTML board of size ${size}`);
-  const sudokuTable = document.querySelector<HTMLTableElement>('#sudoku')!;
-  sudokuTable.innerHTML = '';
+  sudoku.innerHTML = '';
 
   for (let colGroupI = 0; colGroupI < boxSize; colGroupI++) {
     const colGroup = document.createElement('colgroup');
@@ -16,7 +14,7 @@ export function createHTMLBoard(size: number): void {
     for (let colI = 0; colI < boxSize; colI++)
       colGroup.append(document.createElement('col'));
 
-    sudokuTable.append(colGroup);
+    sudoku.append(colGroup);
   }
 
   for (let bodyI = 0; bodyI < boxSize; bodyI++) {
@@ -64,7 +62,7 @@ export function createHTMLBoard(size: number): void {
       tBody.append(tRow);
     }
 
-    sudokuTable.append(tBody);
+    sudoku.append(tBody);
   }
 }
 
@@ -73,7 +71,6 @@ export function createHTMLOverviewSpans(size: number): HTMLElement {
   if (!Number.isInteger(boxSize)) throw new Error('Size must be quadratic.');
 
   console.debug(`Creating HTML overview span of size ${size}`);
-  const numberOverviewTable = document.querySelector<HTMLTableElement>('#number-overview')!;
   numberOverviewTable.innerHTML = '';
 
   const tBody = document.createElement('tbody');
@@ -108,19 +105,22 @@ export function displayBoard(board: Board, htmlBoard: HTMLBoard, numberOverviewS
       cell.classList.add('solution');
     }
 
-    cell.value = ((board[Number(cell.dataset.row) - 1]![Number(cell.dataset.col) - 1] ?? 0) || Number(cell.dataset.val) || '').toString();
+    cell.value = ((board[Number(cell.dataset.row) - 1]?.[Number(cell.dataset.col) - 1] ?? 0) || Number(cell.dataset.val) || '').toString();
     cell.disabled = isSolution || !!cell.value && !cell.dataset.val;
 
     if (!isSolution) delete cell.dataset.val;
   }
 
   const numberAmts = board.flat().reduce((acc, e) => {
+    /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
     acc[e - 1]!++;
     return acc;
   }, Array.from({ length: board.length }, () => 0));
 
   for (const [i, amt] of numberAmts.entries()) {
+    /* eslint-disable @typescript-eslint/no-non-null-assertion */
     numberOverviewSpans[i]!.textContent = amt.toString();
     numberOverviewSpans[i]!.classList.toggle('complete', amt == board.length);
+    /* eslint-enable @typescript-eslint/no-non-null-assertion */
   }
 }
