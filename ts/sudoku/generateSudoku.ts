@@ -31,6 +31,8 @@ export function createHTMLBoard(size: number): void {
           input = document.createElement('input');
 
         input.type = 'number';
+        input.min = '1';
+        input.max = size.toString();
         input.title = '';
         input.required = true;
         input.autocomplete = 'off';

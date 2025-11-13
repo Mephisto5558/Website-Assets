@@ -16,7 +16,6 @@ function handleNormalInput(target: CellInput, key: string): void {
 
   target.value = newNumber.toString();
   updateNumberOverviewSpan(newNumber, true);
-  checkErrors(htmlBoard);
 }
 
 function handleNotesInput(target: CellInput | NoteElement, key: string): void {
@@ -37,44 +36,46 @@ function handleNotesInput(target: CellInput | NoteElement, key: string): void {
   noteSpan.classList.add('visible');
 }
 
-function clearNote(target: NoteElement): void {
-  target.textContent = '';
-  target.classList.remove('visible');
-}
 
-function clearInput(target: CellInput): void {
+function clearInput(target?: CellInput | NoteElement | null): void {
+  if (sudokuTable.classList.contains('notes-mode') && target instanceof HTMLInputElement)
+    target = target.parentElement.querySelector<NoteElement>('.notes > span.visible:nth-last-child(1 of .visible)');
+  if (!target) return;
+  if (target instanceof HTMLSpanElement) {
+    target.textContent = '';
+    return target.classList.remove('visible');
+  }
+
   updateNumberOverviewSpan(Number(target.value), false);
-
   target.value = '';
-  checkErrors(htmlBoard);
 }
 
 sudokuTable.addEventListener('keypress', (event: KeyboardEvent) => {
   const notesMode = sudokuTable.classList.contains('notes-mode');
 
-  if (event.key === ' ') {
-    event.preventDefault();
+  event.preventDefault();
+  if (event.key == ' ') clearInput(event.target as CellInput | NoteElement);
 
-    if (notesMode && event.target instanceof HTMLSpanElement)
-      return clearNote(event.target as NoteElement);
-
-    if (!notesMode && event.target instanceof HTMLInputElement && event.target.value)
-      return clearInput(event.target as CellInput);
+  if (!/^[1-9]\d*$/.test(event.key)) return;
+  if (notesMode && htmlBoard.length < 10 && event.target instanceof HTMLInputElement) {
+    const noteSpan = [...(event.target as CellInput).parentElement.querySelector<NoteDiv>('.notes')?.children ?? []].find(e => e.textContent.trim() == event.key);
+    if (noteSpan) return clearInput(noteSpan);
   }
-
-  if (/^[1-9]\d*$/.test(event.key)) event.preventDefault();
-  else return;
 
   if (!globalThis.timerInterval) startTimer();
 
-  if (notesMode && event.target instanceof HTMLSpanElement) return handleNotesInput(event.target as NoteElement, event.key);
+  if (notesMode) return handleNotesInput(event.target as CellInput | NoteElement, event.key);
   else if (event.target instanceof HTMLInputElement) return handleNormalInput(event.target as CellInput, event.key);
 });
 
 // @ts-expect-error -- overwritten KeyBoardEvent
 sudokuTable.addEventListener('keydown', (event: T_KeyboardEvent) => {
   if (event.target instanceof HTMLSpanElement && event.key === Key.Enter) return event.target.blur();
-  if ([Key.ArrowUp, Key.ArrowDown, Key.ArrowLeft, Key.ArrowRight, Key.Tab, Key.Home, Key.End].includes(event.key)) return;
+  if ([Key.BackSpace, Key.Delete].includes(event.key)) {
+    event.preventDefault();
+    return clearInput(event.target as CellInput | NoteElement);
+  }
+  if (![Key.ArrowUp, Key.ArrowDown, Key.ArrowLeft, Key.ArrowRight, Key.Tab, Key.Home, Key.End].includes(event.key)) return;
 
   if (!(event.target instanceof HTMLInputElement)) event.preventDefault();
 
@@ -121,6 +122,10 @@ sudokuTable.addEventListener('keydown', (event: T_KeyboardEvent) => {
   }
 
   nextCell.focus();
+});
+
+sudokuTable.addEventListener('keyup', event => {
+  if (event.target instanceof HTMLInputElement) return checkErrors(htmlBoard);
 });
 
 // blur is like "change" but for contenteditable elements
