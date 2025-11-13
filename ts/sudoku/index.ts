@@ -1,8 +1,8 @@
 import {
-  DEBUG_BOARDS, MAX_GENERATION_ATTEMPTS, MS_IN_SEC, WORKER_BLOB_URL,
+  DEBUG_BOARDS, MAX_GENERATION_ATTEMPTS, MS_IN_SEC, WORKER_URL,
   bgColorSwitcher, cancelBtn, fgColorSwitcher, htmlBoard, loadingContainer, loadingStatusSpan, numberOverviewSpans, regenerateBtn, shareBtn, solutionBtn
 } from './constants';
-import __ from './events';
+import './events';
 import { createHTMLBoard, createHTMLOverviewSpans, displayBoard } from './generateSudoku';
 import { generateShareURL, loadFromShareURL } from './shareSudoku';
 import { checkErrors, clearTimer, getRootStyle, initializeColorPicker, invertHex, saveToClipboard, sendPopup, setRootStyle, updateMinMax } from './utils';

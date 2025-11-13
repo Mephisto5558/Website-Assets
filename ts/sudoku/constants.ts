@@ -4,11 +4,6 @@ const debug = true as boolean;
 /* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, sonarjs/no-redundant-boolean, no-constant-binary-expression */
 globalThis.debugBoard = false && debug;
 
-async function fetchScript(url: string): Promise<string> {
-  const workerScript = await fetch(url).then(async res => res.text());
-  return URL.createObjectURL(new Blob([workerScript], { type: 'application/javascript' }));
-}
-
 export const DEBUG_BOARDS = new Map([
   /* eslint-disable @typescript-eslint/no-magic-numbers */
   [4, '?s=2kCWOHm&m=e7W&d=4'],

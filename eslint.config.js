@@ -40,7 +40,8 @@ export default [
       'sonarjs/no-nested-functions': [
         'error',
         { threshold: 4 } // 3, + 1 for IIFE
-      ]
+      ],
+      'import-x/no-unassigned-import': 'off' // required to import for side-effects
     }
   }
 ];

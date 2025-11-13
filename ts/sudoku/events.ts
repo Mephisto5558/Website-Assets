@@ -3,8 +3,6 @@
 import { Key, cancelBtn, difficultyOutput, difficultySlider, htmlBoard, sizeOption, sudokuTable } from './constants';
 import { checkErrors, sendPopup, startTimer, updateMinMax, updateNumberOverviewSpan } from './utils';
 
-export default undefined; // Needed to load it in without actually importing anything
-
 // Source: https://github.com/microsoft/TypeScript/issues/54451#issue-1732749888
 type Omit<T, K extends keyof T> = { [P in keyof T as P extends K ? never : P]: T[P] };
 

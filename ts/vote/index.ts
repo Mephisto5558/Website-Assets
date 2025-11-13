@@ -5,7 +5,7 @@ import {
   ADDITIONAL_HEADER_MARGIN, HTTP_STATUS_FORBIDDEN, MAX_BODY_LENGTH, MAX_TITLE_LENGTH, PROFILE_IMG_SIZE,
   cardModes, cardsContainer, cardsContainerPending, featureRequestOverlay, headerContainer, msInSecond, searchBoxElement
 } from './constants';
-import __ from './events';
+import './events';
 import state from './state';
 import { createElement, debounce, displayCards, fetchAPI, fetchCards, getFormElement, setColorScheme } from './utils';
 
