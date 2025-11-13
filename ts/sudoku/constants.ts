@@ -25,8 +25,7 @@ export const MAX_GENERATION_ATTEMPTS = 5;
 
 export const MS_IN_SEC = 1000;
 export const SEC_IN_MIN = 60;
-
-export const WORKER_BLOB_URL = await fetchScript(debug ? '../../min/js/sudoku/sudoku.worker.js' : 'https://mephisto5558.github.io/Website-Assets/min/js/sudoku/sudoku.worker.js');
+export const WORKER_URL = debug ? '../../min/js/sudoku/sudoku.worker.js' : 'https://mephisto5558.github.io/Website-Assets/min/js/sudoku/sudoku.worker.js';
 
 export const htmlBoard: HTMLBoard = [];
 

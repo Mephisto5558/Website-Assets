@@ -1,10 +1,10 @@
-import { WORKER_BLOB_URL } from './constants';
+import { WORKER_URL } from './constants';
 
 
 let resolveFunction: ((value?: unknown) => void) | undefined;
 
 function createSudokuWorker(): Worker {
-  const sudokuWorker = new Worker(WORKER_BLOB_URL);
+  const sudokuWorker = new Worker(WORKER_URL);
   sudokuWorker.addEventListener('message', (e: MessageEvent<{ type: string; result?: unknown }>) => {
     if (e.data.type == 'result') {
       resolveFunction?.(e.data.result);

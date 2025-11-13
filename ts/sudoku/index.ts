@@ -89,7 +89,7 @@ let
   rejectFunction: ((value: unknown) => void) | undefined;
 
 function createSudokuWorker(): Worker {
-  const sudokuWorker = new Worker(WORKER_BLOB_URL);
+  const sudokuWorker = new Worker(WORKER_URL);
   sudokuWorker.addEventListener('message', (e: MessageEvent<
     { type: 'progress' | 'cancel' | 'debug' | 'error'; message: string }
     | { type: 'result'; result: { fullBoard: FullBoard; board: Board } }
