@@ -101,23 +101,30 @@ async function createSudokuWorker(): Promise<Worker> {
   workerBlobURL ??= await fetchScript(globalThis.debug ? './sudoku.worker.js' : REPORT_PROD_WORKER_URL);
   const sudokuWorker = new Worker(workerBlobURL);
 
-  sudokuWorker.addEventListener('message', (e: MessageEvent<{ type: string; message?: string; payload: string }>) => {
-    if (e.data.type == 'cancel') {
-      console.log(`UI: Canceling worker generation${e.data.message ? ' due to ' + e.data.message : ''}.`);
-      sendPopup('Canceled');
+  sudokuWorker.addEventListener('message', (e: MessageEvent<
+    { type: 'cancel' | 'progress' | 'debug' | 'error'; message: string }
+    | { type: 'result'; result: { fullBoard: FullBoard; board: Board } }
+  >) => {
+    switch (e.data.type) {
+      case 'cancel':
+        console.log(`UI: Canceling worker generation${e.data.message ? ' due to ' + e.data.message : ''}.`);
+        sendPopup('Canceled');
 
-      return rejectFunction?.(e.data);
+        return rejectFunction?.(e.data);
+      case 'result':
+        console.log('UI: Received result from worker.');
+
+        resolveFunction?.(e.data.result);
+        resolveFunction = undefined;
+        return;
+      case 'progress':
+        loadingContainer.children.namedItem('loading-status')!.textContent = e.data.message;
+        e.data.type = 'debug';
+
+        // fall through
+      default:
+        console[e.data.type]('Worker: ' + e.data.message);
     }
-    if (e.data.type == 'result') {
-      console.log('UI: Received result from worker.');
-
-      resolveFunction?.(e.data.payload);
-      resolveFunction = undefined;
-      return;
-    }
-
-    (console[e.data.type == 'progress' ? 'debug' : e.data.type] ?? console.log)!('Worker: ' + e.data.message);
-    if (e.data.type == 'progress') loadingContainer.children.namedItem('loading-status')!.textContent = e.data.message;
   });
   sudokuWorker.addEventListener('error', e => console.error('Worker:', e));
 

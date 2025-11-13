@@ -150,19 +150,18 @@ function generateSudoku(size: number, holes: number): { fullBoard: FullBoard; bo
   return { fullBoard, board };
 }
 
-globalThis.addEventListener('message', event => {
+globalThis.addEventListener('message', (event: MessageEvent<{ size: number; holes: number; debugBoard?: boolean }>) => {
   if (event.origin && event.origin !== globalThis.origin)
     return console.warn(`Worker received a message from an untrusted origin: "${event.origin}". Ignoring.`);
 
   console.log('Worker: Task received from main thread.');
 
-  /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
-  const { size, holes, debugBoard } = event.data as { size: number; holes: number; debugBoard: boolean };
+  const { size, holes, debugBoard = false } = event.data;
 
   globalThis.debugBoard = debugBoard;
 
   const result = generateSudoku(size, holes);
 
   console.log('Worker: Task finished, posting result back.');
-  globalThis.postMessage({ type: 'result', payload: result });
+  globalThis.postMessage({ type: 'result', result });
 });
