@@ -24,7 +24,7 @@
     "prebuild:css": "rimraf --glob min/css/**/*.css",
     "build:css": "esbuild css/**/*.css --bundle --minify --outdir=min/css",
     "prebuild:js": "rimraf --glob min/js/**/*.js{,.map}",
-    "build:js": "esbuild ts/**/index.ts ts/**/*.worker.ts --bundle --platform=browser --format=esm --minify --sourcemap --sources-content=false --outdir=min/js",
+    "build:js": "esbuild ts/*.ts ts/**/index.ts ts/**/*.worker.ts --bundle --platform=browser --format=esm --minify --sourcemap --sources-content=false --outdir=min/js",
     "watch": "npm-run-all --parallel watch:**",
     "watch:css": "npm run build:css -- --watch",
     "watch:js": "npm run build:js -- --watch"

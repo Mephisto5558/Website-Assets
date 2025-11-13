@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../../ts/vote/state.ts"],
-  "mappings": "mBAAA,IAAMA,EAAQ,CACZ,WAAY,IAAI,IAChB,KAAM,OACN,YAAa,EACb,aAAc,GACd,YAAa,EACf,EAEOC,EAAQD",
-  "names": ["state", "state_default"]
-}
