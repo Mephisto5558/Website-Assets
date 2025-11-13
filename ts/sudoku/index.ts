@@ -180,23 +180,26 @@ async function regenerate(event?: PointerEvent, firstTime = false): Promise<void
           break; // exit if the promise didn't throw
         }
         catch (rawErr) {
-          const err = rawErr instanceof Error ? rawErr : new Error(JSON.stringify(rawErr));
-          console.warn(`UI: Attempt ${attempt} failed. Reason: ${err.message}`);
-          /* eslint-disable-next-line max-depth */
-          if (err.cause != 'cancel') loadingStatusSpan.textContent = `Attempt ${attempt}/${MAX_GENERATION_ATTEMPTS} failed. Retrying.`;
+          /* eslint-disable max-depth */
+          const err = rawErr instanceof Error ? rawErr : new Error(String(rawErr));
+          if (err.message != 'user cancel request') {
+            console.warn(`UI: Attempt ${attempt} failed. Reason: ${err.message}`);
+            loadingStatusSpan.textContent = `Attempt ${attempt}/${MAX_GENERATION_ATTEMPTS} failed. Retrying.`;
+          }
 
           globalThis.sudokuWorker.terminate();
           globalThis.sudokuWorker = undefined;
 
-          /* eslint-disable-next-line max-depth */
-          if (attempt >= MAX_GENERATION_ATTEMPTS && err.cause != 'cancel')
+          if (err.message == 'user cancel request') break;
+          if (attempt >= MAX_GENERATION_ATTEMPTS)
             throw new Error('Failed to generate Sudoku after all attempts.', { cause: rawErr });
+          /* eslint-enable max-depth */
         }
       }
     }
 
-    /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- Result will never be `undefined` because be throw in the catch clause. */
-    const { fullBoard, board } = result!;
+    if (!result) return; // User cancled the generation.
+    const { fullBoard, board } = result;
 
     if (fullBoard.length != htmlBoard.length) {
       createHTMLBoard(fullBoard.length);
@@ -218,10 +221,7 @@ async function regenerate(event?: PointerEvent, firstTime = false): Promise<void
 
     updateBtnListeners(board, fullBoard);
   }
-  catch (rawErr) {
-    const err = rawErr instanceof Error ? rawErr : new Error(JSON.stringify(rawErr));
-    if (err.message == 'user cancel request') return console.log('UI: Generation was successfully canceled.');
-
+  catch (err) {
     console.error('An error occurred during Sudoku generation:', err);
     sendPopup('Error', 'An unexpected error occurred during Sudoku generation. Please try again.');
   }
