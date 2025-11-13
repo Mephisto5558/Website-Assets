@@ -1,21 +1,13 @@
-/* eslint-disable require-atomic-updates */
+import { WORKER_BLOB_URL } from './constants';
 
-import { REPORT_PROD_WORKER_URL } from './constants';
-
-let workerBlobURL: string | undefined;
-async function fetchScript(url: string): Promise<string> {
-  const workerScript = await fetch(url).then(async res => res.text());
-  return URL.createObjectURL(new Blob([workerScript], { type: 'application/javascript' }));
-}
 
 let resolveFunction: ((value?: unknown) => void) | undefined;
-async function createSudokuWorker(): Promise<Worker> {
-  workerBlobURL ??= await fetchScript(globalThis.debug ? './sudoku.worker.js' : REPORT_PROD_WORKER_URL);
-  const sudokuWorker = new Worker(workerBlobURL);
 
-  sudokuWorker.addEventListener('message', (e: MessageEvent<{ type: string; payload?: unknown }>) => {
+function createSudokuWorker(): Worker {
+  const sudokuWorker = new Worker(WORKER_BLOB_URL);
+  sudokuWorker.addEventListener('message', (e: MessageEvent<{ type: string; result?: unknown }>) => {
     if (e.data.type == 'result') {
-      resolveFunction?.(e.data.payload);
+      resolveFunction?.(e.data.result);
       resolveFunction = undefined;
     }
   });
@@ -37,7 +29,7 @@ export async function runSudokuBenchmark(size: number, runs = 10): Promise<numbe
     /* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- 50% holes */
     holesToDig = Math.floor((size * size) * 0.5);
 
-  sudokuWorker ??= await createSudokuWorker();
+  sudokuWorker ??= createSudokuWorker();
 
   for (let run = 1; run <= runs; run++) {
     try {

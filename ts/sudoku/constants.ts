@@ -1,9 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-globalThis.debug = false;
+const debug = true as boolean;
 /* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, sonarjs/no-redundant-boolean, no-constant-binary-expression */
-globalThis.debugBoard = true && globalThis.debug;
-globalThis.runBench = false;
+globalThis.debugBoard = false && debug;
+
+async function fetchScript(url: string): Promise<string> {
+  const workerScript = await fetch(url).then(async res => res.text());
+  return URL.createObjectURL(new Blob([workerScript], { type: 'application/javascript' }));
+}
 
 export const DEBUG_BOARDS = new Map([
   /* eslint-disable @typescript-eslint/no-magic-numbers */
@@ -22,15 +26,15 @@ export const MAX_GENERATION_ATTEMPTS = 5;
 export const MS_IN_SEC = 1000;
 export const SEC_IN_MIN = 60;
 
-export const REPORT_PROD_WORKER_URL = 'https://mephisto5558.github.io/Website-Assets/min/js/sudoku/sudoku.worker.js';
+export const WORKER_BLOB_URL = await fetchScript(debug ? '../../min/js/sudoku/sudoku.worker.js' : 'https://mephisto5558.github.io/Website-Assets/min/js/sudoku/sudoku.worker.js');
 
 export const htmlBoard: HTMLBoard = [];
 
 export const
-  sudoku = document.querySelector<HTMLTableElement>('#sudoku')!,
+  sudokuTable = document.querySelector<HTMLTableElement>('#sudoku')!,
   difficultyOutput = document.querySelector<HTMLOutputElement>('#difficulty-slider + output')!,
   loadingContainer = document.querySelector<HTMLDivElement>('#loading-container')!,
-  loadingContainerSiblings = [...loadingContainer.parentElement!.children].filter(e => e != loadingContainer),
+  loadingStatusSpan = loadingContainer.querySelector<HTMLSpanElement>('#loading-status')!,
   numberOverviewTable = document.querySelector<HTMLTableElement>('#number-overview')!,
   numberOverviewSpans = [...numberOverviewTable.querySelectorAll<HTMLSpanElement>('tbody > tr > td > span')],
   solutionBtn = document.querySelector<HTMLButtonElement>('#solution-btn')!,
@@ -38,8 +42,8 @@ export const
   shareBtn = document.querySelector<HTMLButtonElement>('#share-btn')!,
   difficultySlider = document.querySelector<HTMLInputElement>('#difficulty-slider')!,
   sizeOption = document.querySelector<HTMLInputElement>('#size-option')!,
-  bgColorSwitcher = document.querySelector<HTMLInputElement>('#bg-color-switch')!,
-  fgColorSwitcher = document.querySelector<HTMLInputElement>('#fg-color-switch')!,
+  bgColorSwitcher = document.querySelector<HTMLInputElement & { dataset: { cssProperty: string } }>('#bg-color-switch')!,
+  fgColorSwitcher = document.querySelector<HTMLInputElement & { dataset: { cssProperty: string } }>('#fg-color-switch')!,
   timer = document.querySelector<HTMLTimeElement>('#timer')!,
   cancelBtn = document.querySelector<HTMLButtonElement>('#cancel-loading')!;
 

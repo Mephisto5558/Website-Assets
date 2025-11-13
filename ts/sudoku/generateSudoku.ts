@@ -1,4 +1,4 @@
-import { numberOverviewTable, sudoku } from './constants';
+import { numberOverviewTable, sudokuTable } from './constants';
 import { getGroupId } from './utils';
 
 export function createHTMLBoard(size: number): void {
@@ -6,7 +6,7 @@ export function createHTMLBoard(size: number): void {
   if (!Number.isInteger(boxSize)) throw new Error('Size must be quadratic.');
 
   console.debug(`Creating HTML board of size ${size}`);
-  sudoku.innerHTML = '';
+  sudokuTable.innerHTML = '';
 
   for (let colGroupI = 0; colGroupI < boxSize; colGroupI++) {
     const colGroup = document.createElement('colgroup');
@@ -14,7 +14,7 @@ export function createHTMLBoard(size: number): void {
     for (let colI = 0; colI < boxSize; colI++)
       colGroup.append(document.createElement('col'));
 
-    sudoku.append(colGroup);
+    sudokuTable.append(colGroup);
   }
 
   for (let bodyI = 0; bodyI < boxSize; bodyI++) {
@@ -62,7 +62,7 @@ export function createHTMLBoard(size: number): void {
       tBody.append(tRow);
     }
 
-    sudoku.append(tBody);
+    sudokuTable.append(tBody);
   }
 }
 

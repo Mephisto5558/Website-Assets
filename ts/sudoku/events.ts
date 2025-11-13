@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 
-import { Key, cancelBtn, difficultyOutput, difficultySlider, htmlBoard, sizeOption, sudoku } from './constants';
+import { Key, cancelBtn, difficultyOutput, difficultySlider, htmlBoard, sizeOption, sudokuTable } from './constants';
 import { checkErrors, sendPopup, startTimer, updateMinMax, updateNumberOverviewSpan } from './utils';
 
 export default undefined; // Needed to load it in without actually importing anything
@@ -51,8 +51,8 @@ function clearInput(target: CellInput): void {
   checkErrors(htmlBoard);
 }
 
-sudoku.addEventListener('keypress', (event: KeyboardEvent) => {
-  const notesMode = sudoku.classList.contains('notes-mode');
+sudokuTable.addEventListener('keypress', (event: KeyboardEvent) => {
+  const notesMode = sudokuTable.classList.contains('notes-mode');
 
   if (event.key === ' ') {
     event.preventDefault();
@@ -74,7 +74,7 @@ sudoku.addEventListener('keypress', (event: KeyboardEvent) => {
 });
 
 // @ts-expect-error -- overwritten KeyBoardEvent
-sudoku.addEventListener('keydown', (event: T_KeyboardEvent) => {
+sudokuTable.addEventListener('keydown', (event: T_KeyboardEvent) => {
   if (event.target instanceof HTMLSpanElement && event.key === Key.Enter) return event.target.blur();
   if ([Key.ArrowUp, Key.ArrowDown, Key.ArrowLeft, Key.ArrowRight, Key.Tab, Key.Home, Key.End].includes(event.key)) return;
 
@@ -126,7 +126,7 @@ sudoku.addEventListener('keydown', (event: T_KeyboardEvent) => {
 });
 
 // blur is like "change" but for contenteditable elements
-sudoku.addEventListener('blur', event => {
+sudokuTable.addEventListener('blur', event => {
   if (event.target instanceof HTMLSpanElement && !event.target.textContent) return event.target.classList.remove('visible');
 }, true);
 
@@ -146,12 +146,10 @@ sizeOption.addEventListener('change', updateMinMax);
 difficultySlider.addEventListener('input', event => difficultyOutput.textContent = (event.target as typeof difficultySlider).value);
 
 cancelBtn.addEventListener('click', () => {
-  globalThis.sudokuWorker?.terminate();
-  globalThis.sudokuWorker?.dispatchEvent(new MessageEvent('message', { data: { type: 'cancel', message: 'user request' } }));
-  globalThis.sudokuWorker = undefined;
+  globalThis.sudokuWorker?.dispatchEvent(new MessageEvent('message', { data: { type: 'cancel', message: 'user cancel request' } }));
 });
 
 /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
 document.querySelector<HTMLButtonElement>('#toggle-notes-btn')!.addEventListener('click', event => {
-  (event.target as HTMLButtonElement).textContent = `${sudoku.classList.toggle('notes-mode') ? 'Disable' : 'Enable'} Notes Mode`;
+  (event.target as HTMLButtonElement).textContent = `${sudokuTable.classList.toggle('notes-mode') ? 'Disable' : 'Enable'} Notes Mode`;
 });

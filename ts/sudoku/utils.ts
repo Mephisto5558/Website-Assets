@@ -6,8 +6,9 @@ const
   popupTileElement = document.querySelector<HTMLHeadElement>('#popup-container > h3')!,
   popupPElement = document.querySelector<HTMLParagraphElement>('#popup-container > p')!;
 
-export function setRootStyle(key: string, value: string | null, priority?: string): void {
-  return document.documentElement.style.setProperty(key, value, priority);
+export function setRootStyle(key: string, value?: string | number, priority?: string): void {
+  if (value) document.documentElement.style.setProperty(key, value.toString(), priority);
+  else document.documentElement.style.removeProperty(key);
 }
 
 export function getRootStyle(key: string): string {
@@ -147,7 +148,7 @@ export function checkErrors(htmlBoard: HTMLBoard): void {
   }
 
   for (const cell of htmlBoard.flat())
-    cell.parentElement!.classList.toggle('error', errorCells.has(`${cell.dataset.row}-${cell.dataset.col}`));
+    cell.parentElement.classList.toggle('error', errorCells.has(`${cell.dataset.row}-${cell.dataset.col}`));
 }
 
 export function updateMinMax(): { size: number; minHoles: number; maxHoles: number; holes: number } {

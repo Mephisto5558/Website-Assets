@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-
 import {
-  DEBUG_BOARDS, MAX_GENERATION_ATTEMPTS, MS_IN_SEC, REPORT_PROD_WORKER_URL,
-  bgColorSwitcher, cancelBtn, fgColorSwitcher, htmlBoard, loadingContainer, numberOverviewSpans, regenerateBtn, shareBtn, solutionBtn
+  DEBUG_BOARDS, MAX_GENERATION_ATTEMPTS, MS_IN_SEC, WORKER_BLOB_URL,
+  bgColorSwitcher, cancelBtn, fgColorSwitcher, htmlBoard, loadingContainer, loadingStatusSpan, numberOverviewSpans, regenerateBtn, shareBtn, solutionBtn
 } from './constants';
 import __ from './events';
 import { createHTMLBoard, createHTMLOverviewSpans, displayBoard } from './generateSudoku';
@@ -12,22 +10,20 @@ import { checkErrors, clearTimer, getRootStyle, initializeColorPicker, invertHex
 declare global {
   /* eslint-disable vars-on-top, no-inner-declarations */
   var
-    debug: boolean,
     debugBoard: boolean,
     timerInterval: number | undefined,
-    sudokuWorker: Worker | undefined,
-    runBench: boolean;
+    sudokuWorker: Worker | undefined;
   /* eslint-enable vars-on-top, no-inner-declarations */
 
-  export type NoteDiv = HTMLDivElement & { firstChild: NoteElement; childNodes: NodeListOf<NoteElement>; children: NoteElement[] };
-  export type NoteElement = HTMLSpanElement & { dataset: { note: `${number}` }; parentElement: NoteDiv };
+  type NoteDiv = HTMLDivElement & { firstChild: NoteElement; childNodes: NodeListOf<NoteElement>; children: HTMLCollectionOf<NoteElement> };
+  type NoteElement = HTMLSpanElement & { dataset: { note: `${number}` }; parentElement: NoteDiv };
 
-  export type CellInput = HTMLInputElement & { type: 'number'; dataset: { group: `${number}`; row: `${number}`; col: `${number}`; val?: `${number}` }; parentElement: CellList };
-  export type CellList = HTMLTableCaptionElement & { firstChild: CellInput; childNodes: [CellInput, NoteDiv]; children: [CellInput, NoteDiv] };
-  export type HTMLBoard = CellInput[][];
+  type CellInput = HTMLInputElement & { type: 'number'; dataset: { group: `${number}`; row: `${number}`; col: `${number}`; val?: `${number}` }; parentElement: CellList };
+  type CellList = HTMLTableCaptionElement & { firstChild: CellInput; childNodes: NodeListOf<CellInput | NoteDiv>; children: HTMLCollectionOf<CellInput | NoteDiv> };
+  type HTMLBoard = CellInput[][];
 
-  export type Board = number[][];
-  export type FullBoard = number[][];
+  type Board = number[][];
+  type FullBoard = number[][];
 }
 
 
@@ -70,39 +66,32 @@ function updateBtnListeners(board: Board, fullBoard: FullBoard): void {
     await saveToClipboard(url);
   };
   solutionEventListener = (event: PointerEvent): void => {
+    if (!(event.target instanceof HTMLButtonElement)) return; // typeguard
     solutionShown = !solutionShown;
     if (solutionShown) {
       console.debug('Showing solution.');
       displayBoard(fullBoard, htmlBoard, numberOverviewSpans, true);
-      event.target!.textContent = 'Hide Solution';
+      event.target.textContent = 'Hide Solution';
       return;
     }
 
     console.debug('Hiding solution.');
     displayBoard(board, htmlBoard, numberOverviewSpans, false);
-    event.target!.textContent = 'Show Solution';
+    event.target.textContent = 'Show Solution';
   };
 
   shareBtn.addEventListener('click', shareEventListener);
   solutionBtn.addEventListener('click', solutionEventListener);
 }
 
-let workerBlobURL: string | undefined;
-async function fetchScript(url: string): Promise<string> {
-  const workerScript = await fetch(url).then(async res => res.text());
-  return URL.createObjectURL(new Blob([workerScript], { type: 'application/javascript' }));
-}
-
 let
-  resolveFunction: ((...args: unknown[]) => unknown) | undefined,
-  rejectFunction: ((...args: unknown[]) => unknown) | undefined;
+  resolveFunction: ((value: { fullBoard: FullBoard; board: Board }) => void) | undefined,
+  rejectFunction: ((value: unknown) => void) | undefined;
 
-async function createSudokuWorker(): Promise<Worker> {
-  workerBlobURL ??= await fetchScript(globalThis.debug ? './sudoku.worker.js' : REPORT_PROD_WORKER_URL);
-  const sudokuWorker = new Worker(workerBlobURL);
-
+function createSudokuWorker(): Worker {
+  const sudokuWorker = new Worker(WORKER_BLOB_URL);
   sudokuWorker.addEventListener('message', (e: MessageEvent<
-    { type: 'cancel' | 'progress' | 'debug' | 'error'; message: string }
+    { type: 'progress' | 'cancel' | 'debug' | 'error'; message: string }
     | { type: 'result'; result: { fullBoard: FullBoard; board: Board } }
   >) => {
     switch (e.data.type) {
@@ -110,7 +99,7 @@ async function createSudokuWorker(): Promise<Worker> {
         console.log(`UI: Canceling worker generation${e.data.message ? ' due to ' + e.data.message : ''}.`);
         sendPopup('Canceled');
 
-        return rejectFunction?.(e.data);
+        return rejectFunction?.(e.data.message);
       case 'result':
         console.log('UI: Received result from worker.');
 
@@ -118,7 +107,7 @@ async function createSudokuWorker(): Promise<Worker> {
         resolveFunction = undefined;
         return;
       case 'progress':
-        loadingContainer.children.namedItem('loading-status')!.textContent = e.data.message;
+        loadingStatusSpan.textContent = e.data.message;
         e.data.type = 'debug';
 
         // fall through
@@ -126,19 +115,20 @@ async function createSudokuWorker(): Promise<Worker> {
         console[e.data.type]('Worker: ' + e.data.message);
     }
   });
-  sudokuWorker.addEventListener('error', e => console.error('Worker:', e));
+  sudokuWorker.addEventListener('error', e => rejectFunction?.(e.error));
 
   return sudokuWorker;
 }
 
-let showedLoading = false,
+let
+  showedLoading = false,
   isGenerating = false;
 
 async function regenerate(event?: PointerEvent, firstTime = false): Promise<void> {
   if (isGenerating) return;
   isGenerating = true;
 
-  if (event) event.target!.disabled = true;
+  if (event?.target instanceof HTMLButtonElement) event.target.disabled = true;
 
   if (firstTime) cancelBtn.classList.add('invisible');
   else {
@@ -157,65 +147,69 @@ async function regenerate(event?: PointerEvent, firstTime = false): Promise<void
   try {
     clearTimer();
 
-    const start = performance.now(),
-
+    const
+      start = performance.now(),
       { size, minHoles, maxHoles, holes } = updateMinMax();
 
-    if (globalThis.debugBoard)
-      console.debug('Using debug board.');
-    else
-      console.log(`Size: ${size}, Holes: ${holes}/${maxHoles} (min: ${minHoles})`);
+    if (globalThis.debugBoard) console.debug('Using debug board.');
+    else console.log(`Size: ${size}, Holes: ${holes}/${maxHoles} (min: ${minHoles})`);
 
     let result = loadFromShareURL(globalThis.debugBoard ? DEBUG_BOARDS.get(size) : undefined);
     if (!result) {
+      /* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- relatively arbitrary: 5s + size ** 4 */
       const timeoutDuration = MS_IN_SEC * 5 + (size ** 4);
       for (let attempt = 1; attempt <= MAX_GENERATION_ATTEMPTS; attempt++) {
         console.log(`UI: Starting generation attempt ${attempt}/${MAX_GENERATION_ATTEMPTS}...`);
 
-        /* eslint-disable-next-line require-atomic-updates -- globalThis won't change */
-        globalThis.sudokuWorker ??= await createSudokuWorker();
+        globalThis.sudokuWorker ??= createSudokuWorker();
 
         try {
           result = await Promise.race([
             /* eslint-disable-next-line @typescript-eslint/no-loop-func -- resolveFunction and rejectFunction are reassigned in each loop iteration */
-            new Promise((res, rej) => {
+            new Promise<{ fullBoard: FullBoard; board: Board }>((res, rej) => {
               resolveFunction = res;
               rejectFunction = rej;
 
               console.log('UI: Posting task to worker...');
+              /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- fine to throw if it is undefined for some reason */
               globalThis.sudokuWorker!.postMessage({ size, holes, debugBoard: globalThis.debugBoard });
             }),
-            new Promise((_, rej) => void setTimeout(() => rej(new Error(`Timeout after ${timeoutDuration}ms`)), timeoutDuration))
+            new Promise<undefined>((_, rej) => void setTimeout(() => rej(new Error(`Timeout after ${timeoutDuration}ms`)), timeoutDuration))
           ]);
 
           break; // exit if the promise didn't throw
         }
-        catch (err) {
+        catch (rawErr) {
+          const err = rawErr instanceof Error ? rawErr : new Error(JSON.stringify(rawErr));
           console.warn(`UI: Attempt ${attempt} failed. Reason: ${err.message}`);
-          loadingContainer.children.namedItem('loading-status')!.textContent = `Attempt ${attempt}/${MAX_GENERATION_ATTEMPTS} failed. Retrying.`;
+          /* eslint-disable-next-line max-depth */
+          if (err.cause != 'cancel') loadingStatusSpan.textContent = `Attempt ${attempt}/${MAX_GENERATION_ATTEMPTS} failed. Retrying.`;
 
           globalThis.sudokuWorker.terminate();
-          delete globalThis.sudokuWorker;
+          globalThis.sudokuWorker = undefined;
 
-          if (attempt >= MAX_GENERATION_ATTEMPTS)
-            throw new Error('Failed to generate Sudoku after all attempts.');
+          /* eslint-disable-next-line max-depth */
+          if (attempt >= MAX_GENERATION_ATTEMPTS && err.cause != 'cancel')
+            throw new Error('Failed to generate Sudoku after all attempts.', { cause: rawErr });
         }
       }
     }
 
-    const { fullBoard, board } = result;
+    /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- Result will never be `undefined` because be throw in the catch clause. */
+    const { fullBoard, board } = result!;
 
     if (fullBoard.length != htmlBoard.length) {
       createHTMLBoard(fullBoard.length);
       htmlBoard.length = 0;
-      htmlBoard.push(...[...document.querySelectorAll('#sudoku > tbody > tr')].map(e => [...e.children].map(e => e.firstChild)));
+
+      htmlBoard.push(...document.querySelectorAll<HTMLTableRowElement & { children: HTMLCollectionOf<CellList> }>('#sudoku > tbody > tr').values().map(e => [...e.children].map(e => e.firstChild)));
 
       createHTMLOverviewSpans(fullBoard.length);
       numberOverviewSpans.length = 0;
-      numberOverviewSpans.push(...document.querySelectorAll('#number-overview > tbody > tr > td > span'));
+      numberOverviewSpans.push(...document.querySelectorAll<HTMLSpanElement>('#number-overview > tbody > tr > td > span'));
     }
     setRootStyle('--sudoku-row-count', fullBoard.length);
-    document.documentElement.dataset.sudokuBoxSize = Math.sqrt(fullBoard.length);
+    document.documentElement.dataset.sudokuBoxSize = Math.sqrt(fullBoard.length).toString();
 
     displayBoard(board, htmlBoard, numberOverviewSpans);
     checkErrors(htmlBoard);
@@ -224,8 +218,9 @@ async function regenerate(event?: PointerEvent, firstTime = false): Promise<void
 
     updateBtnListeners(board, fullBoard);
   }
-  catch (err) {
-    if (err?.type === 'cancel') return console.log('UI: Generation was successfully canceled.');
+  catch (rawErr) {
+    const err = rawErr instanceof Error ? rawErr : new Error(JSON.stringify(rawErr));
+    if (err.message == 'user cancel request') return console.log('UI: Generation was successfully canceled.');
 
     console.error('An error occurred during Sudoku generation:', err);
     sendPopup('Error', 'An unexpected error occurred during Sudoku generation. Please try again.');
@@ -242,7 +237,7 @@ async function regenerate(event?: PointerEvent, firstTime = false): Promise<void
     isGenerating = false;
     resolveFunction = undefined;
     rejectFunction = undefined;
-    if (event) event.target.disabled = false;
+    if (event?.target instanceof HTMLButtonElement) event.target.disabled = false;
     if (firstTime) cancelBtn.classList.remove('invisible');
   }
 }
