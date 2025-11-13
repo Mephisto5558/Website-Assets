@@ -243,4 +243,4 @@ async function regenerate(event?: PointerEvent, firstTime = false): Promise<void
 }
 
 regenerateBtn.addEventListener('click', regenerate);
-void regenerate(undefined, true);
+await regenerate(undefined, true);
