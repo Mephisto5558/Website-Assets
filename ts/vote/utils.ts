@@ -1,4 +1,4 @@
-import { ADDITIONAL_HEADER_MARGIN, COLOR_TRANSITION_TIME, cardModes, cardsContainer, cardsContainerPending, featureRequestOverlay, headerContainer, msInSecond, searchBoxElement } from './constants';
+import { ADDITIONAL_HEADER_MARGIN, COLOR_TRANSITION_TIME, DEBUG_URL, cardModes, cardsContainer, cardsContainerPending, featureRequestOverlay, headerContainer, msInSecond, searchBoxElement } from './constants';
 import createElement from './createElement';
 import state from './state';
 
@@ -56,7 +56,7 @@ export async function fetchAPI(url: string, options: RequestInit | undefined = {
 
   const
     timeoutId = setTimeout(() => controller.abort('Request timed out'), timeout),
-    res = await fetch(`/api/v1/internal/${url}`, options).finally(() => clearTimeout(timeoutId));
+    res = await fetch(`${DEBUG_URL}/api/v1/internal/${url}`, options).finally(() => clearTimeout(timeoutId));
 
   return res;
 }

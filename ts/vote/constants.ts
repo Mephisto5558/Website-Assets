@@ -3,6 +3,9 @@
 import createElement from './createElement';
 
 export const
+
+  /** empty string if not on localhost */
+  DEBUG_URL = ['localhost', '127.0.0.1'].includes(globalThis.location.hostname) ? `http://${globalThis.location.hostname}:8006` as const : '',
   HTTP_STATUS_FORBIDDEN = 403,
   MAX_SEARCHBOX_LENGTH = 200,
   MAX_TITLE_LENGTH = 140,

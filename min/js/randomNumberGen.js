@@ -1,0 +1,2 @@
+var u=new Uint32Array(1),l=4294967296;function s(n,t){let e=t-n;return globalThis.crypto.getRandomValues(u),Math.floor(u[0]/l*e)+n}function c(n,t){let e=t-n+1,r=new Array(e);for(let o=0;o<e;o++)r[o]=n+o;return m(r)}function m(n){let t=new Uint32Array(n.length-1);globalThis.crypto.getRandomValues(t);for(let e=n.length-1;e>0;e--){let r=Math.floor(t[e-1]/l*(e+1)),o=n[e];n[e]=n[r],n[r]=o}return n}export{s as randomInt,c as randomIntSequence,m as shuffleArray};
+//# sourceMappingURL=randomNumberGen.js.map

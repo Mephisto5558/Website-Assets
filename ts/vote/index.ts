@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import {
-  ADDITIONAL_HEADER_MARGIN, HTTP_STATUS_FORBIDDEN, MAX_BODY_LENGTH, MAX_TITLE_LENGTH, PROFILE_IMG_SIZE,
+  ADDITIONAL_HEADER_MARGIN, DEBUG_URL, HTTP_STATUS_FORBIDDEN, MAX_BODY_LENGTH, MAX_TITLE_LENGTH, PROFILE_IMG_SIZE,
   cardModes, cardsContainer, cardsContainerPending, featureRequestOverlay, headerContainer, msInSecond, searchBoxElement
 } from './constants';
 import './events';
@@ -128,7 +128,7 @@ async function createProfileElement(): Promise<HTMLElement | undefined> {
     fragment.append(searchBoxElement);
     createElement('button', { id: 'feature-request-button', textContent: state.smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover' }, fragment);
     createElement('button', { id: 'login-button', textContent: state.smallScreen ? 'Login' : 'Login with Discord', className: 'blue-button' }, profileContainer)
-      .addEventListener('click', () => globalThis.location.href = `/auth/discord?redirectUrl=${globalThis.location.href}`);
+      .addEventListener('click', () => globalThis.location.href = `${DEBUG_URL}/auth/discord?redirectUrl=${globalThis.location.href}`);
     fragment.append(profileContainer);
 
     headerContainer.append(fragment);
@@ -148,7 +148,7 @@ async function createProfileElement(): Promise<HTMLElement | undefined> {
 
   createElement('div', { id: 'username', textContent: state.user.displayName }, profileContainerWrapper);
   createElement('button', { id: 'logout-button', textContent: 'Logout', className: 'blue-button' }, profileContainerWrapper).addEventListener('click', async () => {
-    const res = await fetch('/auth/logout');
+    const res = await fetch(`${DEBUG_URL}/auth/logout`);
 
     await Swal.fire(res.ok ? { icon: 'success', title: 'Success', text: 'You are now logged out.' } : { icon: 'error', title: 'Logout failed', text: res.statusText });
     if (res.ok) globalThis.location.reload();
