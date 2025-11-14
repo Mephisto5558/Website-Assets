@@ -1,6 +1,6 @@
 {
   "name": "website-assets",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Assets for my website",
   "keywords": [
     "js",
@@ -30,9 +30,8 @@
     "watch:js": "npm run build:js -- --watch"
   },
   "devDependencies": {
-    "@mephisto5558/eslint-config": "github:Mephisto5558/eslint-config",
+    "@mephisto5558/eslint-config": "github:Mephisto5558/ESLint-Config",
     "esbuild": "^0.25.11",
-    "globals": "^16.4.0",
     "npm-run-all2": "8.x",
     "rimraf": "6.x",
     "sweetalert2": "^11.26.2"
