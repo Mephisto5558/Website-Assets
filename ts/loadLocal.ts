@@ -29,8 +29,14 @@ export default function loadLocal<T extends 'css' | 'script'>(elementType: T, lo
     else console.warn(`[loadLocal] Ignored disallowed attribute: "${key}" for element "${elementType}" (local: ${localPath}, remote: ${remotePath})`);
   }
 
-  const currentScript = document.currentScript ?? [...document.querySelectorAll<HTMLScriptElement>('script[src]')].at(-1);
-  (currentScript?.parentElement ?? document.head).append(elem);
-
-  currentScript?.remove();
+  const currentScript = document.currentScript ?? document.querySelector(`script[src="${import.meta.url}"]`);
+  if (currentScript) currentScript.replaceWith(elem);
+  else document.head.append(elem);
 }
+
+declare global {
+  /* eslint-disable-next-line no-inner-declarations, vars-on-top, @typescript-eslint/consistent-type-imports */
+  var loadLocal: typeof import('./loadLocal').default;
+}
+
+globalThis.loadLocal = loadLocal;
