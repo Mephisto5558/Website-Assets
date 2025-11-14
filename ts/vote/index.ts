@@ -23,6 +23,11 @@ declare global {
   type User<canBeError extends boolean = true> = UserData & (canBeError extends true ? UserError : never);
 }
 
+// @ts-expect-error -- navigator.clipboard is not available with HTTP, meaning it is not readonly with HTTP
+navigator.clipboard ??= {
+  writeText: (data: string): void => void Swal.fire({ icon: 'error', title: 'Copying is not available due to this page being served over HTTP.', text: `This was what you tried to copy: ${data}` })
+};
+
 let saveButtonElement: HTMLButtonElement | undefined;
 
 const
@@ -227,51 +232,45 @@ async function findAndScrollToCard(cardId: Card['id']): Promise<void> {
 
 // Listener
 
-document.addEventListener('DOMContentLoaded', async () => {
-  /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
-  setColorScheme(localStorage.getItem('theme') as 'dark' | 'light' | undefined ?? (globalThis.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
 
-  state.smallScreen = globalThis.matchMedia('(max-width: 768px)').matches;
-  const cardsInRows = state.smallScreen && localStorage.getItem('displayMode') === 'cardsInRows';
+/* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+setColorScheme(localStorage.getItem('theme') as 'dark' | 'light' | undefined ?? (globalThis.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
 
-  await createProfileElement();
-  createFeatureReqElement();
+state.smallScreen = globalThis.matchMedia('(max-width: 768px)').matches;
+const cardsInRows = state.smallScreen && localStorage.getItem('displayMode') === 'cardsInRows';
 
-  await fetchCards();
+await createProfileElement();
+createFeatureReqElement();
 
-  cardsContainer.classList.add(cardsInRows ? cardModes.rowMode : cardModes.columnMode);
-  cardsContainerPending.classList.add(cardsInRows ? cardModes.rowMode : cardModes.columnMode);
+await fetchCards();
 
-  document.querySelector<HTMLSpanElement>('#feature-request-count > span')!.textContent = state.cardsCache.size.toLocaleString();
+cardsContainer.classList.add(cardsInRows ? cardModes.rowMode : cardModes.columnMode);
+cardsContainerPending.classList.add(cardsInRows ? cardModes.rowMode : cardModes.columnMode);
 
-  if (globalThis.location.hash == '#new') headerContainer.querySelector<HTMLButtonElement>('#feature-request-button')!.click();
+document.querySelector<HTMLSpanElement>('#feature-request-count > span')!.textContent = state.cardsCache.size.toLocaleString();
 
-  // @ts-expect-error -- navigator.clipboard is not available with HTTP, meaning it is not readonly with HTTP
-  navigator.clipboard ??= {
-    writeText: (data: string): void => void Swal.fire({ icon: 'error', title: 'Copying is not available due to this page being served over HTTP.', text: `This was what you tried to copy: ${data}` })
-  };
+if (globalThis.location.hash == '#new') headerContainer.querySelector<HTMLButtonElement>('#feature-request-button')!.click();
 
-  displayCards();
+displayCards();
 
-  setTimeout(async () => findAndScrollToCard(globalThis.location.hash.slice(1)), msInSecond / 10);
+setTimeout(async () => findAndScrollToCard(globalThis.location.hash.slice(1)), msInSecond / 10);
 
-  if (state.user?.dev) {
-    if (cardsContainerPending.childElementCount) {
-      document.body.insertBefore(createElement('h2', { id: 'new-requests', textContent: 'New Requests' }), cardsContainerPending);
-      document.body.insertBefore(createElement('h2', { id: 'old-requests', textContent: 'Approved Requests' }), cardsContainer);
-    }
-
-    saveButtonElement = createElement('button', { id: 'save-button', title: 'Save', className: 'blue-button' }, document.body);
-    createElement('i', { className: 'fas fa-save fa-xl' }, saveButtonElement);
-
-    saveButtonElement.addEventListener('click', updateCards);
+if (state.user?.dev) {
+  if (cardsContainerPending.childElementCount) {
+    document.body.insertBefore(createElement('h2', { id: 'new-requests', textContent: 'New Requests' }), cardsContainerPending);
+    document.body.insertBefore(createElement('h2', { id: 'old-requests', textContent: 'Approved Requests' }), cardsContainer);
   }
 
-  /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
-  (featureRequestOverlay.nextElementSibling as HTMLElement).style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`;
+  saveButtonElement = createElement('button', { id: 'save-button', title: 'Save', className: 'blue-button' }, document.body);
+  createElement('i', { className: 'fas fa-save fa-xl' }, saveButtonElement);
 
-  /* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- no idea, it just works */
-  document.documentElement.style.scrollPaddingTop = `${headerContainer.clientHeight + 20}px`;
+  saveButtonElement.addEventListener('click', updateCards);
+}
 
-  state.pageIsLoaded = true;
-});
+/* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+(featureRequestOverlay.nextElementSibling as HTMLElement).style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`;
+
+/* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- no idea, it just works */
+document.documentElement.style.scrollPaddingTop = `${headerContainer.clientHeight + 20}px`;
+
+state.pageIsLoaded = true;
