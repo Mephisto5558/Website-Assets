@@ -34,5 +34,5 @@ window.addEventListener('resize', debounce(() => {
   else oldWindowWidth = currentWidth;
 }, msInSecond / 2));
 window.addEventListener('beforeunload', event => {
-  if (document.body.querySelectorAll('.card[modified]').length) event.preventDefault(); // Triggers "you have unsaved changes" dialog box
+  if (document.body.querySelector('.card[modified]')) event.preventDefault(); // Triggers "you have unsaved changes" dialog box
 });

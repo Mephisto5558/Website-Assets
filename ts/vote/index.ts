@@ -85,8 +85,6 @@ const
   /** Updates the cards */
   updateCards = debounce(async () => {
     const updateList = [...document.body.querySelectorAll<HTMLCardElement>('.card[modified]')].reduce((acc: Card[], card) => {
-      card.removeAttribute('modified');
-
       const originalData = state.cardsCache.get(card.id);
       if (originalData?.title && card.children.title.textContent.trim() !== originalData.title || originalData?.body && card.children.description?.textContent.trim() !== originalData.body)
         acc.push({ id: card.id, title: card.children.title.textContent.trim(), body: card.children.description?.textContent.trim() ?? '' });
@@ -107,6 +105,8 @@ const
     if (res instanceof Error || 'error' in res) return void Swal.fire({ icon: 'error', title: 'Oops...', text: 'error' in res ? res.error : res.message });
 
     void Swal.fire({ icon: 'success', title: 'Success', text: 'The cards have been updated.' });
+
+    for (const card of document.body.querySelectorAll('.card[modified]')) card.removeAttribute('modified');
 
     state.cardsOffset = 0;
     await fetchCards();
