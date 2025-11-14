@@ -1,1 +1,0 @@
-export default class state{static cardsCache=new Map;user;static cardsOffset=0;static pageIsLoaded=!1;static smallScreen=!1}

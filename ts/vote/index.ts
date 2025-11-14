@@ -1,0 +1,276 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
+import {
+  ADDITIONAL_HEADER_MARGIN, DEBUG_URL, HTTP_STATUS_FORBIDDEN, MAX_BODY_LENGTH, MAX_TITLE_LENGTH, PROFILE_IMG_SIZE,
+  cardModes, cardsContainer, cardsContainerPending, featureRequestOverlay, headerContainer, msInSecond, searchBoxElement
+} from './constants';
+import './events';
+import state from './state';
+import { createElement, debounce, displayCards, fetchAPI, fetchCards, getFormElement, setColorScheme } from './utils';
+import type Sweetalert2 from 'sweetalert2';
+
+declare global {
+  const Swal: typeof Sweetalert2;
+
+  type Card = { id: string; title: string; body?: string; pending?: boolean; votes?: number; approved?: boolean };
+  type CardsCache = Map<Card['id'], Card>;
+  type HTMLCardElement = HTMLDivElement & {
+    children: { title: HTMLHeadingElement; description?: HTMLParagraphElement };
+  };
+
+  type UserData = { id: string; username: string; locale: string; avatar: string; banner: string | null; dev: boolean; displayName: string };
+  type UserError = { errorCode: number; error: string };
+  type User<canBeError extends boolean = true> = UserData & (canBeError extends true ? UserError : never);
+}
+
+// @ts-expect-error -- navigator.clipboard is not available with HTTP, meaning it is not readonly with HTTP
+navigator.clipboard ??= {
+  writeText: (data: string): void => void Swal.fire({ icon: 'error', title: 'Copying is not available due to this page being served over HTTP.', text: `This was what you tried to copy: ${data}` })
+};
+
+let saveButtonElement: HTMLButtonElement | undefined;
+
+const
+  hideFeatureReqElement = (event?: KeyboardEvent | PointerEvent): void => {
+    if (!event || event instanceof KeyboardEvent && event.key !== 'Escape' || featureRequestOverlay.style.display === 'none') return;
+
+    headerContainer.removeAttribute('inert');
+    cardsContainer.removeAttribute('inert');
+    cardsContainerPending.removeAttribute('inert');
+    if (saveButtonElement) saveButtonElement.removeAttribute('inert');
+
+    if (state.smallScreen) cardsContainer.style.removeProperty('display');
+    featureRequestOverlay.style.removeProperty('display');
+  },
+
+  // Debounced Handlers
+  sendFeatureRequest = debounce(async (event: PointerEvent): Promise<void> => {
+    event.preventDefault();
+
+    if (!(event.target instanceof HTMLButtonElement && event.target.parentElement instanceof HTMLFormElement)) return; // typeguard
+    const target = event.target.parentElement;
+    if (!target.elements.namedItem('title') || !target.elements.namedItem('description')) return;
+
+    const
+      apiRes = await fetchAPI('vote/new', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: getFormElement<HTMLInputElement>(target, 'title').value.trim(),
+          description: getFormElement<HTMLTextAreaElement>(target, 'description').value.trim()
+        })
+      }).catch(err => (err instanceof Error ? err : new Error(String(err)))),
+      /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+      res = await (apiRes instanceof Response ? (apiRes.json() as Promise<Card | UserError>).catch(err => err as UserError) : apiRes);
+
+    if (res instanceof Error || 'error' in res)
+      return void Swal.fire({ icon: 'error', title: 'Oops...', text: 'error' in res ? res.error : res.message });
+
+    await Swal.fire({
+      icon: 'success',
+      title: 'Success',
+      text: `Your feature request has been submitted and ${res.approved ? 'approved' : 'will be reviewed shortly'}.`
+    });
+
+    state.cardsCache.set(res.id, res);
+
+    if (res.approved) {
+      state.cardsOffset = 0;
+      displayCards();
+    }
+
+    hideFeatureReqElement();
+    target.reset(); // resets the form's values
+  }, msInSecond),
+
+  /** Updates the cards */
+  updateCards = debounce(async () => {
+    const updateList = [...document.body.querySelectorAll<HTMLCardElement>('.card[modified]')].reduce((acc: Card[], card) => {
+      const originalData = state.cardsCache.get(card.id);
+      if (originalData?.title && card.children.title.textContent.trim() !== originalData.title || originalData?.body && card.children.description?.textContent.trim() !== originalData.body)
+        acc.push({ id: card.id, title: card.children.title.textContent.trim(), body: card.children.description?.textContent.trim() ?? '' });
+      return acc;
+    }, []);
+
+    if (!updateList.length) return void Swal.fire({ icon: 'error', title: 'Oops...', text: 'No cards have been modified.' });
+
+    const
+      apiRes = await fetchAPI('vote/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateList)
+      }).catch(err => (err instanceof Error ? err : new Error(String(err)))),
+      /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+      res = await (apiRes instanceof Response ? (apiRes.json() as Promise<UserError | { success: true }>).catch(err => err as UserError) : apiRes);
+
+    if (res instanceof Error || 'error' in res) return void Swal.fire({ icon: 'error', title: 'Oops...', text: 'error' in res ? res.error : res.message });
+
+    void Swal.fire({ icon: 'success', title: 'Success', text: 'The cards have been updated.' });
+
+    for (const card of document.body.querySelectorAll('.card[modified]')) card.removeAttribute('modified');
+
+    state.cardsOffset = 0;
+    await fetchCards();
+    displayCards();
+  }, msInSecond);
+
+// Elements
+
+async function createProfileElement(): Promise<HTMLElement | undefined> {
+  const
+    fragment = document.createDocumentFragment(),
+    profileContainer = createElement('div', { id: 'profile-container' });
+
+  /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+  state.user = await fetchAPI('user').then(async e => ('json' in e ? e.json() as Promise<User> : undefined)).catch(() => { /* empty */ }) as User | undefined;
+  if (!state.user || state.user.errorCode) {
+    if (state.user?.errorCode == HTTP_STATUS_FORBIDDEN) return createElement('h2', { textContent: state.user.error }, document.body, true);
+
+    fragment.append(searchBoxElement);
+    createElement('button', { id: 'feature-request-button', textContent: state.smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover' }, fragment);
+    createElement('button', { id: 'login-button', textContent: state.smallScreen ? 'Login' : 'Login with Discord', className: 'blue-button' }, profileContainer)
+      .addEventListener('click', () => globalThis.location.href = `${DEBUG_URL}/auth/discord?redirectUrl=${globalThis.location.href}`);
+    fragment.append(profileContainer);
+
+    headerContainer.append(fragment);
+    return;
+  }
+
+  const profileContainerWrapper = createElement('div', { id: 'profile-container-wrapper' }, profileContainer);
+  profileContainer.addEventListener('click', (event: PointerEvent) => {
+    /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+    if (!profileContainerWrapper.contains(event.target as Element)) profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'flex' ? 'none' : 'flex';
+  });
+
+  const img = new Image(PROFILE_IMG_SIZE, PROFILE_IMG_SIZE);
+  img.addEventListener('load', () => profileContainer.append(img));
+  img.alt = 'Profile';
+  img.src = `https://cdn.discordapp.com/avatars/${state.user.id}/${state.user.avatar}.webp?size=64`;
+
+  createElement('div', { id: 'username', textContent: state.user.displayName }, profileContainerWrapper);
+  createElement('button', { id: 'logout-button', textContent: 'Logout', className: 'blue-button' }, profileContainerWrapper).addEventListener('click', async () => {
+    const res = await fetch(`${DEBUG_URL}/auth/logout`);
+
+    await Swal.fire(res.ok ? { icon: 'success', title: 'Success', text: 'You are now logged out.' } : { icon: 'error', title: 'Logout failed', text: res.statusText });
+    if (res.ok) globalThis.location.reload();
+  });
+
+  const featureRequestButtonElement = createElement('button', { id: 'feature-request-button', textContent: state.smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover' });
+  if (state.smallScreen) {
+    createElement('br', fragment);
+    fragment.append(profileContainer);
+    fragment.append(searchBoxElement);
+    fragment.append(featureRequestButtonElement);
+  }
+  else {
+    fragment.append(searchBoxElement);
+    fragment.append(featureRequestButtonElement);
+    fragment.append(profileContainer);
+  }
+
+  headerContainer.append(fragment);
+}
+
+function createFeatureReqElement(): void {
+  const featureRequestModal = featureRequestOverlay.querySelector<HTMLDivElement>('#feature-request-modal')!;
+
+  featureRequestModal.querySelector<HTMLButtonElement>('#feature-request-submit-button')!.addEventListener('click', sendFeatureRequest);
+  headerContainer.querySelector<HTMLButtonElement>('#feature-request-button')!.addEventListener('click', async () => {
+    if (!state.user?.id) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Who are you?',
+        text: 'You must be logged in to be able to create a feature request!'
+      });
+    }
+
+    headerContainer.inert = true;
+    cardsContainer.inert = true;
+    cardsContainerPending.inert = true;
+    if (saveButtonElement) saveButtonElement.inert = true;
+
+    featureRequestOverlay.style.display = 'block';
+    if (state.smallScreen) cardsContainer.style.display = 'none';
+  });
+
+  featureRequestModal.querySelector<HTMLButtonElement>('#feature-request-reset-btn')!.addEventListener('click', hideFeatureReqElement);
+  document.addEventListener('keydown', hideFeatureReqElement);
+
+  const descriptionElement = featureRequestModal.querySelector<HTMLTextAreaElement>('#feature-request-description')!;
+  if (state.user?.dev) descriptionElement.removeAttribute('required');
+
+  const
+    titleCounter = featureRequestModal.querySelector<HTMLSpanElement>('#title-counter')!,
+    descriptionCounter = featureRequestModal.querySelector<HTMLSpanElement>('#description-counter')!;
+
+  featureRequestModal.querySelector<HTMLInputElement>('#feature-request-title')!.addEventListener('input', event => {
+    if (!(event.target instanceof HTMLInputElement)) return;
+
+    titleCounter.textContent = `${event.target.value.length}/${MAX_TITLE_LENGTH}`;
+    titleCounter.classList.toggle('limit-reached', event.target.value.length >= MAX_TITLE_LENGTH);
+  });
+  descriptionElement.addEventListener('input', event => {
+    if (!(event.target instanceof HTMLTextAreaElement)) return;
+
+    descriptionCounter.textContent = `${event.target.value.length}/${MAX_BODY_LENGTH}`;
+    descriptionCounter.classList.toggle('limit-reached', event.target.value.length >= MAX_BODY_LENGTH);
+  });
+}
+
+async function findAndScrollToCard(cardId: Card['id']): Promise<void> {
+  if (!state.cardsCache.has(cardId)) return;
+
+  /* eslint-disable-next-line unicorn/prefer-query-selector */
+  while (!document.getElementById(cardId) && state.cardsCache.size > state.cardsOffset) {
+    displayCards();
+    /* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- short timeout to prevent browser lag */
+    await new Promise(res => void setTimeout(res, 50));
+  }
+
+  /* eslint-disable-next-line unicorn/prefer-query-selector */
+  return document.getElementById(cardId)?.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Listener
+
+
+/* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+setColorScheme(localStorage.getItem('theme') as 'dark' | 'light' | undefined ?? (globalThis.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+
+state.smallScreen = globalThis.matchMedia('(max-width: 768px)').matches;
+const cardsInRows = state.smallScreen && localStorage.getItem('displayMode') === 'cardsInRows';
+
+await createProfileElement();
+createFeatureReqElement();
+
+await fetchCards();
+
+cardsContainer.classList.add(cardsInRows ? cardModes.rowMode : cardModes.columnMode);
+cardsContainerPending.classList.add(cardsInRows ? cardModes.rowMode : cardModes.columnMode);
+
+document.querySelector<HTMLSpanElement>('#feature-request-count > span')!.textContent = state.cardsCache.size.toLocaleString();
+
+if (globalThis.location.hash == '#new') headerContainer.querySelector<HTMLButtonElement>('#feature-request-button')!.click();
+
+displayCards();
+
+setTimeout(async () => findAndScrollToCard(globalThis.location.hash.slice(1)), msInSecond / 10);
+
+if (state.user?.dev) {
+  if (cardsContainerPending.childElementCount) {
+    document.body.insertBefore(createElement('h2', { id: 'new-requests', textContent: 'New Requests' }), cardsContainerPending);
+    document.body.insertBefore(createElement('h2', { id: 'old-requests', textContent: 'Approved Requests' }), cardsContainer);
+  }
+
+  saveButtonElement = createElement('button', { id: 'save-button', title: 'Save', className: 'blue-button' }, document.body);
+  createElement('i', { className: 'fas fa-save fa-xl' }, saveButtonElement);
+
+  saveButtonElement.addEventListener('click', updateCards);
+}
+
+/* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+(featureRequestOverlay.nextElementSibling as HTMLElement).style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`;
+
+/* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- no idea, it just works */
+document.documentElement.style.scrollPaddingTop = `${headerContainer.clientHeight + 20}px`;
+
+state.pageIsLoaded = true;

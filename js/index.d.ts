@@ -1,1 +1,0 @@
-declare function loadLocal(elementType: 'css' | 'script', localPath: string, remotePath: string, args: Record<string, unknown>): void;
