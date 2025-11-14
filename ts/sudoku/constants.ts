@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-const debug = false as boolean;
-/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, sonarjs/no-redundant-boolean, no-constant-binary-expression */
-globalThis.debugBoard = false && debug;
+globalThis.debugBoard = false;
 
 export const DEBUG_BOARDS = new Map([
   /* eslint-disable @typescript-eslint/no-magic-numbers */
@@ -20,7 +18,7 @@ export const MAX_GENERATION_ATTEMPTS = 5;
 
 export const MS_IN_SEC = 1000;
 export const SEC_IN_MIN = 60;
-export const WORKER_URL = debug ? '../../min/js/sudoku/sudoku.worker.js' : 'https://mephisto5558.github.io/Website-Assets/min/js/sudoku/sudoku.worker.js';
+export const WORKER_URL = ['localhost', '127.0.0.1'].includes(globalThis.location.hostname) ? '../../min/js/sudoku/sudoku.worker.js' : 'https://mephisto5558.github.io/Website-Assets/min/js/sudoku/sudoku.worker.js';
 
 export const htmlBoard: HTMLBoard = [];
 
