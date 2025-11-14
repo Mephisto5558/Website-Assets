@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-/* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */// @ts-expect-error -- this is a worker script
-globalThis.window = globalThis as WorkerGlobalScope; // polyfill for rando
-globalThis.importScripts('https://cdn.jsdelivr.net/gh/nastyox/Rando.js@master/code/plain-javascript/2.0.0/rando-min.js');
+import { randomIntSequence, shuffleArray } from '../randomNumberGen';
 
 const THROTTLE_INTERVAL_MS = 500;
 
@@ -50,7 +48,7 @@ function backtrackSolver(board: Board, options: { findJustOne?: boolean; useRand
       groupId = getGroupId(rowId, colId, boxSize);
 
     let solutionCount = 0;
-    for (const value of useRandomSequence ? randoSequence(1, size) : Array.from({ length: size }, (_, i) => i + 1)) {
+    for (const value of useRandomSequence ? randomIntSequence(1, size) : Array.from({ length: size }, (_, i) => i + 1)) {
       if (!rows[rowId]!.has(value) && !cols[colId]!.has(value) && !groups[groupId]!.has(value)) {
         board[rowId]![colId] = value;
         rows[rowId]!.add(value);
@@ -98,7 +96,7 @@ function dig(board: Board): boolean {
     }
   }
 
-  for (const { rowId, colId } of randoSequence(filledCells).map(e => e.value)) {
+  for (const { rowId, colId } of shuffleArray(filledCells)) {
     const originalValue = board[rowId]![colId]!;
     board[rowId]![colId] = 0;
 

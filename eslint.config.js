@@ -20,9 +20,7 @@ export default [
       globals: {
         ...globals.es2024,
         ...globals.browser,
-        Swal: 'readonly',
-        rando: 'readonly',
-        randoSequence: 'readonly'
+        Swal: 'readonly'
       }
     },
     rules: {

@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
+import { randomInt, randomIntSequence } from '../randomNumberGen';
 import { DEFAULT_BOARD_SIZE, MAX_HOLES_PERCENTAGE, MIN_HOLES_PERCENTAGE, MS_IN_SEC, SEC_IN_MIN, difficultyOutput, difficultySlider, numberOverviewSpans, sizeOption, timer } from './constants';
+
+export { randomInt, randomIntSequence };
 
 const
   popupTileElement = document.querySelector<HTMLHeadElement>('#popup-container > h3')!,
@@ -162,7 +165,7 @@ export function updateMinMax(): { size: number; minHoles: number; maxHoles: numb
   difficultySlider.min = minHoles.toString();
   difficultySlider.max = maxHoles.toString();
 
-  const holes = Number(difficultySlider.value) || rando(minHoles, maxHoles);
+  const holes = Number(difficultySlider.value) || randomInt(minHoles, maxHoles);
   difficultySlider.value = holes.toString();
   difficultyOutput.textContent = holes.toString();
 

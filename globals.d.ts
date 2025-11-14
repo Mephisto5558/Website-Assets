@@ -1,9 +1,6 @@
-import type Sweetalert2 from 'sweetalert2';
-
 declare global {
-  const Swal: typeof Sweetalert2;
-
-  function rando(min: number, max?: number): number;
-  function randoSequence<val>(arr: val[]): { index: number; value: val }[];
-  function randoSequence(min: number, max?: number): number[];
+  /* eslint-disable-next-line @typescript-eslint/consistent-type-definitions */
+  interface Body {
+    json(): Promise<JSONValue>;
+  }
 }
