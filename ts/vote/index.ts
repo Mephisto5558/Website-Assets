@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 
 import {
   ADDITIONAL_HEADER_MARGIN, HTTP_STATUS_FORBIDDEN, MAX_BODY_LENGTH, MAX_TITLE_LENGTH, PROFILE_IMG_SIZE,
@@ -8,22 +7,25 @@ import {
 import './events';
 import state from './state';
 import { createElement, debounce, displayCards, fetchAPI, fetchCards, getFormElement, setColorScheme } from './utils';
+import type Sweetalert2 from 'sweetalert2';
 
 declare global {
-  export type Card = { id: string; title: string; body?: string; pending?: boolean; votes?: number; approved?: boolean };
-  export type CardsCache = Map<string, Card>;
-  export type HTMLCardElement = HTMLDivElement & {
+  const Swal: typeof Sweetalert2;
+
+  type Card = { id: string; title: string; body?: string; pending?: boolean; votes?: number; approved?: boolean };
+  type CardsCache = Map<Card['id'], Card>;
+  type HTMLCardElement = HTMLDivElement & {
     children: { title: HTMLHeadingElement; description?: HTMLParagraphElement };
   };
 
-  export type UserData = { id: string; username: string; locale: string; avatar: string; banner: string | null; dev: boolean; displayName: string };
-  export type UserError = { errorCode: number; error: string };
-  export type User<canBeError extends boolean = true> = UserData & (canBeError extends true ? UserError : never);
+  type UserData = { id: string; username: string; locale: string; avatar: string; banner: string | null; dev: boolean; displayName: string };
+  type UserError = { errorCode: number; error: string };
+  type User<canBeError extends boolean = true> = UserData & (canBeError extends true ? UserError : never);
 }
 
 let saveButtonElement: HTMLButtonElement | undefined;
 
-export const
+const
   hideFeatureReqElement = (event?: KeyboardEvent | PointerEvent): void => {
     if (!event || event instanceof KeyboardEvent && event.key !== 'Escape' || featureRequestOverlay.style.display === 'none') return;
 
@@ -40,8 +42,9 @@ export const
   sendFeatureRequest = debounce(async (event: PointerEvent): Promise<void> => {
     event.preventDefault();
 
-    const target = (event.target as HTMLButtonElement).parentElement as HTMLFormElement | null;
-    if (!target?.title || !target.description) return;
+    if (!(event.target instanceof HTMLButtonElement && event.target.parentElement instanceof HTMLFormElement)) return; // typeguard
+    const target = event.target.parentElement;
+    if (!target.elements.namedItem('title') || !target.elements.namedItem('description')) return;
 
     const
       apiRes = await fetchAPI('vote/new', {
@@ -50,7 +53,8 @@ export const
           title: getFormElement<HTMLInputElement>(target, 'title').value.trim(),
           description: getFormElement<HTMLTextAreaElement>(target, 'description').value.trim()
         })
-      }).catch(err => err as Error),
+      }).catch(err => (err instanceof Error ? err : new Error(String(err)))),
+      /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
       res = await (apiRes instanceof Response ? (apiRes.json() as Promise<Card | UserError>).catch(err => err as UserError) : apiRes);
 
     if (res instanceof Error || 'error' in res)
@@ -91,7 +95,8 @@ export const
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateList)
-      }).catch(err => err as Error),
+      }).catch(err => (err instanceof Error ? err : new Error(String(err)))),
+      /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
       res = await (apiRes instanceof Response ? (apiRes.json() as Promise<UserError | { success: true }>).catch(err => err as UserError) : apiRes);
 
     if (res instanceof Error || 'error' in res) return void Swal.fire({ icon: 'error', title: 'Oops...', text: 'error' in res ? res.error : res.message });
@@ -110,6 +115,7 @@ async function createProfileElement(): Promise<HTMLElement | undefined> {
     fragment = document.createDocumentFragment(),
     profileContainer = createElement('div', { id: 'profile-container' });
 
+  /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
   state.user = await fetchAPI('user').then(async e => ('json' in e ? e.json() as Promise<User> : undefined)).catch(() => { /* empty */ }) as User | undefined;
   if (!state.user || state.user.errorCode) {
     if (state.user?.errorCode == HTTP_STATUS_FORBIDDEN) return createElement('h2', { textContent: state.user.error }, document.body, true);
@@ -126,7 +132,8 @@ async function createProfileElement(): Promise<HTMLElement | undefined> {
 
   const profileContainerWrapper = createElement('div', { id: 'profile-container-wrapper' }, profileContainer);
   profileContainer.addEventListener('click', (event: PointerEvent) => {
-    if (!profileContainerWrapper.contains(event.target as Node)) profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'flex' ? 'none' : 'flex';
+    /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+    if (!profileContainerWrapper.contains(event.target as Element)) profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'flex' ? 'none' : 'flex';
   });
 
   const img = new Image(PROFILE_IMG_SIZE, PROFILE_IMG_SIZE);
@@ -191,12 +198,16 @@ function createFeatureReqElement(): void {
     descriptionCounter = featureRequestModal.querySelector<HTMLSpanElement>('#description-counter')!;
 
   featureRequestModal.querySelector<HTMLInputElement>('#feature-request-title')!.addEventListener('input', event => {
-    titleCounter.textContent = `${(event.target as HTMLInputElement).value.length}/${MAX_TITLE_LENGTH}`;
-    titleCounter.classList.toggle('limit-reached', (event.target as HTMLInputElement).value.length >= MAX_TITLE_LENGTH);
+    if (!(event.target instanceof HTMLInputElement)) return;
+
+    titleCounter.textContent = `${event.target.value.length}/${MAX_TITLE_LENGTH}`;
+    titleCounter.classList.toggle('limit-reached', event.target.value.length >= MAX_TITLE_LENGTH);
   });
   descriptionElement.addEventListener('input', event => {
-    descriptionCounter.textContent = `${(event.target as HTMLTextAreaElement).value.length}/${MAX_BODY_LENGTH}`;
-    descriptionCounter.classList.toggle('limit-reached', (event.target as HTMLTextAreaElement).value.length >= MAX_BODY_LENGTH);
+    if (!(event.target instanceof HTMLTextAreaElement)) return;
+
+    descriptionCounter.textContent = `${event.target.value.length}/${MAX_BODY_LENGTH}`;
+    descriptionCounter.classList.toggle('limit-reached', event.target.value.length >= MAX_BODY_LENGTH);
   });
 }
 
@@ -217,6 +228,7 @@ async function findAndScrollToCard(cardId: Card['id']): Promise<void> {
 // Listener
 
 document.addEventListener('DOMContentLoaded', async () => {
+  /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
   setColorScheme(localStorage.getItem('theme') as 'dark' | 'light' | undefined ?? (globalThis.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
 
   state.smallScreen = globalThis.matchMedia('(max-width: 768px)').matches;
@@ -255,7 +267,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     saveButtonElement.addEventListener('click', updateCards);
   }
 
-  document.body.querySelector<HTMLElement>('#feature-request-overlay + *')!.style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`;
+  /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+  (featureRequestOverlay.nextElementSibling as HTMLElement).style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`;
 
   /* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- no idea, it just works */
   document.documentElement.style.scrollPaddingTop = `${headerContainer.clientHeight + 20}px`;

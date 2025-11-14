@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-
-import { ADDITIONAL_HEADER_MARGIN, COLOR_TRANSITION_TIME, cardModes, cardsContainer, cardsContainerPending, headerContainer, msInSecond, searchBoxElement } from './constants';
+import { ADDITIONAL_HEADER_MARGIN, COLOR_TRANSITION_TIME, cardModes, cardsContainer, cardsContainerPending, featureRequestOverlay, headerContainer, msInSecond, searchBoxElement } from './constants';
 import createElement from './createElement';
 import state from './state';
 
@@ -20,7 +18,7 @@ export function debounce<CB extends (...args: any) => any>(callback: CB, delay: 
   });
 }
 
-export const sendUpvote = debounce(async (cardId: Card['id'], voteCounter: HTMLSpanElement): Promise<void> => {
+export const sendUpvote = debounce(async (card: Card, voteCounter: HTMLSpanElement): Promise<void> => {
   if (!state.user?.id) {
     return void Swal.fire({
       icon: 'error',
@@ -29,15 +27,12 @@ export const sendUpvote = debounce(async (cardId: Card['id'], voteCounter: HTMLS
     });
   }
 
-  let res = await fetchAPI('vote/addvote', {
+  const res = await fetchAPI('vote/addvote', {
     method: 'POST',
-    body: JSON.stringify({ featureId: cardId })
-  });
+    body: JSON.stringify({ featureId: card.id })
+  }).then(async res => res.json()).catch(err => (err instanceof Error ? err : new Error(String(err))));
 
-  try { res = await res.json(); }
-  catch { /* empty */ }
-
-  if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
+  if (res instanceof Error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.message });
 
   void Swal.fire({
     icon: 'success',
@@ -45,10 +40,10 @@ export const sendUpvote = debounce(async (cardId: Card['id'], voteCounter: HTMLS
     text: 'Your vote has been successfully recorded.'
   });
 
-  const card = state.cardsCache.get(cardId)!;
   card.votes = (card.votes ?? 0) + 1;
   voteCounter.textContent = card.votes.toLocaleString();
 
+  /* eslint-disable-next-line require-atomic-updates -- `state` is contant */
   state.cardsOffset = 0;
   displayCards();
 }, msInSecond);
@@ -68,7 +63,8 @@ export async function fetchAPI(url: string, options: RequestInit | undefined = {
 
 export async function fetchCards(): Promise<void> {
   const fetchedCards = new Map(
-    ((await fetchAPI(`vote/list?includePending=${!!state.user?.dev}`).then(e => e.json()))?.cards as Card[] | undefined)
+    /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+    (await fetchAPI(`vote/list?includePending=${!!state.user?.dev}`).then(async res => res.json() as Promise<{ cards?: Card[] }>)).cards
       ?.toSorted((a, b) => {
         if (!a.pending && b.pending) return 1;
         if (a.pending && !b.pending) return -1;
@@ -136,12 +132,12 @@ export function createCardElement(card: Card): void {
 
   if (card.pending && isDev) {
     createElement('button', { textContent: 'Approve', className: 'vote-button blue-button' }, voteButtonsElement).addEventListener('click', async () => {
-      let res = await fetchAPI('vote/approve', {
+      const res = await fetchAPI('vote/approve', {
         method: 'POST',
         body: JSON.stringify({ featureId: card.id })
-      }).then(res => res.json()).catch(err => err);
+      }).then(async res => res.json()).catch(err => (err instanceof Error ? err : new Error(String(err))));
 
-      if (res.ok === false || res.error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.error ?? res.statusText });
+      if (res instanceof Error) return void Swal.fire({ icon: 'error', title: 'Oops...', text: res.message });
 
       void Swal.fire({ icon: 'success', title: 'Success', text: 'The feature request has been approved.' });
 
@@ -150,13 +146,14 @@ export function createCardElement(card: Card): void {
         document.body.querySelector('#new-requests')?.remove();
         document.body.querySelector('#old-requests')?.remove();
 
-        document.body.querySelector<HTMLElement>('#feature-request-overlay + *')!.style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`;
+        /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+        (featureRequestOverlay.nextElementSibling as HTMLElement).style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`;
       }
     });
   }
   else if (!card.pending) {
     createElement('button', { className: 'vote-button blue-button', textContent: 'Upvote' }, voteButtonsElement)
-      .addEventListener('click', async () => sendUpvote(card.id, upvoteCounterElement));
+      .addEventListener('click', async () => sendUpvote(card, upvoteCounterElement));
   }
 
   voteButtonsElement.append(upvoteCounterElement);
@@ -168,7 +165,7 @@ export function createCardElement(card: Card): void {
   copyButtonElement.addEventListener('click', () => {
     void navigator.clipboard.writeText(card.id);
     copyButtonIcon.classList = 'fas fa-check fa-xl';
-    /* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- 3ms */
+    /* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- 3s */
     setTimeout(() => copyButtonIcon.classList = 'far fa-copy fa-xl', msInSecond * 3);
   });
 
@@ -185,7 +182,7 @@ export function createCardElement(card: Card): void {
 
       if (event.key !== 'Enter') return;
       event.preventDefault();
-      /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+      /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-non-null-assertion */
       (event.target.nextElementSibling!.firstElementChild! as HTMLElement).focus();
     });
     descriptionElement?.addEventListener('input', event => {
@@ -217,7 +214,8 @@ export function createCardElement(card: Card): void {
         if (!cardsContainerPending.childElementCount) {
           document.body.querySelector('#new-requests')?.remove();
           document.body.querySelector('#old-requests')?.remove();
-          document.body.querySelector<HTMLElement>('#feature-request-overlay + *')!.style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`; // Element after `#feature-request-overlay`
+          /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+          (featureRequestOverlay.nextElementSibling as HTMLElement).style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`; // Element after `#feature-request-overlay`
         }
       }
     }));
@@ -226,7 +224,9 @@ export function createCardElement(card: Card): void {
   }
 
   if (isDev) {
+    /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
     createElement('p', { id: 'userId', title: 'Click to copy', textContent: card.id.split('_')[0]! }, voteButtonsElement)
+    /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
       .addEventListener('click', async () => navigator.clipboard.writeText(card.id.split('_')[0]!));
   }
 
