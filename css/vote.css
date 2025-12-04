@@ -347,13 +347,21 @@ button {
   width: 39px
 }
 
-.vote-buttons > #userId {
-  bottom: 0;
-  color: var(--grey-text-color);
-  cursor: pointer;
-  font-size: .8rem;
+.vote-buttons > #metadata-container {
+  display: flex;
   position: absolute;
-  right: 1rem
+  bottom: 0;
+  right: 0;
+  font-size: .8rem;
+  color: var(--grey-text-color);
+  gap: 1rem;
+  margin-right: 1rem;
+  padding: .75rem 0;
+
+  & > #userId {
+    margin: 0;
+    cursor: pointer;
+  }
 }
 
 #save-button {
