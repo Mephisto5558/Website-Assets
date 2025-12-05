@@ -4,15 +4,15 @@ header {
   }
 
   & > #timer {
-    font-size: 5vw;
+    font-size: 2rem;
   }
 
   & > #color-switcher-container {
-    font-size: 3vw;
+    font-size: 1.2rem;
 
     & > div > input {
-      width: 3.5vw;
-      height: 3.5vw;
+      inline-size: 3.5vi;
+      block-size: 3.5vi;
     }
   }
 }
@@ -27,8 +27,8 @@ header {
 table#sudoku {
   grid-row: 1;
   grid-column: 1;
-  width: 95vw;
-  max-width: 500px;
+  inline-size: 95vi;
+  max-inline-size: 500px;
 
   & td {
     & > input {
@@ -36,7 +36,7 @@ table#sudoku {
     }
 
     & > .notes > span {
-      font-size: 1.8vw;
+      font-size: .75rem;
     }
   }
 }
@@ -45,24 +45,24 @@ table#sudoku {
   grid-row: 2;
   grid-column: 1;
   justify-self: center;
-  max-width: 80vw;
-  font-size: 4vw;
+  max-inline-size: 80vi;
+  font-size: 1.5rem;
 }
 
 #toggle-notes-btn {
   grid-row: 3;
   grid-column: 1;
   justify-self: center;
-  width: 60%;
+  inline-size: 60%;
   padding: .5rem;
-  font-size: 4vw;
+  font-size: 1.5rem;
 }
 
 #settings-container {
   grid-row: 4;
   grid-column: 1;
   justify-self: center;
-  width: 80%;
+  inline-size: 80%;
   flex-direction: column;
 
 }
@@ -73,7 +73,7 @@ table#sudoku {
   gap: .5rem;
 
   & button {
-    font-size: 4vw;
+    font-size: 1.5rem;
     flex-grow: 1;
   }
 }

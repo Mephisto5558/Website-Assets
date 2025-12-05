@@ -1,5 +1,5 @@
 body {
-  background-color: #000
+  background-color: #000;
 }
 
 .navButton {
@@ -8,7 +8,7 @@ body {
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
-  margin-top: 2%
+  margin-block-start: 2%;
 }
 
 .navButton > a {
@@ -19,38 +19,38 @@ body {
   cursor: pointer;
   display: inline-block;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 16px;
-  min-width: 100px;
+  font-size: 1rem;
+  min-inline-size: 100px;
   padding: 15px 32px;
   text-align: center;
   text-decoration: none;
-  transition: background-color .3s ease-in-out
+  transition: background-color .3s ease-in-out;
 }
 
 .navButton > a:hover {
-  background-color: #676867
+  background-color: #676867;
 }
 
-@media (max-width: 480px) {
+@media (max-inline-size: 480px) {
   .navButton > a {
-    flex-basis: calc(100% / 2 - 5px)
+    flex-basis: calc(100% / 2 - 5px);
   }
 }
 
-@media (min-width: 481px) and (max-width: 768px) {
+@media (min-inline-size: 481px) and (max-inline-size: 768px) {
   .navButton > a {
-    flex-basis: calc(100% / 3 - 5px)
+    flex-basis: calc(100% / 3 - 5px);
   }
 }
 
-@media (min-width: 769px) and (max-width: 1024px) {
+@media (min-inline-size: 769px) and (max-inline-size: 1024px) {
   .navButton > a {
-    flex-basis: calc(100% / 4 - 5px)
+    flex-basis: calc(100% / 4 - 5px);
   }
 }
 
-@media (min-width: 1025px) {
+@media (min-inline-size: 1025px) {
   .navButton > a {
-    flex-basis: calc(100% / 5 - 5px)
+    flex-basis: calc(100% / 5 - 5px);
   }
 }

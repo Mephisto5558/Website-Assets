@@ -6,7 +6,7 @@
   --foreground-color-secondary: #bababa;
   --foreground-color-secondary-inverted: #454545;
   --sudoku-row-count: 9;
-  --cell-size: min(calc(95vw / var(--sudoku-row-count)), calc(75vh / var(--sudoku-row-count)));
+  --cell-size: min(calc(95vi / var(--sudoku-row-count)), calc(75vb / var(--sudoku-row-count)));
 
   font-family: Arial, sans-serif;
   font-size: 250%;
@@ -35,7 +35,7 @@
 html,
 body {
   margin: 0;
-  min-height: 100%;
+  min-block-size: 100%;
 }
 
 body {
@@ -54,7 +54,7 @@ button {
   border: none;
   border-radius: .1rem;
   font-size: .5rem;
-  height: fit-content;
+  block-size: fit-content;
 }
 
 input:not([type='range']):hover,
@@ -62,7 +62,7 @@ input[type='range']:hover:is(::-webkit-slider-thumb, ::-moz-range-thumb, ::-webk
   backdrop-filter: brightness(115%);
 }
 
-table#sudoku.notes-mode > tbody > tr > td > .notes > span:is([contenteditable="true"], [contenteditable="plaintext-only"]):hover {
+table#sudoku.notes-mode .notes > span[contenteditable]:hover {
   backdrop-filter: brightness(125%);
 }
 
@@ -70,7 +70,7 @@ button:hover,
 button:focus,
 input:not([type='range']):focus,
 input[type='range']:hover:is(::-webkit-slider-thumb, ::-moz-range-thumb, ::-webkit-slider-runnable-track, ::-moz-range-track),
-table#sudoku.notes-mode > tbody > tr > td > .notes > span:is([contenteditable="true"], [contenteditable="plaintext-only"]):focus {
+table#sudoku.notes-mode .notes > span[contenteditable]:focus {
   backdrop-filter: brightness(150%);
   outline: none;
 }
@@ -81,15 +81,15 @@ button:disabled {
 }
 
 .hidden {
-  display: none !important;
+  display: none;
 }
 
 .invisible {
-  visibility: hidden !important;
+  visibility: hidden;
 }
 
 .visible {
-  visibility: visible !important;
+  visibility: visible;
 }
 
 header {
@@ -97,7 +97,7 @@ header {
   padding: .1rem .2rem;
   background: rgba(0, 0, 0, .1);
   font-size: 40%;
-  width: 100vw;
+  inline-size: 100vi;
 
   & > #timer {
     align-self: center;
@@ -122,8 +122,8 @@ header {
       }
 
       & > input {
-        width: .5rem;
-        height: .5rem;
+        inline-size: .5rem;
+        block-size: .5rem;
         padding: 0;
         cursor: pointer;
         appearance: none;
@@ -145,10 +145,10 @@ header {
 
 #popup-container {
   position: absolute;
-  width: fit-content;
-  height: fit-content;
-  bottom: .5rem;
-  left: 50%;
+  inline-size: fit-content;
+  block-size: fit-content;
+  inset-block-end: .5rem;
+  inset-inline-start: 50%;
   transform: translate(-50%);
   background: rgba(0, 0, 0, 0.2);
   color: var(--foreground-color-inverted);
@@ -181,10 +181,10 @@ header {
   display: flex;
   flex-direction: column;
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: 100%;
+  block-size: 100%;
   z-index: 9999;
   align-items: center;
   text-align: center;
@@ -196,20 +196,20 @@ header {
   }
 
   & > h1 {
-    font-size: 6.5vh;
-    margin-top: 5rem;
+    font-size: 3rem;
+    margin-block-start: 5rem;
   }
 
   & > p {
-    font-size: 2vh;
+    font-size: 1rem;
     font-family: monospace;
     color: var(--foreground-color-secondary);
-    margin-top: auto;
+    margin-block-start: auto;
   }
 
   & > button {
-    margin-bottom: auto;
-    font-size: 2vh;
+    margin-block-end: auto;
+    font-size: 1rem;
   }
 }
 
@@ -228,8 +228,8 @@ table#sudoku {
   grid-row: 1 / var(--sudoku-row-count);
   justify-self: center;
   margin: 0 1rem;
-  height: fit-content;
-  font-size: min(3vw, 3vh);
+  block-size: fit-content;
+  font-size: 1rem;
 
   & > colgroup,
   & > tbody {
@@ -239,16 +239,16 @@ table#sudoku {
   & td {
     position: relative;
     border: solid thin;
-    padding: 1px;
-    height: var(--cell-size);
-    width: var(--cell-size);
+    padding: 0.04rem;
+    block-size: var(--cell-size);
+    inline-size: var(--cell-size);
 
     & > input {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      inset-block-start: 0;
+      inset-inline-start: 0;
+      inline-size: 100%;
+      block-size: 100%;
       box-sizing: border-box;
 
       background-color: transparent;
@@ -272,10 +272,10 @@ table#sudoku {
 
     & > .notes {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      inset-block-start: 0;
+      inset-inline-start: 0;
+      inline-size: 100%;
+      block-size: 100%;
 
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -289,11 +289,11 @@ table#sudoku {
         align-items: center;
         justify-content: center;
         visibility: hidden;
-        font-size: 0.25rem;
+        font-size: .75rem;
         color: var(--foreground-color-secondary);
 
-        width: 80%;
-        height: 80%;
+        inline-size: 80%;
+        block-size: 80%;
 
         /* Row 1 */
         &[data-note='1'] {
@@ -366,17 +366,17 @@ table#sudoku {
   border-collapse: collapse;
   border: solid .04rem;
   justify-self: left;
-  font-size: 60%;
+  font-size: 1.5rem;
 
   & > tbody > tr > td {
     border: solid .01rem;
-    min-width: 1rem;
-    width: min-content;
+    min-inline-size: 1rem;
+    inline-size: min-content;
     padding: .3rem;
 
     & > span {
       color: var(--foreground-color-secondary);
-      float: right;
+      float: inline-end;
 
       &.complete {
         color: #19be14;
@@ -390,23 +390,23 @@ table#sudoku {
   grid-column: 1;
   margin: .2rem 0;
   justify-self: center;
-  width: 80%;
+  inline-size: 80%;
 }
 
 #settings-container {
   justify-self: center;
-  width: 75%;
-  max-width: 95%;
+  inline-size: 75%;
+  max-inline-size: 95%;
   display: flex;
   flex-direction: column;
   align-items: center;
   font-size: 30%;
   margin: .5rem 0;
-  grid-row: 2;
+  grid-row: 2 / 4;
   grid-column: 3;
 
   & > datalist {
-    width: 100%;
+    inline-size: 100%;
     display: flex;
     justify-content: space-between;
     color: var(--foreground-color-secondary);
@@ -415,19 +415,19 @@ table#sudoku {
   & > input[type=range] {
     background-color: transparent;
     cursor: pointer;
-    width: 100%;
+    inline-size: 100%;
 
     &::-webkit-slider-runnable-track,
     &::-moz-range-track {
-      height: .2rem;
+      block-size: .2rem;
       background-color: rgba(0, 0, 0, .15);
       border-radius: .2rem;
     }
 
     &::-webkit-slider-thumb,
     &::-moz-range-thumb {
-      height: .5rem;
-      width: .5rem;
+      block-size: .5rem;
+      inline-size: .5rem;
       box-sizing: border-box;
       background-color: rgba(0, 0, 0, 0.15);
       border: .08rem solid var(--foreground-color);
@@ -450,9 +450,9 @@ table#sudoku {
       border: 1px solid var(--foreground-color);
       background-color: rgba(0, 0, 0, .15);
       color: var(--foreground-color-secondary);
-      border-radius: 4px;
+      border-radius: .1rem;
       padding: .15rem 0;
-      width: 2rem;
+      inline-size: 2rem;
       text-align: center;
       font-size: inherit;
       appearance: textfield;
@@ -466,12 +466,12 @@ table#sudoku {
 
     & > #stepper-buttons {
       position: absolute;
-      right: 1px;
-      top: 1px;
-      bottom: 1px;
+      inset-inline-end: 1px;
+      inset-block-start: 1px;
+      inset-block-end: 1px;
       display: flex;
       flex-direction: column;
-      border-left: 1px solid var(--foreground-color);
+      border-inline-start: 1px solid var(--foreground-color);
 
       & > button {
         appearance: none;
@@ -483,7 +483,7 @@ table#sudoku {
         align-items: center;
         justify-content: center;
         flex: 1;
-        width: .75rem;
+        inline-size: .75rem;
         color: var(--foreground-color-secondary);
         font-size: 0.8em;
 
@@ -491,7 +491,7 @@ table#sudoku {
         transition: background-color 0.2s;
 
         &#stepper-up {
-          border-bottom: 1px solid var(--foreground-color);
+          border-block-end: 1px solid var(--foreground-color);
         }
       }
     }
@@ -508,7 +508,7 @@ table#sudoku {
 #message-container {
   grid-column: 2;
   grid-row: calc(var(--sudoku-row-count) + 1);
-  height: max-content;
+  block-size: max-content;
   text-align: center;
 
   & > #error-info {

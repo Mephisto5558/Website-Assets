@@ -257,7 +257,8 @@ export function setColorScheme(scheme: 'dark' | 'light' | undefined = currentThe
   currentTheme = scheme;
   localStorage.setItem('theme', currentTheme);
 
-  for (const e of ['bg', 'text', 'input-bg', 'input-focus-bg', 'card-bg', 'grey-text']) document.documentElement.style.setProperty(`--${e}-color`, `var(--${currentTheme}-mode-${e}-color)`);
+  document.body.classList.toggle('dark', currentTheme === 'dark');
+  document.body.classList.toggle('light', currentTheme === 'light');
 
   if (state.pageIsLoaded) {
     const elements = document.querySelectorAll('body, #header-container button, #header-container>#search-box, .card');
