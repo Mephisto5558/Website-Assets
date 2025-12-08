@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@mephisto5558/eslint-config": "github:Mephisto5558/ESLint-Config",
-    "esbuild": "^0.25.11",
+    "esbuild": "^0.27.1",
     "npm-run-all2": "8.x",
     "rimraf": "6.x",
     "sweetalert2": "^11.26.2"
