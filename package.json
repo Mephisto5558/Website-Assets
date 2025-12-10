@@ -34,7 +34,7 @@
     "esbuild": "^0.27.1",
     "npm-run-all2": "8.x",
     "rimraf": "6.x",
-    "sweetalert2": "^11.26.2"
+    "sweetalert2": "^11.26.4"
   },
   "engines": {
     "node": ">=20.11.0"
