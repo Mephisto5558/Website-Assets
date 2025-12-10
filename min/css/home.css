@@ -1,1 +1,1 @@
-body{background:#111}.console-container{color:#fff;display:block;font-family:Arial Black,Helvetica,sans-serif;font-size:4em;height:200px;inset:0;margin:auto;position:absolute;text-align:center;width:800px}
+body{background:#111}.console-container{inset-block-end:0;color:#fff;display:block;font-family:Arial Black,Helvetica,sans-serif;font-size:4rem;block-size:200px;inset-inline-start:0;margin:auto;position:absolute;inset-inline-end:0;text-align:center;inset-block-start:0;inline-size:800px}
