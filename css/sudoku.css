@@ -6,7 +6,8 @@
   --foreground-color-secondary: #bababa;
   --foreground-color-secondary-inverted: #454545;
   --sudoku-row-count: 9;
-  --cell-size: min(calc(95vi / var(--sudoku-row-count)), calc(75vb / var(--sudoku-row-count)));
+  /* `* 1px` to explicitly convert to pixels */
+  --cell-size: calc(min(calc(95vi / var(--sudoku-row-count)), calc(75vb / var(--sudoku-row-count))) * 1px);
 
   font-family: Arial, sans-serif;
   font-size: 250%;
