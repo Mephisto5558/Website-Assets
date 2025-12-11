@@ -227,7 +227,7 @@ export function createCardElement(card: Card): void {
   if (card.id.includes('_')) { // old github project PVTI type
     /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
     const date = new Date(card.id.split('_')[1]!);
-    createElement('time', { title: 'Creation Date', dateTime: date.toISOString(), textContent: date.toLocaleDateString('en') }, metadataContainer);
+    createElement('time', { title: 'Creation Date', dateTime: date.toISOString().split('T')[0]!, textContent: date.toLocaleDateString('en') }, metadataContainer);
   }
 
   if (isDev) {
