@@ -4,6 +4,8 @@ import state from './state';
 
 export { createElement };
 
+export const htmlDecode = (input: string) => new DOMParser().parseFromString(input, 'text/html').documentElement.textContent;
+
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 export function debounce<CB extends (...args: any) => any>(callback: CB, delay: number): (...args: Parameters<CB>) => Promise<ReturnType<CB>> {
   let timer: ReturnType<typeof setTimeout>;
@@ -124,8 +126,8 @@ export function createCardElement(card: Card): void {
 
     cardElement = createElement('div', { className: 'card', id: card.id }),
 
-    titleElement = createElement('h2', { id: 'title', textContent: card.title, contentEditable: isDev ? 'plaintext-only' : 'false' }, cardElement),
-    descriptionElement = card.body || isDev ? createElement('p', { id: 'description', textContent: card.body ?? '', contentEditable: isDev ? 'plaintext-only' : 'false' }, cardElement) : undefined,
+    titleElement = createElement('h2', { id: 'title', textContent: htmlDecode(card.title), contentEditable: isDev ? 'plaintext-only' : 'false' }, cardElement),
+    descriptionElement = card.body || isDev ? createElement('p', { id: 'description', textContent: htmlDecode(card.body ?? ''), contentEditable: isDev ? 'plaintext-only' : 'false' }, cardElement) : undefined,
 
     voteButtonsElement = createElement('div', { className: 'vote-buttons' }, cardElement),
     upvoteCounterElement = createElement('span', { className: 'vote-counter', textContent: card.pending ? '' : (card.votes ?? 0).toString() });
