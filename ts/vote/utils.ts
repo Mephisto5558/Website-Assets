@@ -228,7 +228,7 @@ export function createCardElement(card: Card): void {
   const metadataContainer = createElement('div', { id: 'metadata-container' }, voteButtonsElement);
   if (!card.id.startsWith('PVTI_')) { // old github project PVTI type
     /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
-    const date = new Date(card.id.split('_')[1]!);
+    const date = new Date(Number.parseInt(card.id.split('_')[1]!));
     createElement('time', { title: 'Creation Date', dateTime: date.toISOString().split('T')[0]!, textContent: date.toLocaleDateString('en') }, metadataContainer);
   }
 
