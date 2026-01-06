@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-magic-numbers */
 
-import config, { globals, tsGlob, jsGlob } from '@mephisto5558/eslint-config';
+import config, { globals, jsGlob, tsGlob } from '@mephisto5558/eslint-config';
 
 /**
  * @type {typeof config}

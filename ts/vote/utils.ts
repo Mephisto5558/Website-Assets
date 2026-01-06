@@ -4,7 +4,7 @@ import state from './state';
 
 export { createElement };
 
-export const htmlDecode = (input: string) => new DOMParser().parseFromString(input, 'text/html').documentElement.textContent;
+export const htmlDecode = (input: string): string => new DOMParser().parseFromString(input, 'text/html').documentElement.textContent;
 
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 export function debounce<CB extends (...args: any) => any>(callback: CB, delay: number): (...args: Parameters<CB>) => Promise<ReturnType<CB>> {
