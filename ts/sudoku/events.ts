@@ -3,10 +3,8 @@
 import { Key, cancelBtn, difficultyOutput, difficultySlider, htmlBoard, sizeOption, sudokuTable } from './constants';
 import { checkErrors, sendPopup, startTimer, updateMinMax, updateNumberOverviewSpan } from './utils';
 
-// Source: https://github.com/microsoft/TypeScript/issues/54451#issue-1732749888
-type Omit<T, K extends keyof T> = { [P in keyof T as P extends K ? never : P]: T[P] };
 
-type T_KeyboardEvent = Omit<KeyboardEvent, 'key'> & { readonly key: Key };
+type T_KeyboardEvent = StrictOmit<KeyboardEvent, 'key'> & { readonly key: Key };
 
 function handleNormalInput(target: CellInput, key: string): void {
   let newNumber = Number(target.value + key);

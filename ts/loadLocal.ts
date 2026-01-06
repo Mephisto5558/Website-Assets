@@ -23,8 +23,7 @@ export default function loadLocal<T extends 'css' | 'script'>(elementType: T, lo
     if (allowedAttributesForElement.has(key)) {
       if (value === true) elem.setAttribute(key, '');
       else if (value === false) elem.removeAttribute(key);
-      /* eslint-disable-next-line @typescript-eslint/no-base-to-string */
-      else if (value !== undefined && value !== null) elem.setAttribute(key, String(value));
+      else if (value != undefined) elem.setAttribute(key, value);
     }
     else console.warn(`[loadLocal] Ignored disallowed attribute: "${key}" for element "${elementType}" (local: ${localPath}, remote: ${remotePath})`);
   }

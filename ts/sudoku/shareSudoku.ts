@@ -41,7 +41,6 @@ export function generateShareURL(board: Board, fullBoard: FullBoard): string {
     },
     url = new URL(globalThis.location.href);
 
-  /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- better-typescript-lib bug */
   for (const [k, v] of Object.entries(data) as [string, bigint][]) url.searchParams.set(k, bigIntToBase62(v));
 
   return url.toString();
