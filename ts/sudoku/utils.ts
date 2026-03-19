@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { randomInt, randomIntSequence } from '../randomNumberGen';
-import { DEFAULT_BOARD_SIZE, MAX_HOLES_PERCENTAGE, MIN_HOLES_PERCENTAGE, MS_IN_SEC, SEC_IN_MIN, difficultyOutput, difficultySlider, numberOverviewSpans, sizeOption, timer } from './constants';
+import { randomInt, randomIntSequence } from '../randomNumberGen.ts';
+import { DEFAULT_BOARD_SIZE, MAX_HOLES_PERCENTAGE, MIN_HOLES_PERCENTAGE, MS_IN_SEC, SEC_IN_MIN, difficultyOutput, difficultySlider, numberOverviewSpans, sizeOption, timer } from './constants.ts';
 
 export { randomInt, randomIntSequence };
 

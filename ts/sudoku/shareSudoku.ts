@@ -1,5 +1,5 @@
-import { difficultySlider, sizeOption } from './constants';
-import { updateMinMax } from './utils';
+import { difficultySlider, sizeOption } from './constants.ts';
+import { updateMinMax } from './utils.ts';
 
 const
   BASE = 62n,

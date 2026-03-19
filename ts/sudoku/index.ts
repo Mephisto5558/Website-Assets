@@ -1,11 +1,11 @@
 import {
   DEBUG_BOARDS, MAX_GENERATION_ATTEMPTS, MS_IN_SEC, WORKER_URL,
   bgColorSwitcher, cancelBtn, fgColorSwitcher, htmlBoard, loadingContainer, loadingStatusSpan, numberOverviewSpans, regenerateBtn, shareBtn, solutionBtn
-} from './constants';
-import './events';
-import { createHTMLBoard, createHTMLOverviewSpans, displayBoard } from './generateSudoku';
-import { generateShareURL, loadFromShareURL } from './shareSudoku';
-import { checkErrors, clearTimer, getRootStyle, initializeColorPicker, invertHex, saveToClipboard, sendPopup, setRootStyle, updateMinMax } from './utils';
+} from './constants.ts';
+import './events.ts';
+import { createHTMLBoard, createHTMLOverviewSpans, displayBoard } from './generateSudoku.ts';
+import { generateShareURL, loadFromShareURL } from './shareSudoku.ts';
+import { checkErrors, clearTimer, getRootStyle, initializeColorPicker, invertHex, saveToClipboard, sendPopup, setRootStyle, updateMinMax } from './utils.ts';
 
 declare global {
   /* eslint-disable vars-on-top, no-inner-declarations */

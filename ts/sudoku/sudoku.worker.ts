@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { randomIntSequence, shuffleArray } from '../randomNumberGen';
+import { randomIntSequence, shuffleArray } from '../randomNumberGen.ts';
 
 const THROTTLE_INTERVAL_MS = 500;
 

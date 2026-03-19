@@ -13,6 +13,7 @@
       "WebWorker",
       "Webworker.Iterable"
     ],
+    "allowImportingTsExtensions": true,
     "allowJs": false,
     "exactOptionalPropertyTypes": true,
     "libReplacement": true,

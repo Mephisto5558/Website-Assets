@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import { ADDITIONAL_HEADER_MARGIN, WINDOW_WIDTH_RELOAD_TRESHOLD, headerContainer, msInSecond, searchBoxElement } from './constants';
-import state from './state';
-import { debounce, displayCards, setColorScheme, toggleCardDisplayMode } from './utils';
+import { ADDITIONAL_HEADER_MARGIN, WINDOW_WIDTH_RELOAD_TRESHOLD, headerContainer, msInSecond, searchBoxElement } from './constants.ts';
+import state from './state.ts';
+import { debounce, displayCards, setColorScheme, toggleCardDisplayMode } from './utils.ts';
 
 searchBoxElement.addEventListener('input', debounce((event: Event) => {
   if (!(event.target instanceof HTMLInputElement)) return; // typeguard

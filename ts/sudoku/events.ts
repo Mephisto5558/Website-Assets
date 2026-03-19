@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 
-import { Key, cancelBtn, difficultyOutput, difficultySlider, htmlBoard, sizeOption, sudokuTable } from './constants';
-import { checkErrors, sendPopup, startTimer, updateMinMax, updateNumberOverviewSpan } from './utils';
+import { Key, cancelBtn, difficultyOutput, difficultySlider, htmlBoard, sizeOption, sudokuTable } from './constants.ts';
+import { checkErrors, sendPopup, startTimer, updateMinMax, updateNumberOverviewSpan } from './utils.ts';
 
 
 type T_KeyboardEvent = StrictOmit<KeyboardEvent, 'key'> & { readonly key: Key };
@@ -89,7 +89,7 @@ sudokuTable.addEventListener('keydown', (event: T_KeyboardEvent) => {
     nextCell = (event.ctrlKey ? htmlBoard.findLast(row => row.some(findCell)) : htmlBoard[Number((event.target as CellInput).dataset.row) - 1])!.findLast(findCell);
   /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-  while ((!nextCell || nextCell.disabled) && !(nextCell && nextCell.dataset.row == (event.target as CellInput).dataset.row && nextCell.dataset.col == (event.target as CellInput).dataset.col)) {
+  while ((!nextCell || nextCell.disabled) && !(nextCell?.dataset.row == (event.target as CellInput).dataset.row && nextCell.dataset.col == (event.target as CellInput).dataset.col)) {
     const
       rowId: number = Number((nextCell ?? event.target as CellInput).dataset.row) - 1,
       colId: number = Number((nextCell ?? event.target as CellInput).dataset.col) - 1;
@@ -144,7 +144,9 @@ document.querySelector<HTMLButtonElement>('#stepper-down')!.addEventListener('cl
 });
 
 sizeOption.addEventListener('change', updateMinMax);
-difficultySlider.addEventListener('input', event => difficultyOutput.textContent = (event.target as typeof difficultySlider).value);
+difficultySlider.addEventListener('input', event => {
+  difficultyOutput.textContent = (event.target as typeof difficultySlider).value;
+});
 
 cancelBtn.addEventListener('click', () => {
   globalThis.sudokuWorker?.dispatchEvent(new MessageEvent('message', { data: { type: 'cancel', message: 'user cancel request' } }));

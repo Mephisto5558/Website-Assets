@@ -1,6 +1,6 @@
-import { ADDITIONAL_HEADER_MARGIN, COLOR_TRANSITION_TIME, DEBUG_URL, cardModes, cardsContainer, cardsContainerPending, featureRequestOverlay, headerContainer, msInSecond, searchBoxElement } from './constants';
-import createElement from './createElement';
-import state from './state';
+import { ADDITIONAL_HEADER_MARGIN, COLOR_TRANSITION_TIME, DEBUG_URL, cardModes, cardsContainer, cardsContainerPending, featureRequestOverlay, headerContainer, msInSecond, searchBoxElement } from './constants.ts';
+import createElement from './createElement.ts';
+import state from './state.ts';
 
 export { createElement };
 
@@ -228,7 +228,7 @@ export function createCardElement(card: Card): void {
   const metadataContainer = createElement('div', { id: 'metadata-container' }, voteButtonsElement);
   if (!card.id.startsWith('PVTI_')) { // old github project PVTI type
     /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
-    const date = new Date(Number.parseInt(card.id.split('_')[1]!));
+    const date = new Date(Number.parseInt(card.id.split('_')[1]!, 10));
     createElement('time', { title: 'Creation Date', dateTime: date.toISOString().split('T')[0], textContent: date.toLocaleDateString('en') }, metadataContainer);
   }
 

@@ -1,4 +1,4 @@
-import { WORKER_URL } from './constants';
+import { WORKER_URL } from './constants.ts';
 
 
 let resolveFunction: ((value?: unknown) => void) | undefined;

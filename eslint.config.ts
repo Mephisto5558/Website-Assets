@@ -1,10 +1,5 @@
-/* eslint-disable @typescript-eslint/no-magic-numbers */
-
 import config, { globals, jsGlob, tsGlob } from '@mephisto5558/eslint-config';
 
-/**
- * @type {typeof config}
- * This config lists all rules from every plugin it uses. */
 export default [
   ...config,
   {
@@ -34,9 +29,10 @@ export default [
       '@stylistic/max-len': 'off',
       'sonarjs/no-nested-functions': [
         'error',
+        /* eslint-disable-next-line @typescript-eslint/no-magic-numbers */
         { threshold: 4 } // 3, + 1 for IIFE
       ],
       'import-x/no-unassigned-import': 'off' // required to import for side-effects
     }
   }
-];
+] as typeof config;

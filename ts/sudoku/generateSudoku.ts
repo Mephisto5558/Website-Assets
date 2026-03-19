@@ -1,5 +1,5 @@
-import { numberOverviewTable, sudokuTable } from './constants';
-import { getGroupId } from './utils';
+import { numberOverviewTable, sudokuTable } from './constants.ts';
+import { getGroupId } from './utils.ts';
 
 export function createHTMLBoard(size: number): void {
   const boxSize = Math.sqrt(size);

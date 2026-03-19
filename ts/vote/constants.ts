@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import createElement from './createElement';
+import createElement from './createElement.ts';
 
 export const
 

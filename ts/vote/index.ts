@@ -3,10 +3,10 @@
 import {
   ADDITIONAL_HEADER_MARGIN, DEBUG_URL, HTTP_STATUS_FORBIDDEN, MAX_BODY_LENGTH, MAX_TITLE_LENGTH, PROFILE_IMG_SIZE,
   cardModes, cardsContainer, cardsContainerPending, featureRequestOverlay, headerContainer, msInSecond, searchBoxElement
-} from './constants';
-import './events';
-import state from './state';
-import { createElement, debounce, displayCards, fetchAPI, fetchCards, getFormElement, setColorScheme } from './utils';
+} from './constants.ts';
+import './events.ts';
+import state from './state.ts';
+import { createElement, debounce, displayCards, fetchAPI, fetchCards, getFormElement, setColorScheme } from './utils.ts';
 import type Sweetalert2 from 'sweetalert2';
 
 declare global {
