@@ -20,7 +20,10 @@ headerContainer.querySelector<HTMLButtonElement>('#toggle-cards-display')!.addEv
 headerContainer.querySelector<HTMLButtonElement>('#toggle-color-scheme')!.addEventListener('click', () => setColorScheme());
 
 window.addEventListener('scroll', () => {
-  if (state.cardsCache.size > state.cardsOffset && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.documentElement.scrollHeight - ADDITIONAL_HEADER_MARGIN) displayCards();
+  if (
+    state.cardsCache.size > state.cardsOffset
+    && document.documentElement.scrollTop + document.documentElement.clientHeight >= document.documentElement.scrollHeight - ADDITIONAL_HEADER_MARGIN
+  ) displayCards();
 });
 
 let oldWindowWidth = window.innerWidth;

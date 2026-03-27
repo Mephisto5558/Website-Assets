@@ -113,8 +113,10 @@ function dig(board: Board): boolean {
   return false;
 }
 
-/* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
-function getEmptySudoku<SIZE extends number, FILLER extends string | number = 0>(size: SIZE, filler: FILLER = 0 as FILLER): FILLER[][] & { length: SIZE } {
+function getEmptySudoku<
+  SIZE extends number, FILLER extends string | number = 0
+  /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+>(size: SIZE, filler: FILLER = 0 as FILLER): FILLER[][] & { length: SIZE } {
   /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
   return Array.from({ length: size }, () => Array.from({ length: size }, () => filler)) as FILLER[][] & { length: SIZE };
 }

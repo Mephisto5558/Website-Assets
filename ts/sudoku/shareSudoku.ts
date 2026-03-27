@@ -46,7 +46,7 @@ export function generateShareURL(board: Board, fullBoard: FullBoard): string {
   return url.toString();
 }
 
-export function loadFromShareURL(url: string | URL | undefined): { fullBoard: FullBoard; board: Board } | undefined {
+export function loadFromShareURL(url?: string | URL): { fullBoard: FullBoard; board: Board } | undefined {
   const
     params = new URLSearchParams(url?.toString() ?? globalThis.location.search),
     compressedDimension = params.get('d'),

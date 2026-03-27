@@ -3,10 +3,13 @@ const
   scriptAttributes = ['defer', 'async', 'type', 'nomodule', 'crossOrigin', 'integrity'] as const,
   linkAttributes = ['rel', 'as', 'crossorigin'] as const;
 
-type ElementSpecificAttributes<T extends 'css' | 'script'> = T extends 'css' ? typeof linkAttributes[number] : typeof scriptAttributes[number];
-type AllowedArgs<T extends 'css' | 'script'> = Partial<Record<typeof generalAttributes[number] | ElementSpecificAttributes<T>, string | boolean>>;
+type AllowedElementTypes = 'css' | 'script';
+type ElementSpecificAttributes<T extends AllowedElementTypes> = T extends 'css' ? typeof linkAttributes[number] : typeof scriptAttributes[number];
+type AllowedArgs<T extends AllowedElementTypes> = Partial<Record<typeof generalAttributes[number] | ElementSpecificAttributes<T>, string | boolean>>;
 
-export default function loadLocal<T extends 'css' | 'script'>(elementType: T, localPath: string, remotePath: string, args: AllowedArgs<T> = {}): void {
+export default function loadLocal<
+  T extends AllowedElementTypes
+>(elementType: T, localPath: string, remotePath: string, args: AllowedArgs<T> = {}): void {
   const
     elem = document.createElement(elementType === 'css' ? 'link' : 'script'),
     path = ['localhost', '127.0.0.1', ''].includes(location.hostname) ? localPath : remotePath;

@@ -25,7 +25,13 @@ function handleNotesInput(target: CellInput | NoteElement, key: string): void {
     noteSpan = [...target.parentElement.querySelector<NoteDiv>('.notes')!.children].find(span => !span.textContent || span.textContent === key);
   }
 
-  if (!noteSpan) return sendPopup('Notes full', `Your notes in row ${target.parentElement.firstChild.dataset.row}, column ${target.parentElement.firstChild.dataset.row} are full!\nYou can edit one by clicking on it.`);
+  if (!noteSpan) {
+    return sendPopup(
+      'Notes full',
+      `Your notes in row ${target.parentElement.firstChild.dataset.row}, column ${target.parentElement.firstChild.dataset.row} are full!\n`
+      + 'You can edit one by clicking on it.'
+    );
+  }
 
   let newNumber = Number(noteSpan.textContent + key);
   if (newNumber > htmlBoard.length) newNumber = Number(key);
@@ -56,7 +62,8 @@ sudokuTable.addEventListener('keypress', (event: KeyboardEvent) => {
 
   if (!/^[1-9]\d*$/.test(event.key)) return;
   if (notesMode && htmlBoard.length < 10 && event.target instanceof HTMLInputElement) {
-    const noteSpan = [...(event.target as CellInput).parentElement.querySelector<NoteDiv>('.notes')?.children ?? []].find(e => e.textContent.trim() == event.key);
+    const noteSpan = [...(event.target as CellInput).parentElement.querySelector<NoteDiv>('.notes')?.children ?? []]
+      .find(e => e.textContent.trim() == event.key);
     if (noteSpan) return clearInput(noteSpan);
   }
 
@@ -83,13 +90,22 @@ sudokuTable.addEventListener('keydown', (event: T_KeyboardEvent) => {
 
   let nextCell: CellInput | undefined;
   /* eslint-disable @typescript-eslint/no-non-null-assertion */
-  if (event.key == Key.Home)
-    nextCell = (event.ctrlKey ? htmlBoard.find(row => row.some(findCell)) : htmlBoard[Number((event.target as CellInput).dataset.row) - 1])!.find(findCell);
-  else if (event.key == Key.End)
-    nextCell = (event.ctrlKey ? htmlBoard.findLast(row => row.some(findCell)) : htmlBoard[Number((event.target as CellInput).dataset.row) - 1])!.findLast(findCell);
+  if (event.key == Key.Home) {
+    nextCell = (
+      event.ctrlKey ? htmlBoard.find(row => row.some(findCell)) : htmlBoard[Number((event.target as CellInput).dataset.row) - 1]
+    )!.find(findCell);
+  }
+  else if (event.key == Key.End) {
+    nextCell = (
+      event.ctrlKey ? htmlBoard.findLast(row => row.some(findCell)) : htmlBoard[Number((event.target as CellInput).dataset.row) - 1]
+    )!.findLast(findCell);
+  }
   /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
-  while ((!nextCell || nextCell.disabled) && !(nextCell?.dataset.row == (event.target as CellInput).dataset.row && nextCell.dataset.col == (event.target as CellInput).dataset.col)) {
+  while (
+    (!nextCell || nextCell.disabled)
+    && !(nextCell?.dataset.row == (event.target as CellInput).dataset.row && nextCell.dataset.col == (event.target as CellInput).dataset.col)
+  ) {
     const
       rowId: number = Number((nextCell ?? event.target as CellInput).dataset.row) - 1,
       colId: number = Number((nextCell ?? event.target as CellInput).dataset.col) - 1;
@@ -143,7 +159,7 @@ document.querySelector<HTMLButtonElement>('#stepper-down')!.addEventListener('cl
   sizeOption.dispatchEvent(new Event('change', { bubbles: true }));
 });
 
-sizeOption.addEventListener('change', updateMinMax);
+sizeOption.addEventListener('change', () => void updateMinMax());
 difficultySlider.addEventListener('input', event => {
   difficultyOutput.textContent = (event.target as typeof difficultySlider).value;
 });

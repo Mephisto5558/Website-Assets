@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import { randomInt, randomIntSequence } from '../randomNumberGen.ts';
-import { DEFAULT_BOARD_SIZE, MAX_HOLES_PERCENTAGE, MIN_HOLES_PERCENTAGE, MS_IN_SEC, SEC_IN_MIN, difficultyOutput, difficultySlider, numberOverviewSpans, sizeOption, timer } from './constants.ts';
+import {
+  DEFAULT_BOARD_SIZE, MAX_HOLES_PERCENTAGE, MIN_HOLES_PERCENTAGE, MS_IN_SEC, SEC_IN_MIN,
+  difficultyOutput, difficultySlider, numberOverviewSpans, sizeOption, timer
+} from './constants.ts';
 
 export { randomInt, randomIntSequence };
 
@@ -20,8 +23,11 @@ export function getRootStyle(key: string): string {
 
 export function invertHex(hex: string): `#${string}` {
   hex = hex.replace('#', '');
-  /* eslint-disable-next-line @typescript-eslint/no-magic-numbers, @typescript-eslint/no-misused-spread, @typescript-eslint/no-unsafe-type-assertion -- hex math */
-  return '#' + (hex.length == 3 ? [...hex] : hex.match(/\w{2}/g)!).map(e => (255 - Number.parseInt(e, 16)).toString(16).padStart(2, '0')).join('') as `#${string}`;
+  /* eslint-disable @typescript-eslint/no-magic-numbers, @typescript-eslint/no-misused-spread, @typescript-eslint/no-unsafe-type-assertion
+    -- hex math */
+  return '#' + (hex.length == 3 ? [...hex] : hex.match(/\w{2}/g)!)
+    .map(e => (255 - Number.parseInt(e, 16)).toString(16).padStart(2, '0')).join('') as `#${string}`;
+  /* eslint-enable @typescript-eslint/no-magic-numbers, @typescript-eslint/no-misused-spread, @typescript-eslint/no-unsafe-type-assertion */
 }
 
 export async function saveToClipboard(value: string): Promise<void> {
@@ -52,7 +58,10 @@ export async function saveToClipboard(value: string): Promise<void> {
   copyArea.remove();
 }
 
-export function initializeColorPicker(picker: HTMLInputElement & { dataset: { cssProperty: string } }, storageKey: string, onColorChange: (color: string) => void): void {
+export function initializeColorPicker(
+  picker: HTMLInputElement & { dataset: { cssProperty: string } }, storageKey: string,
+  onColorChange: (color: string) => void
+): void {
   const savedColor = localStorage.getItem(storageKey);
   picker.value = savedColor ?? getRootStyle(picker.dataset.cssProperty).trim();
 

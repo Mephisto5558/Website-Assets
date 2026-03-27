@@ -1,4 +1,7 @@
-import { ADDITIONAL_HEADER_MARGIN, COLOR_TRANSITION_TIME, DEBUG_URL, cardModes, cardsContainer, cardsContainerPending, featureRequestOverlay, headerContainer, msInSecond, searchBoxElement } from './constants.ts';
+import {
+  ADDITIONAL_HEADER_MARGIN, COLOR_TRANSITION_TIME, DEBUG_URL, cardModes, cardsContainer,
+  cardsContainerPending, featureRequestOverlay, headerContainer, msInSecond, searchBoxElement
+} from './constants.ts';
 import createElement from './createElement.ts';
 import state from './state.ts';
 
@@ -50,7 +53,7 @@ export const sendUpvote = debounce(async (card: Card, voteCounter: HTMLSpanEleme
   displayCards();
 }, msInSecond);
 
-export async function fetchAPI(url: string, options: RequestInit | undefined = {}, timeout: number | undefined = 5000): Promise<Response> {
+export async function fetchAPI(url: string, options: RequestInit = {}, timeout = 5000): Promise<Response> {
   if (options.body != undefined && !options.headers) options.headers = { 'Content-Type': 'application/json' };
 
   const controller = new AbortController();
@@ -93,13 +96,22 @@ export function updateParams(key: string, value?: string): void {
 /**
  * @param amount More like a max amount; will load more if the screen is not filled yet.
  * @returns all fetched cards, including not displayed ones */
-export function displayCards(query: string | undefined = searchBoxElement.value, amount: number | undefined = 26): Card[] | undefined {
+export function displayCards(query: string = searchBoxElement.value, amount = 26): Card[] | undefined {
   query = query.toLowerCase();
   updateParams('q', query);
 
-  /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- boolean check */
-  const cards = query ? [...state.cardsCache.values()].filter(e => e.title.toLowerCase().includes(query) || e.body?.toLowerCase().includes(query) || e.id.toLowerCase().includes(query)) : [...state.cardsCache.values()];
-  if (!cards.length && !cardsContainer.childElementCount && !cardsContainerPending.childElementCount) return void createElement('h2', { textContent: `There are currently no feature requests${query ? ' matching your search query' : ''} :(` }, cardsContainer, true);
+  const cards = query
+    ? [...state.cardsCache.values()]
+        /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- boolean check */
+        .filter(e => e.title.toLowerCase().includes(query) || e.body?.toLowerCase().includes(query) || e.id.toLowerCase().includes(query))
+    : [...state.cardsCache.values()];
+
+  if (!cards.length && !cardsContainer.childElementCount && !cardsContainerPending.childElementCount) {
+    return void createElement(
+      'h2', { textContent: `There are currently no feature requests${query ? ' matching your search query' : ''} :(` },
+      cardsContainer, true
+    );
+  }
 
   if (!state.cardsOffset) {
     cardsContainer.innerHTML = '';
@@ -113,7 +125,9 @@ export function displayCards(query: string | undefined = searchBoxElement.value,
     if (cardsContainer.childElementCount + cardsContainerPending.childElementCount < amount) displayCards(query, amount);
     else if (cardsContainer.clientHeight < window.innerHeight) { // Prevent having to add a "load more" button for big screens/large zoomout
       // displaying the approximate amount of cards required to have more than displayable (user scrolls = more cards load)
-      displayCards(query, Math.ceil((window.innerHeight - cardsContainer.clientHeight) / (cardsContainer.clientHeight / cardsContainer.childElementCount)));
+      displayCards(
+        query, Math.ceil((window.innerHeight - cardsContainer.clientHeight) / (cardsContainer.clientHeight / cardsContainer.childElementCount))
+      );
     }
   }
 
@@ -126,14 +140,22 @@ export function createCardElement(card: Card): void {
 
     cardElement = createElement('div', { className: 'card', id: card.id }),
 
-    titleElement = createElement('h2', { id: 'title', textContent: htmlDecode(card.title), contentEditable: isDev ? 'plaintext-only' : 'false' }, cardElement),
-    descriptionElement = card.body || isDev ? createElement('p', { id: 'description', textContent: htmlDecode(card.body ?? ''), contentEditable: isDev ? 'plaintext-only' : 'false' }, cardElement) : undefined,
+    titleElement = createElement(
+      'h2', { id: 'title', textContent: htmlDecode(card.title), contentEditable: isDev ? 'plaintext-only' : 'false' }, cardElement
+    ),
+    descriptionElement = card.body || isDev
+      ? createElement(
+          'p', { id: 'description', textContent: htmlDecode(card.body ?? ''), contentEditable: isDev ? 'plaintext-only' : 'false' }, cardElement
+        )
+      : undefined,
 
     voteButtonsElement = createElement('div', { className: 'vote-buttons' }, cardElement),
     upvoteCounterElement = createElement('span', { className: 'vote-counter', textContent: card.pending ? '' : (card.votes ?? 0).toString() });
 
   if (card.pending && isDev) {
-    createElement('button', { textContent: 'Approve', className: 'vote-button blue-button' }, voteButtonsElement).addEventListener('click', async () => {
+    createElement(
+      'button', { textContent: 'Approve', className: 'vote-button blue-button' }, voteButtonsElement
+    ).addEventListener('click', async () => {
       const res = await fetchAPI('vote/approve', {
         method: 'POST',
         body: JSON.stringify({ featureId: card.id })
@@ -155,7 +177,7 @@ export function createCardElement(card: Card): void {
   }
   else if (!card.pending) {
     createElement('button', { className: 'vote-button blue-button', textContent: 'Upvote' }, voteButtonsElement)
-      .addEventListener('click', async () => sendUpvote(card, upvoteCounterElement));
+      .addEventListener('click', () => void sendUpvote(card, upvoteCounterElement));
   }
 
   voteButtonsElement.append(upvoteCounterElement);
@@ -167,8 +189,10 @@ export function createCardElement(card: Card): void {
   copyButtonElement.addEventListener('click', () => {
     void navigator.clipboard.writeText(card.id);
     copyButtonIcon.classList = 'fas fa-check fa-xl';
-    /* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- 3s */
-    setTimeout(() => copyButtonIcon.classList = 'far fa-copy fa-xl', msInSecond * 3);
+    setTimeout(() => {
+      copyButtonIcon.classList = 'far fa-copy fa-xl';
+      /* eslint-disable-next-line @typescript-eslint/no-magic-numbers -- 3s */
+    }, msInSecond * 3);
   });
 
   if (isDev) {
@@ -201,7 +225,7 @@ export function createCardElement(card: Card): void {
 
   if (isDev || state.user?.id == card.id.split('_')[0]) {
     const deleteButtonElement = createElement('button', { title: 'Delete card', className: 'manage-button grey-hover' }, voteButtonsElement);
-    deleteButtonElement.addEventListener('click', async () => Swal.fire({
+    deleteButtonElement.addEventListener('click', () => void Swal.fire({
       icon: 'warning',
       title: 'Are you sure?',
       text: 'Are you sure you want to delete that card? This action cannot be undone!',
@@ -216,8 +240,8 @@ export function createCardElement(card: Card): void {
         if (!cardsContainerPending.childElementCount) {
           document.body.querySelector('#new-requests')?.remove();
           document.body.querySelector('#old-requests')?.remove();
-          /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
-          (featureRequestOverlay.nextElementSibling as HTMLElement).style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`; // Element after `#feature-request-overlay`
+          /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Element after `#feature-request-overlay` */
+          (featureRequestOverlay.nextElementSibling as HTMLElement).style.marginTop = `${headerContainer.clientHeight + ADDITIONAL_HEADER_MARGIN}px`;
         }
       }
     }));
@@ -229,14 +253,16 @@ export function createCardElement(card: Card): void {
   if (!card.id.startsWith('PVTI_')) { // old github project PVTI type
     /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
     const date = new Date(Number.parseInt(card.id.split('_')[1]!, 10));
-    createElement('time', { title: 'Creation Date', dateTime: date.toISOString().split('T')[0], textContent: date.toLocaleDateString('en') }, metadataContainer);
+    createElement(
+      'time', { title: 'Creation Date', dateTime: date.toISOString().split('T')[0], textContent: date.toLocaleDateString('en') }, metadataContainer
+    );
   }
 
   if (isDev) {
     /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
     createElement('p', { id: 'userId', title: 'Click to copy', textContent: card.id.split('_')[0]! }, metadataContainer)
     /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
-      .addEventListener('click', async () => navigator.clipboard.writeText(card.id.split('_')[0]!));
+      .addEventListener('click', () => void navigator.clipboard.writeText(card.id.split('_')[0]!));
   }
 
   (card.pending ? cardsContainerPending : cardsContainer).append(cardElement);
@@ -254,7 +280,7 @@ export function toggleCardDisplayMode(): void {
 }
 
 let currentTheme: 'dark' | 'light';
-export function setColorScheme(scheme: 'dark' | 'light' | undefined = currentTheme === 'dark' ? 'light' : 'dark'): void {
+export function setColorScheme(scheme: 'dark' | 'light' = currentTheme === 'dark' ? 'light' : 'dark'): void {
   if (currentTheme === scheme) return;
   currentTheme = scheme;
   localStorage.setItem('theme', currentTheme);
@@ -272,7 +298,7 @@ export function setColorScheme(scheme: 'dark' | 'light' | undefined = currentThe
   }
 }
 
-/* eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-unnecessary-type-parameters */
+/* eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types */
 export function getFormElement<ElementType extends HTMLElement | null = HTMLInputElement | null>(form: HTMLFormElement, itemName: string) {
   /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
   return form.elements.namedItem(itemName) as ElementType | RadioNodeList;

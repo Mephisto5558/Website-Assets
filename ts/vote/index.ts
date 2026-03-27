@@ -25,7 +25,10 @@ declare global {
 
 // @ts-expect-error -- navigator.clipboard is not available with HTTP, meaning it is not readonly with HTTP
 navigator.clipboard ??= {
-  writeText: (data: string): void => void Swal.fire({ icon: 'error', title: 'Copying is not available due to this page being served over HTTP.', text: `This was what you tried to copy: ${data}` })
+  writeText: (data: string): void => void Swal.fire({
+    icon: 'error', title: 'Copying is not available due to this page being served over HTTP.',
+    text: `This was what you tried to copy: ${data}`
+  })
 };
 
 let saveButtonElement: HTMLButtonElement | undefined;
@@ -86,8 +89,10 @@ const
   updateCards = debounce(async () => {
     const updateList = [...document.body.querySelectorAll<HTMLCardElement>('.card[modified]')].reduce((acc: Card[], card) => {
       const originalData = state.cardsCache.get(card.id);
-      if (originalData?.title && card.children.title.textContent.trim() !== originalData.title || originalData?.body && card.children.description?.textContent.trim() !== originalData.body)
-        acc.push({ id: card.id, title: card.children.title.textContent.trim(), body: card.children.description?.textContent.trim() ?? '' });
+      if (
+        originalData?.title && card.children.title.textContent.trim() !== originalData.title
+        || originalData?.body && card.children.description?.textContent.trim() !== originalData.body
+      ) acc.push({ id: card.id, title: card.children.title.textContent.trim(), body: card.children.description?.textContent.trim() ?? '' });
       return acc;
     }, []);
 
@@ -102,7 +107,8 @@ const
       /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
       res = await (apiRes instanceof Response ? (apiRes.json() as Promise<UserError | { success: true }>).catch(err => err as UserError) : apiRes);
 
-    if (res instanceof Error || 'error' in res) return void Swal.fire({ icon: 'error', title: 'Oops...', text: 'error' in res ? res.error : res.message });
+    if (res instanceof Error || 'error' in res)
+      return void Swal.fire({ icon: 'error', title: 'Oops...', text: 'error' in res ? res.error : res.message });
 
     void Swal.fire({ icon: 'success', title: 'Success', text: 'The cards have been updated.' });
 
@@ -121,14 +127,20 @@ async function createProfileElement(): Promise<HTMLElement | undefined> {
     profileContainer = createElement('div', { id: 'profile-container' });
 
   /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
-  state.user = await fetchAPI('user').then(async e => ('json' in e ? e.json() as Promise<User> : undefined)).catch(() => { /* empty */ }) as User | undefined;
+  state.user = await fetchAPI('user')
+    .then(async e => ('json' in e ? e.json() as Promise<User> : undefined)).catch(() => { /* empty */ }) as User | undefined;
   if (!state.user || state.user.errorCode) {
     if (state.user?.errorCode == HTTP_STATUS_FORBIDDEN) return createElement('h2', { textContent: state.user.error }, document.body, true);
 
     fragment.append(searchBoxElement);
-    createElement('button', { id: 'feature-request-button', textContent: state.smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover' }, fragment);
-    createElement('button', { id: 'login-button', textContent: state.smallScreen ? 'Login' : 'Login with Discord', className: 'blue-button' }, profileContainer)
-      .addEventListener('click', () => globalThis.location.href = `${DEBUG_URL}/auth/discord?redirectUrl=${globalThis.location.href}`);
+    createElement(
+      'button',
+      { id: 'feature-request-button', textContent: state.smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover' }, fragment
+    );
+    createElement(
+      'button',
+      { id: 'login-button', textContent: state.smallScreen ? 'Login' : 'Login with Discord', className: 'blue-button' }, profileContainer
+    ).addEventListener('click', () => { globalThis.location.href = `${DEBUG_URL}/auth/discord?redirectUrl=${globalThis.location.href}`; });
     fragment.append(profileContainer);
 
     headerContainer.append(fragment);
@@ -138,7 +150,8 @@ async function createProfileElement(): Promise<HTMLElement | undefined> {
   const profileContainerWrapper = createElement('div', { id: 'profile-container-wrapper' }, profileContainer);
   profileContainer.addEventListener('click', (event: PointerEvent) => {
     /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
-    if (!profileContainerWrapper.contains(event.target as Element)) profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'flex' ? 'none' : 'flex';
+    if (!profileContainerWrapper.contains(event.target as Element))
+      profileContainerWrapper.style.display = profileContainerWrapper.style.display === 'flex' ? 'none' : 'flex';
   });
 
   const img = new Image(PROFILE_IMG_SIZE, PROFILE_IMG_SIZE);
@@ -147,14 +160,22 @@ async function createProfileElement(): Promise<HTMLElement | undefined> {
   img.src = `https://cdn.discordapp.com/avatars/${state.user.id}/${state.user.avatar}.webp?size=64`;
 
   createElement('div', { id: 'username', textContent: state.user.displayName }, profileContainerWrapper);
-  createElement('button', { id: 'logout-button', textContent: 'Logout', className: 'blue-button' }, profileContainerWrapper).addEventListener('click', async () => {
+  createElement(
+    'button', { id: 'logout-button', textContent: 'Logout', className: 'blue-button' }, profileContainerWrapper
+  ).addEventListener('click', async () => {
     const res = await fetch(`${DEBUG_URL}/auth/logout`);
 
-    await Swal.fire(res.ok ? { icon: 'success', title: 'Success', text: 'You are now logged out.' } : { icon: 'error', title: 'Logout failed', text: res.statusText });
+    await Swal.fire(
+      res.ok
+        ? { icon: 'success', title: 'Success', text: 'You are now logged out.' }
+        : { icon: 'error', title: 'Logout failed', text: res.statusText }
+    );
     if (res.ok) globalThis.location.reload();
   });
 
-  const featureRequestButtonElement = createElement('button', { id: 'feature-request-button', textContent: state.smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover' });
+  const featureRequestButtonElement = createElement(
+    'button', { id: 'feature-request-button', textContent: state.smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover' }
+  );
   if (state.smallScreen) {
     createElement('br', fragment);
     fragment.append(profileContainer);
@@ -173,10 +194,11 @@ async function createProfileElement(): Promise<HTMLElement | undefined> {
 function createFeatureReqElement(): void {
   const featureRequestModal = featureRequestOverlay.querySelector<HTMLDivElement>('#feature-request-modal')!;
 
-  featureRequestModal.querySelector<HTMLButtonElement>('#feature-request-submit-button')!.addEventListener('click', sendFeatureRequest);
+  featureRequestModal.querySelector<HTMLButtonElement>('#feature-request-submit-button')!
+    .addEventListener('click', event => void sendFeatureRequest(event));
   headerContainer.querySelector<HTMLButtonElement>('#feature-request-button')!.addEventListener('click', async () => {
     if (!state.user?.id) {
-      return Swal.fire({
+      return void Swal.fire({
         icon: 'error',
         title: 'Who are you?',
         text: 'You must be logged in to be able to create a feature request!'
@@ -233,8 +255,11 @@ async function findAndScrollToCard(cardId: Card['id']): Promise<void> {
 // Listener
 
 
-/* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
-setColorScheme(localStorage.getItem('theme') as 'dark' | 'light' | undefined ?? (globalThis.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+setColorScheme(
+  /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
+  localStorage.getItem('theme') as 'dark' | 'light' | undefined
+  ?? (globalThis.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+);
 
 state.smallScreen = globalThis.matchMedia('(max-width: 768px)').matches;
 const cardsInRows = state.smallScreen && localStorage.getItem('displayMode') === 'cardsInRows';
@@ -253,7 +278,7 @@ if (globalThis.location.hash == '#new') headerContainer.querySelector<HTMLButton
 
 displayCards();
 
-setTimeout(async () => findAndScrollToCard(globalThis.location.hash.slice(1)), msInSecond / 10);
+setTimeout(() => void findAndScrollToCard(globalThis.location.hash.slice(1)), msInSecond / 10);
 
 if (state.user?.dev) {
   if (cardsContainerPending.childElementCount) {

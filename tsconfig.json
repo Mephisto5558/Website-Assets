@@ -1,27 +1,11 @@
 {
-  "exclude": [
-    "node_modules"
-  ],
+  "extends": "@mephisto5558/eslint-config/tsconfigs/browser/tsconfig.check.json",
   "compilerOptions": {
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "target": "esnext",
     "lib": [
       "DOM",
-      "DOM.Iterable",
       "ESNext",
-      "WebWorker",
-      "Webworker.Iterable"
+      "WebWorker"
     ],
-    "allowImportingTsExtensions": true,
-    "allowJs": false,
-    "exactOptionalPropertyTypes": true,
-    "libReplacement": true,
-    "noEmit": true,
-    "noImplicitOverride": true,
-    "noUncheckedIndexedAccess": true,
-    "noUncheckedSideEffectImports": true,
-    "skipLibCheck": true,
-    "strict": true
+    "rootDir": "."
   }
 }

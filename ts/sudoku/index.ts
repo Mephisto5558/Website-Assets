@@ -1,25 +1,31 @@
 import {
-  DEBUG_BOARDS, MAX_GENERATION_ATTEMPTS, MS_IN_SEC, WORKER_URL,
-  bgColorSwitcher, cancelBtn, fgColorSwitcher, htmlBoard, loadingContainer, loadingStatusSpan, numberOverviewSpans, regenerateBtn, shareBtn, solutionBtn
+  DEBUG_BOARDS, MAX_GENERATION_ATTEMPTS, MS_IN_SEC, WORKER_URL, bgColorSwitcher, cancelBtn, fgColorSwitcher, htmlBoard,
+  loadingContainer, loadingStatusSpan, numberOverviewSpans, regenerateBtn, shareBtn, solutionBtn
 } from './constants.ts';
 import './events.ts';
 import { createHTMLBoard, createHTMLOverviewSpans, displayBoard } from './generateSudoku.ts';
 import { generateShareURL, loadFromShareURL } from './shareSudoku.ts';
-import { checkErrors, clearTimer, getRootStyle, initializeColorPicker, invertHex, saveToClipboard, sendPopup, setRootStyle, updateMinMax } from './utils.ts';
+import {
+  checkErrors, clearTimer, getRootStyle, initializeColorPicker, invertHex, saveToClipboard, sendPopup, setRootStyle, updateMinMax
+} from './utils.ts';
 
 declare global {
   /* eslint-disable vars-on-top, no-inner-declarations */
   var
     debugBoard: boolean,
-    timerInterval: number | undefined,
+    timerInterval: NodeJS.Timeout | undefined,
     sudokuWorker: Worker | undefined;
   /* eslint-enable vars-on-top, no-inner-declarations */
 
   type NoteDiv = HTMLDivElement & { firstChild: NoteElement; childNodes: NodeListOf<NoteElement>; children: HTMLCollectionOf<NoteElement> };
   type NoteElement = HTMLSpanElement & { dataset: { note: `${number}` }; parentElement: NoteDiv };
 
-  type CellInput = HTMLInputElement & { type: 'number'; dataset: { group: `${number}`; row: `${number}`; col: `${number}`; val?: `${number}` }; parentElement: CellList };
-  type CellList = HTMLTableCaptionElement & { firstChild: CellInput; childNodes: NodeListOf<CellInput | NoteDiv>; children: HTMLCollectionOf<CellInput | NoteDiv> };
+  type CellList = HTMLTableCaptionElement & {
+    firstChild: CellInput; childNodes: NodeListOf<CellInput | NoteDiv>; children: HTMLCollectionOf<CellInput | NoteDiv>;
+  };
+  type CellInput = HTMLInputElement & {
+    type: 'number'; dataset: { group: `${number}`; row: `${number}`; col: `${number}`; val?: `${number}` }; parentElement: CellList;
+  };
   type HTMLBoard = CellInput[][];
 
   type Board = number[][];
@@ -205,7 +211,10 @@ async function regenerate(event?: PointerEvent, firstTime = false): Promise<void
       createHTMLBoard(fullBoard.length);
       htmlBoard.length = 0;
 
-      htmlBoard.push(...document.querySelectorAll<HTMLTableRowElement & { children: HTMLCollectionOf<CellList> }>('#sudoku > tbody > tr').values().map(e => [...e.children].map(e => e.firstChild)));
+      htmlBoard.push(
+        ...document.querySelectorAll<HTMLTableRowElement & { children: HTMLCollectionOf<CellList> }>('#sudoku > tbody > tr')
+          .values().map(e => [...e.children].map(e => e.firstChild))
+      );
 
       createHTMLOverviewSpans(fullBoard.length);
       numberOverviewSpans.length = 0;
@@ -242,5 +251,5 @@ async function regenerate(event?: PointerEvent, firstTime = false): Promise<void
   }
 }
 
-regenerateBtn.addEventListener('click', regenerate);
+regenerateBtn.addEventListener('click', event => void regenerate(event));
 await regenerate(undefined, true);

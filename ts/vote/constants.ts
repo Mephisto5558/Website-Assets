@@ -21,5 +21,7 @@ export const
   cardsContainerPending = document.body.querySelector<HTMLElement>('#cards-container-pending')!,
   featureRequestOverlay = document.body.querySelector<HTMLElement>('#feature-request-overlay')!,
   searchBoxElement = createElement('input', {
-    type: 'text', placeholder: 'Search', id: 'search-box', value: new URLSearchParams(globalThis.location.search).get('q') ?? '', className: 'grey-hover', maxLength: MAX_SEARCHBOX_LENGTH
+    type: 'text', placeholder: 'Search', id: 'search-box',
+    value: new URLSearchParams(globalThis.location.search).get('q') ?? '',
+    className: 'grey-hover', maxLength: MAX_SEARCHBOX_LENGTH
   });

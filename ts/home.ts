@@ -12,7 +12,7 @@ const
     for (let i = 1; ;i++) yield [texts[i % texts.length]!, colors[i % colors.length]];
   })();
 
-(function updateText(currentText: string | undefined = texts[0], currentColor: string | undefined = colors[0], isAdding: boolean | undefined = true): NodeJS.Timeout {
+(function updateText(currentText: string = texts[0], currentColor: string = colors[0], isAdding = true): NodeJS.Timeout {
   if (currentColor && textElement.style.color != currentColor) textElement.style.color = currentColor;
 
   if (isAdding) {
