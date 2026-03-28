@@ -56,8 +56,8 @@ initializeColorPicker(
 setRootStyle('--foreground-color-secondary-inverted', invertHex(getRootStyle('--foreground-color-secondary')));
 
 let
-  shareEventListener: ((event: PointerEvent) => unknown) | undefined,
-  solutionEventListener: ((event: PointerEvent) => unknown) | undefined;
+  shareEventListener: ((event: PointerEvent) => void) | undefined,
+  solutionEventListener: ((event: PointerEvent) => void) | undefined;
 
 function updateBtnListeners(board: Board, fullBoard: FullBoard): void {
   let solutionShown = false;
@@ -65,11 +65,11 @@ function updateBtnListeners(board: Board, fullBoard: FullBoard): void {
   if (shareEventListener) shareBtn.removeEventListener('click', shareEventListener);
   if (solutionEventListener) solutionBtn.removeEventListener('click', solutionEventListener);
 
-  shareEventListener = async (): Promise<void> => {
+  shareEventListener = (): void => {
     const url = globalThis.location.search ? globalThis.location.href : generateShareURL(board, fullBoard);
     if (url != globalThis.location.href) globalThis.history.pushState({}, '', url);
 
-    await saveToClipboard(url);
+    void saveToClipboard(url);
   };
   solutionEventListener = (event: PointerEvent): void => {
     if (!(event.target instanceof HTMLButtonElement)) return; // typeguard

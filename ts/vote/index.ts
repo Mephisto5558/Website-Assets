@@ -127,8 +127,7 @@ async function createProfileElement(): Promise<HTMLElement | undefined> {
     profileContainer = createElement('div', { id: 'profile-container' });
 
   /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
-  state.user = await fetchAPI('user')
-    .then(async e => ('json' in e ? e.json() as Promise<User> : undefined)).catch(() => { /* empty */ }) as User | undefined;
+  state.user = await fetchAPI('user').then(async e => ('json' in e ? e.json() : undefined)).catch(() => { /* empty */ }) as User | undefined;
   if (!state.user || state.user.errorCode) {
     if (state.user?.errorCode == HTTP_STATUS_FORBIDDEN) return createElement('h2', { textContent: state.user.error }, document.body, true);
 
@@ -196,7 +195,7 @@ function createFeatureReqElement(): void {
 
   featureRequestModal.querySelector<HTMLButtonElement>('#feature-request-submit-button')!
     .addEventListener('click', event => void sendFeatureRequest(event));
-  headerContainer.querySelector<HTMLButtonElement>('#feature-request-button')!.addEventListener('click', async () => {
+  headerContainer.querySelector<HTMLButtonElement>('#feature-request-button')!.addEventListener('click', () => {
     if (!state.user?.id) {
       return void Swal.fire({
         icon: 'error',
@@ -289,7 +288,7 @@ if (state.user?.dev) {
   saveButtonElement = createElement('button', { id: 'save-button', title: 'Save', className: 'blue-button' }, document.body);
   createElement('i', { className: 'fas fa-save fa-xl' }, saveButtonElement);
 
-  saveButtonElement.addEventListener('click', updateCards);
+  saveButtonElement.addEventListener('click', () => void updateCards());
 }
 
 /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */

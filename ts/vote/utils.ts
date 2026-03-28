@@ -298,7 +298,8 @@ export function setColorScheme(scheme: 'dark' | 'light' = currentTheme === 'dark
   }
 }
 
-/* eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/explicit-module-boundary-types,
+  @typescript-eslint/no-unnecessary-type-parameters */
 export function getFormElement<ElementType extends HTMLElement | null = HTMLInputElement | null>(form: HTMLFormElement, itemName: string) {
   /* eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion */
   return form.elements.namedItem(itemName) as ElementType | RadioNodeList;

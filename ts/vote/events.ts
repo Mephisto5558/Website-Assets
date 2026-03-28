@@ -4,7 +4,7 @@ import { ADDITIONAL_HEADER_MARGIN, WINDOW_WIDTH_RELOAD_TRESHOLD, headerContainer
 import state from './state.ts';
 import { debounce, displayCards, setColorScheme, toggleCardDisplayMode } from './utils.ts';
 
-searchBoxElement.addEventListener('input', debounce((event: Event) => {
+searchBoxElement.addEventListener('input', event => void debounce(() => {
   if (!(event.target instanceof HTMLInputElement)) return; // typeguard
 
   if (event.target.value.length > event.target.maxLength) event.target.value = event.target.value.slice(0, event.target.maxLength);
@@ -27,7 +27,7 @@ window.addEventListener('scroll', () => {
 });
 
 let oldWindowWidth = window.innerWidth;
-window.addEventListener('resize', debounce(() => {
+window.addEventListener('resize', () => void debounce(() => {
   const currentWidth = window.innerWidth;
 
   if (
@@ -36,6 +36,7 @@ window.addEventListener('resize', debounce(() => {
   ) globalThis.location.reload();
   else oldWindowWidth = currentWidth;
 }, msInSecond / 2));
+
 window.addEventListener('beforeunload', event => {
   if (document.body.querySelector('.card[modified]')) event.preventDefault(); // Triggers "you have unsaved changes" dialog box
 });
