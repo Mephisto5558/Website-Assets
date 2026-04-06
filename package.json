@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@mephisto5558/eslint-config": "latest",
-    "esbuild": "0.27.x",
+    "esbuild": "0.28.x",
     "npm-run-all2": "8.x",
     "sweetalert2": "^11.26.24"
   },
