@@ -154,7 +154,7 @@ export function createCardElement(card: Card): void {
 
   if (card.pending && isDev) {
     createElement(
-      'button', { textContent: 'Approve', className: 'vote-button blue-button' }, voteButtonsElement
+      'button', { type: 'button', textContent: 'Approve', className: 'vote-button blue-button' }, voteButtonsElement
     ).addEventListener('click', async () => {
       const res = await fetchAPI('vote/approve', {
         method: 'POST',
@@ -176,14 +176,14 @@ export function createCardElement(card: Card): void {
     });
   }
   else if (!card.pending) {
-    createElement('button', { className: 'vote-button blue-button', textContent: 'Upvote' }, voteButtonsElement)
+    createElement('button', { type: 'button', className: 'vote-button blue-button', textContent: 'Upvote' }, voteButtonsElement)
       .addEventListener('click', () => void sendUpvote(card, upvoteCounterElement));
   }
 
   voteButtonsElement.append(upvoteCounterElement);
 
   const
-    copyButtonElement = createElement('button', { title: 'Copy card Id', className: 'manage-button grey-hover' }, voteButtonsElement),
+    copyButtonElement = createElement('button', { type: 'button', title: 'Copy card Id', className: 'manage-button grey-hover' }, voteButtonsElement),
     copyButtonIcon = createElement('i', { className: 'far fa-copy fa-xl' }, copyButtonElement);
 
   copyButtonElement.addEventListener('click', () => {
@@ -224,7 +224,10 @@ export function createCardElement(card: Card): void {
   }
 
   if (isDev || state.user?.id == card.id.split('_')[0]) {
-    const deleteButtonElement = createElement('button', { title: 'Delete card', className: 'manage-button grey-hover' }, voteButtonsElement);
+    const deleteButtonElement = createElement(
+      'button', { type: 'button', title: 'Delete card', className: 'manage-button grey-hover' },
+      voteButtonsElement
+    );
     deleteButtonElement.addEventListener('click', () => void Swal.fire({
       icon: 'warning',
       title: 'Are you sure?',

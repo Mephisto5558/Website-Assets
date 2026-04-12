@@ -133,12 +133,16 @@ async function createProfileElement(): Promise<HTMLElement | undefined> {
 
     fragment.append(searchBoxElement);
     createElement(
-      'button',
-      { id: 'feature-request-button', textContent: state.smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover' }, fragment
+      'button', {
+        type: 'button', id: 'feature-request-button',
+        textContent: state.smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover'
+      }, fragment
     );
     createElement(
-      'button',
-      { id: 'login-button', textContent: state.smallScreen ? 'Login' : 'Login with Discord', className: 'blue-button' }, profileContainer
+      'button', {
+        type: 'button', id: 'login-button',
+        textContent: state.smallScreen ? 'Login' : 'Login with Discord', className: 'blue-button'
+      }, profileContainer
     ).addEventListener('click', () => { globalThis.location.href = `${DEBUG_URL}/auth/discord?redirectUrl=${globalThis.location.href}`; });
     fragment.append(profileContainer);
 
@@ -160,7 +164,7 @@ async function createProfileElement(): Promise<HTMLElement | undefined> {
 
   createElement('div', { id: 'username', textContent: state.user.displayName }, profileContainerWrapper);
   createElement(
-    'button', { id: 'logout-button', textContent: 'Logout', className: 'blue-button' }, profileContainerWrapper
+    'button', { type: 'button', id: 'logout-button', textContent: 'Logout', className: 'blue-button' }, profileContainerWrapper
   ).addEventListener('click', async () => {
     const res = await fetch(`${DEBUG_URL}/auth/logout`);
 
@@ -173,7 +177,10 @@ async function createProfileElement(): Promise<HTMLElement | undefined> {
   });
 
   const featureRequestButtonElement = createElement(
-    'button', { id: 'feature-request-button', textContent: state.smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover' }
+    'button', {
+      type: 'button', id: 'feature-request-button',
+      textContent: state.smallScreen ? 'New Request' : 'New Feature Request', className: 'grey-hover'
+    }
   );
   if (state.smallScreen) {
     createElement('br', fragment);
@@ -285,7 +292,7 @@ if (state.user?.dev) {
     document.body.insertBefore(createElement('h2', { id: 'old-requests', textContent: 'Approved Requests' }), cardsContainer);
   }
 
-  saveButtonElement = createElement('button', { id: 'save-button', title: 'Save', className: 'blue-button' }, document.body);
+  saveButtonElement = createElement('button', { type: 'button', id: 'save-button', title: 'Save', className: 'blue-button' }, document.body);
   createElement('i', { className: 'fas fa-save fa-xl' }, saveButtonElement);
 
   saveButtonElement.addEventListener('click', () => void updateCards());
